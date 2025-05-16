@@ -137,19 +137,19 @@ For random variables that can take on a finite or countably infinite number of d
 - **Bernoulli Distribution**
     - Models a single trial with two possible outcomes (e.g., success/failure, 0/1, head/tail).
     - Parameter: $p$ (probability of success, i.e., outcome 1).
-    - PMF: $P(X=k) = p^k (1-p)^{1-k}$ for $k \in \{0, 1\}$.
+    - PMF: $\large P(X=k) = p^k (1-p)^{1-k}$ for $\large k \in \{0, 1\}$.
     - ML Relevance: Modeling binary classification outputs, presence/absence of a feature.
 
 - **Binomial Distribution**
     - Models the number of successes in a fixed number, $n$, of independent Bernoulli trials.
     - Parameters: $n$ (total number of trials), $p$ (probability of success in each trial).
-    - PMF: $P(X=k) = \binom{n}{k} p^k (1-p)^{n-k}$ for $k \in \{0, 1, ..., n\}$.
+    - PMF: $\large P(X=k) = \binom{n}{k} p^k (1-p)^{n-k}$ for $\large k \in \{0, 1, ..., n\}$.
     - ML Relevance: Analyzing success counts in experiments, modeling click-through rates over multiple impressions.
 
 - **Categorical Distribution**
-    - Generalizes the Bernoulli distribution to a single trial with $K$ possible outcomes (categories).
-    - Parameter: A vector of $K$ probabilities $\mathbf{p} = [p_1, p_2, ..., p_K]$, where $p_i \ge 0$ and $\sum p_i = 1$.
-    - PMF: $P(X=k_i) = p_i$.
+    - Generalizes the Bernoulli distribution to a single trial with $\large K$ possible outcomes (categories).
+    - Parameter: A vector of $\large K$ probabilities $\large \mathbf{p} = [p_1, p_2, ..., p_K]$, where $\large p_i \ge 0$ and $\large \sum p_i = 1$.
+    - PMF: $\large P(X=k_i) = p_i$.
     - ML Relevance: Modeling outputs of multi-class classification (e.g., Softmax output), representing discrete latent variables.
 
 #### 2.2 Continuous Distributions
@@ -157,40 +157,40 @@ For random variables that can take on a finite or countably infinite number of d
 For random variables that can take on any value within a continuous range.
 
 - **Uniform Distribution**
-    - All values within a given range $[a, b]$ are equally likely.
-    - Parameters: $a$ (lower bound), $b$ (upper bound).
-    - PDF: $f(x) = \frac{1}{b-a}$ for $a \le x \le b$, and $0$ otherwise.
+    - All values within a given range $\large [a, b]$ are equally likely.
+    - Parameters: $\large a$ (lower bound), $\large b$ (upper bound).
+    - PDF: $\large f(x) = \frac{1}{b-a}$ for $\large a \le x \le b$, and $\large 0$ otherwise.
     - ML Relevance: Initializing weights in neural networks within a certain range, representing a lack of prior knowledge over an interval.
 
 - **Normal (Gaussian) Distribution**
     - The ubiquitous "bell curve," characterized by its mean and standard deviation. Central Limit Theorem states that the sum/average of many independent random variables tends towards a normal distribution.
-    - Parameters: $\mu$ (mean, location), $\sigma^2$ (variance; $\sigma$ is standard deviation, scale).
-    - PDF: $f(x | \mu, \sigma^2) = \frac{1}{\sqrt{2\pi\sigma^2}} \exp\left(-\frac{(x-\mu)^2}{2\sigma^2}\right)$.
+    - Parameters: $\large \mu$ (mean, location), $\large \sigma^2$ (variance; $\large \sigma$ is standard deviation, scale).
+    - PDF: $\large f(x | \mu, \sigma^2) = \frac{1}{\sqrt{2\pi\sigma^2}} \exp\left(-\frac{(x-\mu)^2}{2\sigma^2}\right)$.
     - ML Relevance: Modeling noise in data, prior distributions for model parameters (Bayesian ML), basis for Gaussian Mixture Models, assumption in many statistical tests.
 
 ### Key Concepts for Distributions
 
 #### Probability Mass Function (PMF) / Probability Density Function (PDF)
-- PMF (Discrete): $P(X=x)$ gives the probability that a discrete random variable $X$ is exactly equal to some value $x$.
-    - Properties: $P(X=x) \ge 0$ for all $x$, and $\sum_x P(X=x) = 1$.
-- PDF (Continuous): $f(x)$ describes the relative likelihood for a continuous random variable $X$ to take on a given value $x$. The probability of $X$ falling within a range $[c,d]$ is given by the integral of the PDF over that range: $P(c \le X \le d) = \int_c^d f(x)dx$.
-    - Properties: $f(x) \ge 0$ for all $x$, and $\int_{-\infty}^{\infty} f(x)dx = 1$. Note that for continuous variables, the probability of $X$ being exactly equal to a single point $x$ is $P(X=x) = 0$.
+- PMF (Discrete): $\large P(X=x)$ gives the probability that a discrete random variable $\large X$ is exactly equal to some value $\large x$.
+    - Properties: $\large P(X=x) \ge 0$ for all $\large x$, and $\large \sum_x P(X=x) = 1$.
+- PDF (Continuous): $\large f(x)$ describes the relative likelihood for a continuous random variable $X$ to take on a given value $\large x$. The probability of $X$ falling within a range $\large [c,d]$ is given by the integral of the PDF over that range: $\large P(c \le X \le d) = \int_c^d f(x)dx$.
+    - Properties: $\large f(x) \ge 0$ for all $\large x$, and $\large \int_{-\infty}^{\infty} f(x)dx = 1$. Note that for continuous variables, the probability of $X$ being exactly equal to a single point $\large x$ is $\large P(X=x) = 0$.
 
 #### Cumulative Distribution Function (CDF)
-- The CDF, denoted $F(x)$, gives the probability that the random variable $X$ takes on a value less than or equal to $x$.
-    $$ F(x) = P(X \le x) $$
+- The CDF, denoted $\large F(x)$, gives the probability that the random variable $X$ takes on a value less than or equal to $\large x$.
+    $\large F(x) = P(X \le x)$
 - For Discrete Variables:
-    $$ F(x) = \sum_{x_i \le x} P(X=x_i) $$
+    $\large F(x) = \sum_{x_i \le x} P(X=x_i)$
 - For Continuous Variables:
-    $$ F(x) = \int_{-\infty}^{x} f(t)dt $$
-    (where $f(t)$ is the PDF).
+    $\large F(x) = \int_{-\infty}^{x} f(t)dt$
+    (where $\large f(t)$ is the PDF).
 - Properties:
-    1. $0 \le F(x) \le 1$.
-    2. $F(x)$ is a non-decreasing function (i.e., if $a < b$, then $F(a) \le F(b)$).
-    3. $\lim_{x\to-\infty} F(x) = 0$.
-    4. $\lim_{x\to\infty} F(x) = 1$.
-    5. For a continuous random variable, $P(a < X \le b) = F(b) - F(a)$.
-    6. The PDF can be obtained from the CDF (for continuous variables) by differentiation: $f(x) = \frac{dF(x)}{dx}$.
+    1. $\large 0 \le F(x) \le 1$.
+    2. $\large F(x)$ is a non-decreasing function (i.e., if $\large a < b$, then $\large F(a) \le F(b)$).
+    3. $\large \lim_{x\to-\infty} F(x) = 0$.
+    4. $\large \lim_{x\to\infty} F(x) = 1$.
+    5. For a continuous random variable, $\large P(a < X \le b) = F(b) - F(a)$.
+    6. The PDF can be obtained from the CDF (for continuous variables) by differentiation: $\large f(x) = \frac{dF(x)}{dx}$.
 - ML Relevance: Generating random samples via inverse transform sampling, calculating p-values.
 
 ### 3. Bayes' Theorem
@@ -199,13 +199,14 @@ For random variables that can take on any value within a continuous range.
 Bayes' Theorem is a fundamental theorem in probability that describes how to update the probability of a hypothesis based on new evidence.
 
 - **Formula:**
-    $$ P(H|E) = \frac{P(E|H) \cdot P(H)}{P(E)} $$
+    $\large  P(H|E) = \frac{P(E|H) \cdot P(H)}{P(E)}$
+  
     Where:
-    - $P(H|E)$: **Posterior probability** – Probability of hypothesis $H$ given evidence $E$.
-    - $P(E|H)$: **Likelihood** – Probability of observing evidence $E$ if hypothesis $H$ is true.
-    - $P(H)$: **Prior probability** – Initial belief in hypothesis $H$ before observing $E$.
-    - $P(E)$: **Evidence (or Marginal Likelihood)** – Total probability of observing evidence $E$.
-        It acts as a normalization constant: $P(E) = \sum_i P(E|H_i) P(H_i)$ over all possible mutually exclusive hypotheses $H_i$. For a single hypothesis $H$ and its complement $\neg H$: $P(E) = P(E|H)P(H) + P(E|\neg H)P(\neg H)$.
+    - $\large P(H|E)$: **Posterior probability** – Probability of hypothesis $\large H$ given evidence $\large E$.
+    - $\large P(E|H)$: **Likelihood** – Probability of observing evidence $\large E$ if hypothesis $\large H$ is true.
+    - $\large P(H)$: **Prior probability** – Initial belief in hypothesis $\large H$ before observing $\large E$.
+    - $\large P(E)$: **Evidence (or Marginal Likelihood)** – Total probability of observing evidence $\large E$.
+        It acts as a normalization constant: $\large P(E) = \sum_i P(E|H_i) P(H_i)$ over all possible mutually exclusive hypotheses $\large H_i$. For a single hypothesis $\large H$ and its complement $\large \neg H$: $\large P(E) = P(E|H)P(H) + P(E|\neg H)P(\neg H)$.
 
 #### Example Application
 The notebook demonstrates a classic medical diagnosis example, showing how a prior belief about a disease's prevalence is updated given the result of a diagnostic test with known sensitivity and specificity.
