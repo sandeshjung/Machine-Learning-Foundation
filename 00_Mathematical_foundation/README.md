@@ -259,31 +259,31 @@ At its heart, training a Machine Learning model often involves finding the set o
 ### Gradients
 
 #### Definition and Intuition
-- For a function of a single variable $f(x)$, its **derivative** $f'(x)$ or $\frac{df}{dx}$ measures the instantaneous rate of change of $f(x)$ with respect to $x$. It represents the slope of the tangent line to the function's graph at point $x$.
-- For a function of multiple variables $f(\mathbf{x}) = f(x_1, x_2, ..., x_n)$, the **gradient** $\nabla f(\mathbf{x})$ is a vector of its partial derivatives:
-    $$ \nabla f(\mathbf{x}) = \left[ \frac{\partial f}{\partial x_1}, \frac{\partial f}{\partial x_2}, \dots, \frac{\partial f}{\partial x_n} \right]^T $$
-- **Intuition:** The gradient vector $\nabla f(\mathbf{x})$ points in the direction of the steepest ascent of the function $f$ at point $\mathbf{x}$. Conversely, the negative gradient, $-\nabla f(\mathbf{x})$, points in the direction of the steepest descent.
+- For a function of a single variable $f(x)$, its **derivative** $\large f'(x)$ or $\large \frac{df}{dx}$ measures the instantaneous rate of change of $\large f(x)$ with respect to $\large x$. It represents the slope of the tangent line to the function's graph at point $x$.
+- For a function of multiple variables $\large f(\mathbf{x}) = f(x_1, x_2, ..., x_n)$, the **gradient** $\large \nabla f(\mathbf{x})$ is a vector of its partial derivatives:
+    $\large \nabla f(\mathbf{x}) = \left[ \frac{\partial f}{\partial x_1}, \frac{\partial f}{\partial x_2}, \dots, \frac{\partial f}{\partial x_n} \right]^T$
+- **Intuition:** The gradient vector $\large \nabla f(\mathbf{x})$ points in the direction of the steepest ascent of the function $f$ at point $\large \mathbf{x}$. Conversely, the negative gradient, $\large -\nabla f(\mathbf{x})$, points in the direction of the steepest descent.
 
 #### Calculation
 For simple functions, derivatives and partial derivatives can be calculated analytically using the rules of differentiation (e.g., power rule, chain rule, product rule).
 
 #### Numerical Approximation (Finite Differences)
-Gradients can be approximated numerically using the finite difference method. For a function $f(x)$:
+Gradients can be approximated numerically using the finite difference method. For a function $\large f(x)$:
 - Central Difference (more accurate):
-    $$ \frac{df}{dx} \approx \frac{f(x+h) - f(x-h)}{2h} $$
+    $\large \frac{df}{dx} \approx \frac{f(x+h) - f(x-h)}{2h}$
 - Forward Difference:
-    $$ \frac{df}{dx} \approx \frac{f(x+h) - f(x)}{h} $$
-    where $h$ is a very small step size (e.g., $10^{-5}$). This can be extended to partial derivatives for multi-variable functions $f(\mathbf{x}) = f(x_1, \dots, x_n)$. To find $\frac{\partial f}{\partial x_i}$, we perturb only $x_i$ by $h$.
+    $\large \frac{df}{dx} \approx \frac{f(x+h) - f(x)}{h}$
+    where $\large h$ is a very small step size (e.g., $\large 10^{-5}$). This can be extended to partial derivatives for multi-variable functions $\large f(\mathbf{x}) = f(x_1, \dots, x_n)$. To find $\large \frac{\partial f}{\partial x_i}$, we perturb only $\large x_i$ by $\large h$.
 
 ##### Algorithm for Numerical Gradient
-For a function $f(\mathbf{x})$ where $\mathbf{x} = [x_1, x_2, \dots, x_n]$:
-1.  Initialize an empty gradient vector $\nabla f_{num} = [0, \dots, 0]$.
-2.  For each dimension $i$ from $1$ to $n$:
-    a.  Create $\mathbf{x}_{plus\_h}$ by taking $\mathbf{x}$ and adding $h$ to its $i$-th component $x_i$.
-    b.  Create $\mathbf{x}_{minus\_h}$ by taking $\mathbf{x}$ and subtracting $h$ from its $i$-th component $x_i$.
-    c.  Compute the $i$-th component of the numerical gradient:
-        $$ (\nabla f_{num})_i = \frac{f(\mathbf{x}_{plus\_h}) - f(\mathbf{x}_{minus\_h})}{2h} $$
-3.  Return $\nabla f_{num}$.
+For a function $\large f(\mathbf{x})$ where $\large \mathbf{x} = [x_1, x_2, \dots, x_n]$:
+1.  Initialize an empty gradient vector $\large \nabla f_{num} = [0, \dots, 0]$.
+2.  For each dimension $\large i$ from $1$ to $n$:
+    a.  Create $\large \mathbf{x}_{plus\_h}$ by taking $\large \mathbf{x}$ and adding $\large h$ to its $\large i$-th component $\large x_i$.
+    b.  Create $\large \mathbf{x}_{minus\_h}$ by taking $\large \mathbf{x}$ and subtracting $h$ from its $\large i$-th component $\large x_i$.
+    c.  Compute the $\large i$-th component of the numerical gradient:
+        $\large (\nabla f_{num})_i = \frac{f(\mathbf{x}_{plus\_h}) - f(\mathbf{x}_{minus\_h})}{2h}$
+3.  Return $\large \nabla f_{num}$.
 - **Use:** While computationally more intensive and less precise than analytical or automatic differentiation, numerical gradients are invaluable for **gradient checking** (i.e., verifying the correctness of manually derived or autograd-computed gradients).
 
 Here’s a concise side-by-side of **Forward** vs. **Central** finite-difference gradients—first the math (with their truncation-error orders), then a simple algorithmic pseudocode for each:
@@ -294,17 +294,19 @@ Here’s a concise side-by-side of **Forward** vs. **Central** finite-difference
 ##### Mathematics
 
 $$
+\large 
 f'(x)\;\approx\;\frac{f(x+h) - f(x)}{h}
 \quad\text{Error: }O(h)
 $$
 
 * Derived from the Taylor expansion
 
-  $$
-  f(x+h) = f(x) + f'(x)\,h + \tfrac12 f''(\xi)\,h^2
-  \;\implies\;
-  \frac{f(x+h)-f(x)}{h} = f'(x) + O(h).
-  $$
+$$
+\large 
+f(x+h) = f(x) + f'(x)\,h + \tfrac12 f''(\xi)\,h^2
+\;\implies\;
+\frac{f(x+h)-f(x)}{h} = f'(x) + O(h).
+$$
 
 ##### Algorithm
 
@@ -332,19 +334,19 @@ return grad
 ##### Mathematics
 
 $$
+\large 
 f'(x)\;\approx\;\frac{f(x+h) - f(x-h)}{2\,h}
 \quad\text{Error: }O(h^2)
 $$
 
 * From two Taylor expansions:
 
-  $$
-  f(x\pm h) = f(x) \pm f'(x)\,h + \tfrac12 f''(\xi_\pm)\,h^2
-  \;\implies\;
-  \frac{f(x+h)-f(x-h)}{2h} = f'(x) + O(h^2).
-  $$
-
-  ([Wikipedia][2])
+$$
+\large 
+f(x\pm h) = f(x) \pm f'(x)\,h + \tfrac12 f''(\xi_\pm)\,h^2
+\;\implies\;
+\frac{f(x+h)-f(x-h)}{2h} = f'(x) + O(h^2).
+$$
 
 ##### Algorithm
 
@@ -367,7 +369,7 @@ return grad
 ```
 ***Note***:
 * *Forward* is cheaper (1 eval of f per axis) but only *first‐order* accurate.
-* *Central* costs twice as many f-evaluations but is *second-order* accurate—its error falls off like $h^2$ rather than $h$, making it far more precise for small $h$.
+* *Central* costs twice as many f-evaluations but is *second-order* accurate—its error falls off like $\large h^2$ rather than $\large h$, making it far more precise for small $\large h$.
 
 #### PyTorch Autograd: Automatic Differentiation
 
@@ -391,12 +393,12 @@ Each "value" or intermediate result can be thought of as an object (like `Value`
 
 ##### Algorithm for Backpropagation (Backward Pass)
 1. Topological Sort: Perform a topological sort on all nodes in the computation graph that contributed to the final scalar output. This results in an ordered list of nodes such_that a node always appears before any node that depends on it.
-2. Initialization: Set the `grad` attribute of the final output node (e.g., `loss`) to `1.0` (since $\frac{\partial \text{loss}}{\partial \text{loss}} = 1$). For all other nodes, initialize their `grad` to `0.0`.
+2. Initialization: Set the `grad` attribute of the final output node (e.g., `loss`) to `1.0` (since $\large \frac{\partial \text{loss}}{\partial \text{loss}} = 1$). For all other nodes, initialize their `grad` to `0.0`.
 3. Reverse Iteration: Iterate through the topologically sorted nodes *in reverse order*. For each node `N` in this reversed list:
     a.  If node `N` has a `_backward` method (or `grad_fn` in PyTorch, meaning it's not a leaf node created by the user):
-        i.  Call its `_backward()` function (or execute its `grad_fn`). This function will use the `grad` value currently stored in node `N` (which represents $\frac{\partial \text{Loss}}{\partial N_{output}}$) and the local derivatives of $N_{output}$ with respect to its inputs (parents $P_1, P_2, \dots$).
-        ii. For each parent $P_j$ of node `N`, the `_backward` function calculates $\frac{\partial \text{Loss}}{\partial N_{output}} \cdot \frac{\partial N_{output}}{\partial P_j}$ and *adds* this value to the `grad` attribute of $P_j$.
-4.  Result: After iterating through all nodes, the `.grad` attribute of each leaf node `X` (that had `requires_grad=True`) will contain the accumulated value of $\frac{\partial \text{Loss}}{\partial X}$.
+        i.  Call its `_backward()` function (or execute its `grad_fn`). This function will use the `grad` value currently stored in node `N` (which represents $\large \frac{\partial \text{Loss}}{\partial N_{output}}$) and the local derivatives of $\large N_{output}$ with respect to its inputs (parents $\large P_1, P_2, \dots$).
+        ii. For each parent $P_j$ of node `N`, the `_backward` function calculates $\large \frac{\partial \text{Loss}}{\partial N_{output}} \cdot \frac{\partial N_{output}}{\partial P_j}$ and *adds* this value to the `grad` attribute of $\large P_j$.
+4.  Result: After iterating through all nodes, the `.grad` attribute of each leaf node `X` (that had `requires_grad=True`) will contain the accumulated value of $\large \frac{\partial \text{Loss}}{\partial X}$.
 
 **Why this `micrograd`-like perspective is powerful:**
 - Demystifies Backpropagation: It shows that backpropagation is not a monolithic, complex algorithm but rather a clever composition of simple, local derivative calculations on a graph.
@@ -406,86 +408,89 @@ Each "value" or intermediate result can be thought of as an object (like `Value`
 ##### PyTorch `autograd` in Practice: `requires_grad` and `.backward()`
 - `requires_grad=True`: This flag on a `torch.Tensor` tells PyTorch to track operations involving this tensor for gradient computation. If an operation involves at least one tensor with `requires_grad=True`, the output tensor will also have `requires_grad=True` and will store a `grad_fn` attribute. This `grad_fn` is a reference to the function (the node in the computation graph) that created this tensor and holds the logic similar to the `_backward` function described above.
 - `.backward()`: When you call `.backward()` on a scalar output tensor `L` (e.g., a loss value), PyTorch initiates the backward pass through the dynamically created computation graph. It uses the chain rule to compute the gradients of `L` with respect to all "leaf" tensors (those created by the user with `requires_grad=True` and not resulting from an operation).
-- `.grad` attribute: The computed gradients $\frac{dL}{dx}$ are accumulated in the `.grad` attribute of the respective leaf tensors `x`. It's crucial to call `optimizer.zero_grad()` or `tensor.grad.zero_()` before each `backward()` call in a training loop to prevent gradients from accumulating across iterations.
+- `.grad` attribute: The computed gradients $\large \frac{dL}{dx}$ are accumulated in the `.grad` attribute of the respective leaf tensors `x`. It's crucial to call `optimizer.zero_grad()` or `tensor.grad.zero_()` before each `backward()` call in a training loop to prevent gradients from accumulating across iterations.
 
 ##### Computation Graph (in PyTorch)
 PyTorch's `autograd` dynamically constructs a graph where nodes are Tensors and edges represent the functions (operations) that produced them. The `grad_fn` attribute of a non-leaf tensor points to this function. This graph is traversed during the backward pass.
 
 ##### Gradients for Non-Scalar Outputs
-If `.backward()` is called on a non-scalar tensor `y`, it requires a `gradient` argument (often called `grad_tensors`). This tensor should have the same shape as `y` and represents an upstream gradient $\frac{dL}{dy}$ (where $L$ is some implicit final scalar loss). `autograd` then computes the vector-Jacobian product: `gradient^T @ J`, where `J` is the Jacobian of `y` with respect to the parameters. For example, `y.sum().backward()` is equivalent to `y.backward(gradient=torch.ones_like(y))`.
+If `.backward()` is called on a non-scalar tensor `y`, it requires a `gradient` argument (often called `grad_tensors`). This tensor should have the same shape as `y` and represents an upstream gradient $\large \frac{dL}{dy}$ (where $L$ is some implicit final scalar loss). `autograd` then computes the vector-Jacobian product: `gradient^T @ J`, where `J` is the Jacobian of `y` with respect to the parameters. For example, `y.sum().backward()` is equivalent to `y.backward(gradient=torch.ones_like(y))`.
 
 ##### Gradient Tracking (`.detach()`, `torch.no_grad()`)
-*   **`.detach()`:** Returns a new tensor that shares data with the original but is detached from the computation graph. It won't have a `grad_fn` and `requires_grad` will be `False`.
-*   **`with torch.no_grad():`:** A context manager that disables gradient computation within its scope. This is essential for model inference/evaluation (to save memory and computation) and for operations like manually updating model parameters via an optimizer (so the update step itself isn't tracked for differentiation).
+- `.detach()`: Returns a new tensor that shares data with the original but is detached from the computation graph. It won't have a `grad_fn` and `requires_grad` will be `False`.
+- `with torch.no_grad():`: A context manager that disables gradient computation within its scope. This is essential for model inference/evaluation (to save memory and computation) and for operations like manually updating model parameters via an optimizer (so the update step itself isn't tracked for differentiation).
 
 
 #### Optimization Algorithms
-Optimization algorithms use the computed gradients to iteratively update model parameters $\mathbf{\theta}$ to minimize a loss function $L(\mathbf{\theta})$.
+Optimization algorithms use the computed gradients to iteratively update model parameters $\large \mathbf{\theta}$ to minimize a loss function $\large L(\mathbf{\theta})$.
 
 #### Gradient Descent (GD)
 
 ##### Mathematical Formulation
 Gradient Descent is an iterative first-order optimization algorithm for finding a local minimum of a differentiable function. To find a local minimum of a function using gradient descent, one takes steps proportional to the negative of the gradient (or approximate gradient) of the function at the current point.
 
-The update rule for a parameter vector $\mathbf{\theta}$ at iteration $t+1$ is:
-$$ \mathbf{\theta}^{(t+1)} = \mathbf{\theta}^{(t)} - \eta \nabla_{\mathbf{\theta}} L(\mathbf{\theta}^{(t)}) $$
+The update rule for a parameter vector $\large \mathbf{\theta}$ at iteration $\large t+1$ is:
+$$
+\large 
+\mathbf{\theta}^{(t+1)} = \mathbf{\theta}^{(t)} - \eta \nabla_{\mathbf{\theta}} L(\mathbf{\theta}^{(t)})
+$$
 Where:
-*   $\mathbf{\theta}^{(t)}$: Parameter vector at iteration $t$.
-*   $\eta$: **Learning rate**, a positive scalar determining the step size. A small $\eta$ leads to slow convergence, while a large $\eta$ can cause overshooting and divergence.
-*   $\nabla_{\mathbf{\theta}} L(\mathbf{\theta}^{(t)})$: Gradient of the loss function $L$ with respect to parameters $\mathbf{\theta}$, evaluated at $\mathbf{\theta}^{(t)}$. For standard GD, this gradient is computed using the *entire* training dataset.
+*   $\large \mathbf{\theta}^{(t)}$: Parameter vector at iteration $\large t$.
+*   $\large \eta$: **Learning rate**, a positive scalar determining the step size. A small $\large \eta$ leads to slow convergence, while a large $\large \eta$ can cause overshooting and divergence.
+*   $\large \nabla_{\mathbf{\theta}} L(\mathbf{\theta}^{(t)})$: Gradient of the loss function $\large L$ with respect to parameters $\large \mathbf{\theta}$, evaluated at $\large \mathbf{\theta}^{(t)}$. For standard GD, this gradient is computed using the *entire* training dataset.
 
 ##### Algorithm for Gradient Descent
-1.  Initialize parameters $\mathbf{\theta}^{(0)}$ (e.g., randomly or with zeros).
-2.  Choose a learning rate $\eta > 0$ and a number of iterations $T$ (or a convergence criterion).
-3.  For $t = 0, 1, \dots, T-1$:
-    1.  Compute Gradient: Calculate the gradient $\nabla_{\mathbf{\theta}} L(\mathbf{\theta}^{(t)})$ of the loss function with respect to the current parameters $\mathbf{\theta}^{(t)}$. This typically involves evaluating the loss over the entire dataset.
+1.  Initialize parameters $\large \mathbf{\theta}^{(0)}$ (e.g., randomly or with zeros).
+2.  Choose a learning rate $\large \eta > 0$ and a number of iterations $\large T$ (or a convergence criterion).
+3.  For $\large t = 0, 1, \dots, T-1$:
+    1.  Compute Gradient: Calculate the gradient $\large \nabla_{\mathbf{\theta}} L(\mathbf{\theta}^{(t)})$ of the loss function with respect to the current parameters $\large \mathbf{\theta}^{(t)}$. This typically involves evaluating the loss over the entire dataset.
     2.  Update Parameters: Update the parameters using the rule:
-        $$ \mathbf{\theta}^{(t+1)} = \mathbf{\theta}^{(t)} - \eta \nabla_{\mathbf{\theta}} L(\mathbf{\theta}^{(t)}) $$
+        $\large \mathbf{\theta}^{(t+1)} = \mathbf{\theta}^{(t)} - \eta \nabla_{\mathbf{\theta}} L(\mathbf{\theta}^{(t)})$
 4.  Return final parameters $\mathbf{\theta}^{(T)}$.
 
 #### Implementation from Scratch (using Autograd)
-The notebook demonstrates implementing GD from scratch to minimize a simple function $f(x)=(x-2)^2$, using PyTorch tensors and `autograd` for gradient computation. This highlights the core loop: zero gradients, compute loss, call `backward()`, and update parameters within a `torch.no_grad()` context.
+The notebook demonstrates implementing GD from scratch to minimize a simple function $\large f(x)=(x-2)^2$, using PyTorch tensors and `autograd` for gradient computation. This highlights the core loop: zero gradients, compute loss, call `backward()`, and update parameters within a `torch.no_grad()` context.
 
 #### Stochastic Gradient Descent (SGD)
 Stochastic Gradient Descent (SGD) is a variation of Gradient Descent that addresses the computational burden of GD, especially for large datasets.
 
 ##### Mathematical Formulation
-Instead of computing the exact gradient $\nabla_{\mathbf{\theta}} L(\mathbf{\theta})$ using the entire dataset, SGD uses an *estimate* of the gradient.
-*   Pure SGD (Online SGD): The gradient is estimated using a single randomly chosen training sample $(x^{(i)}, y^{(i)})$ at each iteration:
-    $$ \nabla_{\mathbf{\theta}} L_i(\mathbf{\theta}^{(t)}) $$
-    where $L_i(\mathbf{\theta})$ is the loss computed on the $i$-th sample.
+Instead of computing the exact gradient $\large \nabla_{\mathbf{\theta}} L(\mathbf{\theta})$ using the entire dataset, SGD uses an *estimate* of the gradient.
+*   Pure SGD (Online SGD): The gradient is estimated using a single randomly chosen training sample $\large (x^{(i)}, y^{(i)})$ at each iteration:
+    $\large \nabla_{\mathbf{\theta}} L_i(\mathbf{\theta}^{(t)})$
+    where $\large L_i(\mathbf{\theta})$ is the loss computed on the $\large i$-th sample.
 *   The update rule remains similar:
-    $$ \mathbf{\theta}^{(t+1)} = \mathbf{\theta}^{(t)} - \eta \nabla_{\mathbf{\theta}} L_i(\mathbf{\theta}^{(t)}) $$
+    $\large \mathbf{\theta}^{(t+1)} = \mathbf{\theta}^{(t)} - \eta \nabla_{\mathbf{\theta}} L_i(\mathbf{\theta}^{(t)})$
 
-This gradient $ \nabla_{\mathbf{\theta}} L_i(\mathbf{\theta}^{(t)}) $ is a "noisy" but unbiased estimate of the true gradient $\nabla_{\mathbf{\theta}} L(\mathbf{\theta})$ (if samples are drawn uniformly). The stochasticity introduces noise into the updates.
+This gradient $\large \nabla_{\mathbf{\theta}} L_i(\mathbf{\theta}^{(t)})$ is a "noisy" but unbiased estimate of the true gradient $\large \nabla_{\mathbf{\theta}} L(\mathbf{\theta})$ (if samples are drawn uniformly). The stochasticity introduces noise into the updates.
 
 ##### Algorithm for Stochastic Gradient Descent (Online version)
-1.  Initialize parameters $\mathbf{\theta}^{(0)}$.
-2.  Choose a learning rate $\eta > 0$ and a number of epochs (passes through the dataset) or total iterations $T$.
-3.  For $t = 0, 1, \dots, T-1$ (or for each epoch):
+1.  Initialize parameters $\large \mathbf{\theta}^{(0)}$.
+2.  Choose a learning rate $\large \eta > 0$ and a number of epochs (passes through the dataset) or total iterations $\large T$.
+3.  For $\large t = 0, 1, \dots, T-1$ (or for each epoch):
     1.  (Optional, if epoch-based: Shuffle the training dataset).
-    2.  For each training sample $(x^{(i)}, y^{(i)})$ (or pick one randomly for non-epoch based):
-        1.  Compute Gradient Estimate: Calculate the gradient $\nabla_{\mathbf{\theta}} L_i(\mathbf{\theta}^{(t)})$ of the loss function for the current sample $(x^{(i)}, y^{(i)})$ with respect to the current parameters $\mathbf{\theta}^{(t)}$.
+    2.  For each training sample $\large (x^{(i)}, y^{(i)})$ (or pick one randomly for non-epoch based):
+        1.  Compute Gradient Estimate: Calculate the gradient $\large \nabla_{\mathbf{\theta}} L_i(\mathbf{\theta}^{(t)})$ of the loss function for the current sample $\large (x^{(i)}, y^{(i)})$ with respect to the current parameters $\large \mathbf{\theta}^{(t)}$.
         2. Update Parameters:
-            $$ \mathbf{\theta}^{(t+1)} = \mathbf{\theta}^{(t)} - \eta \nabla_{\mathbf{\theta}} L_i(\mathbf{\theta}^{(t)}) $$
-            (Note: $\mathbf{\theta}^{(t)}$ is updated after each sample in this online version).
+            $\large \mathbf{\theta}^{(t+1)} = \mathbf{\theta}^{(t)} - \eta \nabla_{\mathbf{\theta}} L_i(\mathbf{\theta}^{(t)})$
+            (Note: $\large \mathbf{\theta}^{(t)}$ is updated after each sample in this online version).
 4.  Return final parameters.
 
 ##### Mini-Batch SGD
 A more common and practical variant is Mini-Batch SGD.
 *   Gradient Estimate: The gradient is estimated using a small, randomly selected subset of training samples called a mini-batch (e.g., 32, 64, 128 samples).
-    $$ \nabla_{\mathbf{\theta}} L_{batch}(\mathbf{\theta}^{(t)}) = \frac{1}{B} \sum_{j=1}^{B} \nabla_{\mathbf{\theta}} L_j(\mathbf{\theta}^{(t)}) $$
-    where $B$ is the mini-batch size, and $L_j$ is the loss for the $j$-th sample in the mini-batch.
+    $\large \nabla_{\mathbf{\theta}} L_{batch}(\mathbf{\theta}^{(t)}) = \frac{1}{B} \sum_{j=1}^{B} \nabla_{\mathbf{\theta}} L_j(\mathbf{\theta}^{(t)})$
+    where $\large B$ is the mini-batch size, and $L_j$ is the loss for the $\large j$-th sample in the mini-batch.
 *   Algorithm for Mini-Batch SGD:
-    1.  Initialize parameters $\mathbf{\theta}^{(0)}$.
-    2.  Choose a learning rate $\eta > 0$, a mini-batch size $B$, and a number of epochs or total iterations.
+    1.  Initialize parameters $\large \mathbf{\theta}^{(0)}$.
+    2.  Choose a learning rate $\large \eta > 0$, a mini-batch size $B$, and a number of epochs or total iterations.
     3.  For each epoch:
         1.  Shuffle the training dataset.
         2.  Divide the dataset into mini-batches of size $B$.
         3.  For each mini-batch:
-            1.  Compute Gradient Estimate: Calculate $\nabla_{\mathbf{\theta}} L_{batch}(\mathbf{\theta}^{(t)})$ using the current mini-batch.
+            1.  Compute Gradient Estimate: Calculate $\large \nabla_{\mathbf{\theta}} L_{batch}(\mathbf{\theta}^{(t)})$ using the current mini-batch.
             2. Update Parameters:
-                $$ \mathbf{\theta}^{(t+1)} = \mathbf{\theta}^{(t)} - \eta \nabla_{\mathbf{\theta}} L_{batch}(\mathbf{\theta}^{(t)}) $$
+                $\large \mathbf{\theta}^{(t+1)} = \mathbf{\theta}^{(t)} - \eta \nabla_{\mathbf{\theta}} L_{batch}(\mathbf{\theta}^{(t)})$
 *   Benefits: Reduces variance of gradient estimates compared to pure SGD, leading to more stable convergence. Allows for efficient computation using vectorized operations on modern hardware (GPUs). Most "SGD" implementations in deep learning libraries actually refer to Mini-Batch SGD.
 
 ##### Using PyTorch's `torch.optim` Package
@@ -501,8 +506,8 @@ PyTorch provides a convenient `torch.optim` package containing implementations o
 #### Convex Optimization: A Desirable Landscape
 
 ##### What is a Convex Function? 
-A real-valued function $f$ is **convex** if the line segment connecting any two points on its graph lies on or above the graph.
-* For a 1D differentiable function, convexity means its second derivative $f''(x) \ge 0$.
+A real-valued function $\large f$ is **convex** if the line segment connecting any two points on its graph lies on or above the graph.
+* For a 1D differentiable function, convexity means its second derivative $\large f''(x) \ge 0$.
 * For a multi-dimensional differentiable function, its Hessian matrix (matrix of second partial derivatives) must be positive semi-definite.
 
 ##### Why Convexity Matters: Local vs. Global Optima
@@ -511,7 +516,7 @@ A real-valued function $f$ is **convex** if the line segment connecting any two 
 *   Many traditional ML problems (e.g., Linear Regression with MSE loss, Logistic Regression, SVMs) are formulated as convex optimization problems.
 
 ##### Visualizing Convex vs. Non-Convex Functions
-The notebook provides visualizations of simple 1D convex (e.g., $x^2$) and non-convex (e.g., $x^4 - 3x^2 + x$) functions. Non-convex functions can have multiple local minima and saddle points, making optimization more challenging. Loss landscapes for deep neural networks are typically highly non-convex.
+The notebook provides visualizations of simple 1D convex (e.g., $\large x^2$) and non-convex (e.g., $\large x^4 - 3x^2 + x$) functions. Non-convex functions can have multiple local minima and saddle points, making optimization more challenging. Loss landscapes for deep neural networks are typically highly non-convex.
 
 #### Why is this important for ML? 
 
