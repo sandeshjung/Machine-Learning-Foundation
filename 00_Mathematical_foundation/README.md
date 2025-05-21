@@ -285,9 +285,7 @@ For a function $\large f(\mathbf{x})$ where $\large \mathbf{x} = [x_1, x_2, \dot
     1. Create $\large \mathbf{x}_{plus\_h}$ by taking $\large \mathbf{x}$ and adding $\large h$ to its $\large i$-th component $\large x_i$.
     2. Create $\large \mathbf{x}_{minus\_h}$ by taking $\large \mathbf{x}$ and subtracting $h$ from its $\large i$-th component $\large x_i$.
     3. Compute the $\large i$-th component of the numerical gradient:
-$$
-\large (\nabla f_{num})_i = \frac{f(\mathbf{x}_{plus\_h}) - f(\mathbf{x}_{minus\_h})}{2h}
-$$
+$\large (\nabla f_{num})_i = \frac{f(\mathbf{x}_{plus\_h}) - f(\mathbf{x}_{minus\_h})}{2h}$
 3.  Return $\large \nabla f_{num}$.
 - **Use:** While computationally more intensive and less precise than analytical or automatic differentiation, numerical gradients are invaluable for **gradient checking** (i.e., verifying the correctness of manually derived or autograd-computed gradients).
 
@@ -438,9 +436,7 @@ Optimization algorithms use the computed gradients to iteratively update model p
 Gradient Descent is an iterative first-order optimization algorithm for finding a local minimum of a differentiable function. To find a local minimum of a function using gradient descent, one takes steps proportional to the negative of the gradient (or approximate gradient) of the function at the current point.
 
 The update rule for a parameter vector $\large \mathbf{\theta}$ at iteration $\large t+1$ is:
-$$
-\large \mathbf{\theta}^{(t+1)} = \mathbf{\theta}^{(t)} - \eta \nabla_{\mathbf{\theta}} L(\mathbf{\theta}^{(t)})
-$$
+$\large \mathbf{\theta}^{(t+1)} = \mathbf{\theta}^{(t)} - \eta \nabla_{\mathbf{\theta}} L(\mathbf{\theta}^{(t)})$
 Where:
 *   $\large \mathbf{\theta}^{(t)}$: Parameter vector at iteration $\large t$.
 *   $\large \eta$: **Learning rate**, a positive scalar determining the step size. A small $\large \eta$ leads to slow convergence, while a large $\large \eta$ can cause overshooting and divergence.
