@@ -259,10 +259,13 @@ At its heart, training a Machine Learning model often involves finding the set o
 ### Gradients
 
 #### Definition and Intuition
-- For a function of a single variable $f(x)$, its **derivative** $\large f'(x)$ or $\large \frac{df}{dx}$ measures the instantaneous rate of change of $\large f(x)$ with respect to $\large x$. It represents the slope of the tangent line to the function's graph at point $x$.
+- For a function of a single variable $f(x)$, its **derivative** $\large f'(x)$ or $\Large \frac{df}{dx}$ measures the instantaneous rate of change of $\large f(x)$ with respect to $\large x$. It represents the slope of the tangent line to the function's graph at point $x$.
 - For a function of multiple variables $\large f(\mathbf{x}) = f(x_1, x_2, ..., x_n)$, the **gradient** $\large \nabla f(\mathbf{x})$ is a vector of its partial derivatives:
     $\large \nabla f(\mathbf{x}) = \left[ \frac{\partial f}{\partial x_1}, \frac{\partial f}{\partial x_2}, \dots, \frac{\partial f}{\partial x_n} \right]^T$
 - **Intuition:** The gradient vector $\large \nabla f(\mathbf{x})$ points in the direction of the steepest ascent of the function $f$ at point $\large \mathbf{x}$. Conversely, the negative gradient, $\large -\nabla f(\mathbf{x})$, points in the direction of the steepest descent.
+
+<img src="assets/gradient_1.png" alt="Visualizing Gradients" width="789.6" height="309.6">
+Fig. Visualizing Gradients
 
 #### Calculation
 For simple functions, derivatives and partial derivatives can be calculated analytically using the rules of differentiation (e.g., power rule, chain rule, product rule).
@@ -282,7 +285,9 @@ For a function $\large f(\mathbf{x})$ where $\large \mathbf{x} = [x_1, x_2, \dot
     1. Create $\large \mathbf{x}_{plus\_h}$ by taking $\large \mathbf{x}$ and adding $\large h$ to its $\large i$-th component $\large x_i$.
     2. Create $\large \mathbf{x}_{minus\_h}$ by taking $\large \mathbf{x}$ and subtracting $h$ from its $\large i$-th component $\large x_i$.
     3. Compute the $\large i$-th component of the numerical gradient:
-        $\large (\nabla f_{num})_i = \frac{f(\mathbf{x}_{plus\_h}) - f(\mathbf{x}_{minus\_h})}{2h}$
+$$
+\large (\nabla f_{num})_i = \frac{f(\mathbf{x}_{plus\_h}) - f(\mathbf{x}_{minus\_h})}{2h}
+$$
 3.  Return $\large \nabla f_{num}$.
 - **Use:** While computationally more intensive and less precise than analytical or automatic differentiation, numerical gradients are invaluable for **gradient checking** (i.e., verifying the correctness of manually derived or autograd-computed gradients).
 
@@ -400,6 +405,9 @@ Each "value" or intermediate result can be thought of as an object (like `Value`
         ii. For each parent $P_j$ of node `N`, the `_backward` function calculates $\large \frac{\partial \text{Loss}}{\partial N_{output}} \cdot \frac{\partial N_{output}}{\partial P_j}$ and *adds* this value to the `grad` attribute of $\large P_j$.
 4.  Result: After iterating through all nodes, the `.grad` attribute of each leaf node `X` (that had `requires_grad=True`) will contain the accumulated value of $\large \frac{\partial \text{Loss}}{\partial X}$.
 
+<img src="assets/autograd.png" alt="Tensor Autograd">
+Fig. Autograd (Tensor)
+
 **Why this `micrograd`-like perspective is powerful:**
 - Demystifies Backpropagation: It shows that backpropagation is not a monolithic, complex algorithm but rather a clever composition of simple, local derivative calculations on a graph.
 - Dynamic Graphs: This approach naturally handles dynamic graphs where the structure of computation can change from one iteration to the next (as is common in PyTorch).
@@ -431,13 +439,15 @@ Gradient Descent is an iterative first-order optimization algorithm for finding 
 
 The update rule for a parameter vector $\large \mathbf{\theta}$ at iteration $\large t+1$ is:
 $$
-\large 
-\mathbf{\theta}^{(t+1)} = \mathbf{\theta}^{(t)} - \eta \nabla_{\mathbf{\theta}} L(\mathbf{\theta}^{(t)})
+\large \mathbf{\theta}^{(t+1)} = \mathbf{\theta}^{(t)} - \eta \nabla_{\mathbf{\theta}} L(\mathbf{\theta}^{(t)})
 $$
 Where:
 *   $\large \mathbf{\theta}^{(t)}$: Parameter vector at iteration $\large t$.
 *   $\large \eta$: **Learning rate**, a positive scalar determining the step size. A small $\large \eta$ leads to slow convergence, while a large $\large \eta$ can cause overshooting and divergence.
 *   $\large \nabla_{\mathbf{\theta}} L(\mathbf{\theta}^{(t)})$: Gradient of the loss function $\large L$ with respect to parameters $\large \mathbf{\theta}$, evaluated at $\large \mathbf{\theta}^{(t)}$. For standard GD, this gradient is computed using the *entire* training dataset.
+
+<img src="assets/gd.png" alt="Gradient Descent">
+Fig. Gradient Descent
 
 ##### Algorithm for Gradient Descent
 1.  Initialize parameters $\large \mathbf{\theta}^{(0)}$ (e.g., randomly or with zeros).
@@ -463,6 +473,9 @@ Instead of computing the exact gradient $\large \nabla_{\mathbf{\theta}} L(\math
     $\large \mathbf{\theta}^{(t+1)} = \mathbf{\theta}^{(t)} - \eta \nabla_{\mathbf{\theta}} L_i(\mathbf{\theta}^{(t)})$
 
 This gradient $\large \nabla_{\mathbf{\theta}} L_i(\mathbf{\theta}^{(t)})$ is a "noisy" but unbiased estimate of the true gradient $\large \nabla_{\mathbf{\theta}} L(\mathbf{\theta})$ (if samples are drawn uniformly). The stochasticity introduces noise into the updates.
+
+<img src="assets/sgd_1.png" alt="Stochastic Gradient Descent">
+Fig. Stochastic Gradient Descent: Loss per Sample Update"
 
 ##### Algorithm for Stochastic Gradient Descent (Online version)
 1.  Initialize parameters $\large \mathbf{\theta}^{(0)}$.
@@ -503,6 +516,10 @@ PyTorch provides a convenient `torch.optim` package containing implementations o
         3.  `optimizer.step()`: Update the parameters based on the computed gradients and the optimizer's logic.
 *   The notebook shows examples using `torch.optim.SGD` and `torch.optim.Adam`.
 
+<img src="assets/comparison.png">
+Fig. Comparison between Manual GD, torch.optim.SGD, torch.optim.Adam
+*Note*: The Manual GD and torch.optim.SGD lie on same Line
+
 #### Convex Optimization: A Desirable Landscape
 
 ##### What is a Convex Function? 
@@ -516,6 +533,7 @@ A real-valued function $\large f$ is **convex** if the line segment connecting a
 *   Many traditional ML problems (e.g., Linear Regression with MSE loss, Logistic Regression, SVMs) are formulated as convex optimization problems.
 
 ##### Visualizing Convex vs. Non-Convex Functions
+<img src="assets/convex.png" width="951.2" height="392">
 The notebook provides visualizations of simple 1D convex (e.g., $\large x^2$) and non-convex (e.g., $\large x^4 - 3x^2 + x$) functions. Non-convex functions can have multiple local minima and saddle points, making optimization more challenging. Loss landscapes for deep neural networks are typically highly non-convex.
 
 #### Why is this important for ML? 
