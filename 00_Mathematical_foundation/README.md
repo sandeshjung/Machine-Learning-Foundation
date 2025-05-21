@@ -278,10 +278,10 @@ Gradients can be approximated numerically using the finite difference method. Fo
 ##### Algorithm for Numerical Gradient
 For a function $\large f(\mathbf{x})$ where $\large \mathbf{x} = [x_1, x_2, \dots, x_n]$:
 1.  Initialize an empty gradient vector $\large \nabla f_{num} = [0, \dots, 0]$.
-2.  For each dimension $\large i$ from $1$ to $n$:
-    a.  Create $\large \mathbf{x}_{plus\_h}$ by taking $\large \mathbf{x}$ and adding $\large h$ to its $\large i$-th component $\large x_i$.
-    b.  Create $\large \mathbf{x}_{minus\_h}$ by taking $\large \mathbf{x}$ and subtracting $h$ from its $\large i$-th component $\large x_i$.
-    c.  Compute the $\large i$-th component of the numerical gradient:
+2.  For each dimension $\large i$ from $\large 1$ to $\large n$:
+    1. Create $\large \mathbf{x}_{plus\_h}$ by taking $\large \mathbf{x}$ and adding $\large h$ to its $\large i$-th component $\large x_i$.
+    2. Create $\large \mathbf{x}_{minus\_h}$ by taking $\large \mathbf{x}$ and subtracting $h$ from its $\large i$-th component $\large x_i$.
+    3. Compute the $\large i$-th component of the numerical gradient:
         $\large (\nabla f_{num})_i = \frac{f(\mathbf{x}_{plus\_h}) - f(\mathbf{x}_{minus\_h})}{2h}$
 3.  Return $\large \nabla f_{num}$.
 - **Use:** While computationally more intensive and less precise than analytical or automatic differentiation, numerical gradients are invaluable for **gradient checking** (i.e., verifying the correctness of manually derived or autograd-computed gradients).
