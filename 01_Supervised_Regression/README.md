@@ -7,33 +7,53 @@
 The linear regression model assumes a linear relationship between the input features $\large \mathbf{X}$ and the output target $\large y$.
 
 **For a single feature $\large x$:**
+
 The hypothesis $\large h_{\mathbf{\theta}}(x)$ (predicted value) is given by:
+<div align="center">
+    
 $$\large 
 h_{\mathbf{\theta}}(x) = \theta_0 + \theta_1 x
 $$
+
+</div>
+
 Where:
 *   $\large \theta_0$: The bias term (intercept).
 *   $\large \theta_1$: The weight (coefficient) for the feature $\large x$ (slope).
 *   $\large \mathbf{\theta} = [\theta_0, \theta_1]^T$: The vector of parameters.
 
+<div align="center">
 <img src="assets/regression.png" alt="Visualizing Linear Regression" width="556.8" height="444.8">
-Fig. Visualizing Linear Regression
+<p>Fig. Visualizing Linear Regression</p>
+</div>
 
 **For multiple features $\large \mathbf{x} = [x_1, x_2, \dots, x_n]$:**
+
 It's common to prepend a feature $\large x_0 = 1$ to the feature vector to incorporate the bias term.
 So, $\large \mathbf{x}' = [x_0, x_1, x_2, \dots, x_n] = [1, x_1, x_2, \dots, x_n]$.
 The parameter vector is $\large \mathbf{\theta} = [\theta_0, \theta_1, \dots, \theta_n]^T$.
 The hypothesis is then the dot product:
+
+<div align="center">
+    
 $$\large 
 h_{\mathbf{\theta}}(\mathbf{x}') = \mathbf{x}' \cdot \mathbf{\theta} = \theta_0 x_0 + \theta_1 x_1 + \dots + \theta_n x_n = \sum_{j=0}^{n} \theta_j x_j
 $$
 
+</div>
+
 **Vectorized form for $\large m$ training samples:**
+
 Let $\large \mathbf{X}$ be the $\large m \times (n+1)$ design matrix (each row is a training sample $\large \mathbf{x}'^{(i)}$) and $\large \mathbf{y}$ be the $\large m \times 1$ vector of target values.
 The predictions for all samples can be computed as:
+
+<div align="center">
+    
 $$\large 
 \mathbf{h}_{\mathbf{\theta}}(\mathbf{X}) = \mathbf{X} \mathbf{\theta}
 $$
+
+</div>
 
 ### Cost Function
 To find the best parameters $\large \mathbf{\theta}$, we need a cost function (or loss function) that measures how well the model fits the training data. Cost function quantifies the error between predicted and expected values and present that error in the form of a single real number. The purpose of cost function is to be either:
@@ -44,32 +64,61 @@ To find the best parameters $\large \mathbf{\theta}$, we need a cost function (o
 For linear regression, the most common cost function is the Mean Squared Error (MSE). It penalizes larger errors more heavily due to the squaring operation.
 For $m$ training samples:
 
+<div align="center">
+    
 $$\large 
 J_{MSE}(w, b) = \frac{1}{m} \sum_{i=1}^{m} ((w x^{(i)} + b) - y^{(i)})^2 \quad \text{(for single feature, often without } \frac{1}{2} \text{ for direct MSE interpretation)}
 $$
+
+</div>
+
 Or more generally using $\large \mathbf{\theta}$:
+
+<div align="center">
+    
+$$\large 
+J_{MSE}(\mathbf{\theta}) = \frac{1}{2m} \sum_{i=1}^{m} (h_{\mathbf{\theta}}(\mathbf{x}'^{(i)}) - y^{(i)})^2
 $$
-\large J_{MSE}(\mathbf{\theta}) = \frac{1}{2m} \sum_{i=1}^{m} (h_{\mathbf{\theta}}(\mathbf{x}'^{(i)}) - y^{(i)})^2
-$$
+
+</div>
+
 The factor $\large \frac{1}{2}$ in the second form is included for mathematical convenience when taking derivatives (it cancels out the '2' from the power rule). If this factor is omitted, the cost function is directly the average of squared errors. The optimization result for the parameters $\large \mathbf{\theta}$ is the same regardless of this constant factor.
 
 In vectorized form using the design matrix $\large \mathbf{X}$ (which includes the column of ones for the bias $\large \theta_0=b$):
+
+<div align="center">
+    
 $$\large 
 J_{MSE}(\mathbf{\theta}) = \frac{1}{2m} (\mathbf{X}\mathbf{\theta} - \mathbf{y})^T (\mathbf{X}\mathbf{\theta} - \mathbf{y})
 $$
+
+</div>
+
 * **Properties:** Differentiable everywhere, convex (leading to a single global minimum for linear regression). Sensitive to outliers because large errors are squared.
 
 #### Mean Absolute Error (MAE)
 Another common loss function is the Mean Absolute Error (MAE), also known as L1 Loss. It measures the average magnitude of the errors without considering their direction. It is generally more robust to outliers than MSE because it does not square the errors.
 
 For $\large m$ training samples:
+
+<div align="center">
+    
 $$\large 
 J_{MAE}(w, b) = \frac{1}{m} \sum_{i=1}^{m} |(w x^{(i)} + b) - y^{(i)}| \quad \text{(for single feature)}
 $$
+
+</div>
+
 Or more generally using $\mathbf{\theta}$:
+
+<div align="center">
+    
 $$\large 
 J_{MAE}(\mathbf{\theta}) = \frac{1}{m} \sum_{i=1}^{m} |h_{\mathbf{\theta}}(\mathbf{x}'^{(i)}) - y^{(i)}|
 $$
+
+</div>
+
 * **Properties:** Less sensitive to outliers than MSE. However, its derivative is not defined at points where the error $\large (h_{\mathbf{\theta}}(\mathbf{x}'^{(i)}) - y^{(i)})$ is zero. For gradient-based optimization, subgradients are used, or the points of non-differentiability are handled with specific techniques (e.g., smoothed approximations or by optimizers that can handle non-smooth functions). The resulting models might be different from those optimized with MSE.
 
 #### Choice of Cost Function:
@@ -77,18 +126,25 @@ While MSE is standard for deriving the Normal Equation and for basic linear regr
 
 #### Goal
 The goal is to find the parameters ($\large w, b$ or $\large \mathbf{\theta}$) that minimize the chosen cost function $\large J$:
+
+<div align="center">
+    
 $$\large 
 \min_{w,b} J(w,b) \quad \text{or} \quad \min_{\mathbf{\theta}} J(\mathbf{\theta})
 $$
 (Where $\large J$ could be $\large J_{MSE}$ or $\large J_{MAE}$ or another suitable loss function).
+
+</div>
 
 ### Optimization Methods
 
 #### Gradient Descent
 Gradient Descent is an iterative optimization algorithm used to find the minimum of a function. It works by repeatedly moving in the direction of the negative gradient of the cost function.
 
+<div align="center">
 <img src="assets/gradient.png" alt="Visualizing Gradient Descent">
 Fig. Visualizing Gradient Descent
+</div>
 
 ##### Algorithm for Gradient Descent
 1.  Initialize parameters $\large \mathbf{\theta}$ (e.g., randomly or with zeros).
@@ -104,31 +160,49 @@ Fig. Visualizing Gradient Descent
 
 ##### Gradient Calculation for MSE
 The partial derivative of the MSE cost function $J(\mathbf{\theta})$ with respect to a parameter $\large \theta_j$ is:
+<div align="center">
+    
 $$\large 
 \frac{\partial J(\mathbf{\theta})}{\partial \theta_j} = \frac{1}{m} \sum_{i=1}^{m} (h_{\mathbf{\theta}}(\mathbf{x}^{(i)}) - y^{(i)}) x_j^{(i)}
 $$
+
+</div>
+
 (Assuming cost function $\large J(\mathbf{\theta}) = \frac{1}{2m} \sum (h_{\mathbf{\theta}}(\mathbf{x}^{(i)}) - y^{(i)})^2$. If $\large J(\mathbf{\theta}) = \frac{1}{m} \sum (\dots)^2$, then the gradient is $\large \frac{2}{m} \sum (\dots) x_j^{(i)}$).
 
 Vectorized gradient calculation:
+
+<div align="center">
+    
 $$\large 
 \nabla_{\mathbf{\theta}} J(\mathbf{\theta}) = \frac{1}{m} \mathbf{X}^T (\mathbf{X}\mathbf{\theta} - \mathbf{y})
 $$
+
+</div>
 
 ### Normal Equation (Analytical Solution)
 For Linear Regression with MSE loss, the cost function $\large J(\mathbf{\theta})$ is convex, meaning it has a single global minimum. This minimum can be found analytically by setting the gradient $\large \nabla_{\mathbf{\theta}} J(\mathbf{\theta})$ to zero and solving for $\large \mathbf{\theta}$.
 
 #### Formula 
 The solution is given by the Normal Equation:
+
+<div align="center">
+    
 $$\large
 \mathbf{\theta} = (\mathbf{X}^T \mathbf{X})^{-1} \mathbf{X}^T \mathbf{y}
 $$
+
+</div>
+
 Where:
 *   $\large \mathbf{X}$ is the design matrix (with $\large x_0=1$ for the bias term).
 *   $\large \mathbf{y}$ is the vector of target values.
 *   $\large (\mathbf{X}^T \mathbf{X})^{-1}$ is the inverse of the matrix $\large \mathbf{X}^T \mathbf{X}$.
 
+<div align="center">
 <img src="assets/normal.png" alt="Normal Equation" width="556.8" height="444.8">
 Fig. Linear Regression Fit (Normal Equation)
+</div>
 
 #### Algorithm for Normal Equation
 1.  Construct the design matrix $\large \mathbf{X}$ by adding a column of ones ($\large x_0=1$) to the feature matrix.
@@ -155,21 +229,39 @@ The accompanying notebook `linear_regression.ipynb` demonstrates:
 To assess the performance of a regression model:
 
 *   **Mean Squared Error (MSE):**
+
+    <div align="center">
+        
     $$\large 
     \text{MSE} = \frac{1}{m} \sum_{i=1}^{m} (y_{pred}^{(i)} - y_{actual}^{(i)})^2
     $$
+
+    </div>
+
     Measures the average squared difference between predictions and actual values. Lower is better. Sensitive to outliers.
 
 *   **Root Mean Squared Error (RMSE):**
+
+    <div align="center">
+
     $$\large 
     \text{RMSE} = \sqrt{\text{MSE}} = \sqrt{\frac{1}{m} \sum_{i=1}^{m} (y_{pred}^{(i)} - y_{actual}^{(i)})^2}
     $$
+
+    </div>
+
     The square root of MSE. It's in the same units as the target variable, making it more interpretable. Lower is better.
 
 *   **R-squared (Coefficient of Determination, $R^2$):**
+
+    <div align="center">
+
     $$\large 
     R^2 = 1 - \frac{\sum_{i=1}^{m} (y_{pred}^{(i)} - y_{actual}^{(i)})^2}{\sum_{i=1}^{m} (y_{mean} - y_{actual}^{(i)})^2} = 1 - \frac{\text{MSE}}{\text{Variance of } y}
     $$
+
+    </div>
+
     Where $\large y_{mean} = \frac{1}{m} \sum_{i=1}^{m} y_{actual}^{(i)}$.
     Represents the proportion of the variance in the dependent variable that is predictable from the independent variable(s).
     *   $\large R^2 = 1$: Perfect fit.
