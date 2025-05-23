@@ -143,7 +143,7 @@ Gradient Descent is an iterative optimization algorithm used to find the minimum
 
 <div align="center">
 <img src="assets/gradient.png" alt="Visualizing Gradient Descent">
-Fig. Visualizing Gradient Descent
+<p>Fig. Visualizing Gradient Descent</p>
 </div>
 
 ##### Algorithm for Gradient Descent
@@ -201,7 +201,7 @@ Where:
 
 <div align="center">
 <img src="assets/normal.png" alt="Normal Equation" width="556.8" height="444.8">
-Fig. Linear Regression Fit (Normal Equation)
+<p>. Linear Regression Fit (Normal Equation)</p>
 </div>
 
 #### Algorithm for Normal Equation
@@ -301,7 +301,7 @@ $$
 
 <div align="center">
 <img src="assets/regularization.jpg" alt="Regularization" width="648" height="405">
-Fig. Bias vs Variance
+<p>Fig. Bias vs Variance</p>
 </div>
 
 **Ridge Regression:**
@@ -316,7 +316,9 @@ Fig. Bias vs Variance
 -   Variance: Reduced through feature selection + estimation
 -   Effect: Sparse solutions, automatic feature selection
 
-**Total Error Decomposition:** For any learning algorithm, the expected error can be decomposed as: 
+**Total Error Decomposition:** 
+
+For any learning algorithm, the expected error can be decomposed as: 
 
 <div align="center">
 
@@ -356,8 +358,8 @@ Where:
 
 **Types of Penalties:**
 
--   L1 (Lasso): $\large \Omega(\theta) = |\theta|_1 = \sum_{j=1}^{n} |\theta_j|$
--   L2 (Ridge): $\large \Omega(\theta) = |\theta|_2^2 = \sum_{j=1}^{n} \theta_j^2$
+-   L1 (Lasso): $\large \Omega(\theta) = \sum_{j=1}^{n} |\theta_j|$ $\large = |\theta|_1$
+-   L2 (Ridge): $\large \Omega(\theta) = \sum_{j=1}^{n} \theta_j^2$ $\large = |\theta|_2^2$
 -   Elastic Net: $\large \Omega(\theta) = \lambda_1|\theta|_1 + \lambda_2|\theta|_2^2$
 
 ### Ridge Regression (L2 Regularization)
@@ -374,13 +376,11 @@ $$
 
 </div>
 
-Or in vectorized form (using MSE = $\frac{1}{m}$ for simplicity in the MSE part):
+Or in vectorized form (using MSE = $\large \frac{1}{m}$ for simplicity in the MSE part):
 
 <div align="center">
 
-$$\large 
-J_{Ridge}(\mathbf{\theta}) = \frac{1}{m} \|\mathbf{X}\mathbf{\theta} - \mathbf{y}\|_2^2 + \alpha \|\mathbf{\theta}_{1:n}\|_2^2
-$$
+![Ridge Cost Function](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20J_{Ridge}(\mathbf{\theta})%20=%20\frac{1}{2m}%20\sum_{i=1}^{m}%20(h_{\mathbf{\theta}}(\mathbf{x}%27^{(i)})%20-%20y^{(i)})^2%20+%20\alpha%20\sum_{j=1}^{n}%20\theta_j^2)
 
 </div>
 
@@ -478,9 +478,7 @@ Or in vectorized form (using MSE = $\large \frac{1}{m}$):
 
 <div align="center">
 
-$$\large 
-J_{Lasso}(\mathbf{\theta}) = \frac{1}{m} \|\mathbf{X}\mathbf{\theta} - \mathbf{y}\|_2^2 + \alpha \|\mathbf{\theta}_{1:n}\|_1
-$$
+![Lasso](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20J_{Lasso}(\mathbf{\theta})%20=%20\frac{1}{m}%20|\mathbf{X}\mathbf{\theta}%20-%20\mathbf{y}|2^2%20+%20\alpha%20|\mathbf{\theta}{1:n}|_1)
 
 </div>
 
@@ -621,20 +619,14 @@ For regularized models, effective degrees of freedom must be calculated differen
 
 <div align="center">
 
-$$\large 
-\min_\theta \frac{1}{2m} |X\theta - y|_2^2 \text{ subject to } \sum_{j=1}^{n} \theta_j^2 \leq t
-$$
-
+![L2](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\min_\theta%20\frac{1}{2m}%20|X\theta%20-%20y|_2^2%20\text{%20subject%20to%20}%20\sum_{j=1}^{n}%20\theta_j^2%20\leq%20t)
 </div>
 
 **Lasso (L1):** 
 
 <div align="center">
 
-$$\large 
-\min_\theta \frac{1}{2m} |X\theta - y|_2^2 \text{ subject to } \sum_{j=1}^{n} |\theta_j| \leq t
-$$
-
+![L1](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\min_\theta%20\frac{1}{2m}%20|X\theta%20-%20y|_2^2%20\text{%20subject%20to%20}%20\sum_{j=1}^{n}%20|\theta_j|%20\leq%20t)
 </div>
 
 #### Geometric Interpretation
@@ -643,7 +635,7 @@ $$
 
 <div align="center">
 <img src="assets/l1l2.png" alt="Lasso and Ridge Regularization" width="803" height="539">
-Fig. Lasso and Ridge Regularization
+<p>Fig. Lasso and Ridge Regularization</p>
 </div>
 
 -   Contour lines: Represent constant values of MSE (elliptical)
@@ -695,9 +687,7 @@ $$
 
 <div align="center">
 
-$$\large 
-J_{\text{AdaLasso}}(\theta) = \frac{1}{2m} |X\theta - y|_2^2 + \alpha \sum_{j=1}^{n} w_j |\theta_j|
-$$
+![Adaptive Lasso](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20J_{\text{AdaLasso}}(\theta)%20=%20\frac{1}{2m}%20|X\theta%20-%20y|_2^2%20+%20\alpha%20\sum_{j=1}^{n}%20w_j%20|\theta_j|)
 
 </div>
 
@@ -715,9 +705,7 @@ Where $\large w_j = \frac{1}{|\hat{\theta}_j^{OLS}|^\gamma}$ are adaptive weight
 
 <div align="center">
 
-$$\large 
-J_{\text{GroupLasso}}(\theta) = \frac{1}{2m} |X\theta - y|_2^2 + \alpha \sum_{g=1}^{G} \sqrt{|g|} |\theta_g|_2
-$$
+![Group lasso](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20J_{\text{GroupLasso}}(\theta)%20=%20\frac{1}{2m}%20|X\theta%20-%20y|_2^2%20+%20\alpha%20\sum_{g=1}^{G}%20\sqrt{|g|}%20|\theta_g|_2)
 
 </div>
 
