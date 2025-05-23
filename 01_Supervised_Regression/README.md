@@ -482,7 +482,7 @@ Or in vectorized form (using MSE = $\large \frac{1}{m}$):
 
 </div>
 
-Where $\large \alpha \ge 0$ is the regularization parameter and $\large \|\mathbf{\theta}_{1:n}\|_1 = \sum_{j=1}^{n} |\theta_j|$ is the L1 penalty. The bias term $\large \theta_0$ is typically not regularized.
+Where $\large \alpha \ge 0$ is the regularization parameter and ![penalty2](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\|\mathbf{\theta}_{1:n}\|_1%20=%20\sum_{j=1}^{n}%20|\theta_j|) is the L1 penalty. The bias term $\large \theta_0$ is typically not regularized.
 
 #### Gradient Update (Subgradient)
 The L1 penalty term $\large |\theta_j|$ is not differentiable at $\large \theta_j = 0$. We use a concept called the **subgradient**.
