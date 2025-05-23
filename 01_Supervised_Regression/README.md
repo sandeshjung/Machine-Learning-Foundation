@@ -297,25 +297,6 @@ $$
 
 ### Mathematical Foundation
 
-#### The Bias-Variance Tradeoff
-
-<div align="center">
-<img src="assets/regularization.jpg" alt="Regularization" width="648" height="405">
-<p>Fig. Bias vs Variance</p>
-</div>
-
-**Ridge Regression:**
-
--   Bias: `-α(X^TX + αI)^(-1)θ` (shrinkage toward zero)
--   Variance: Always smaller than OLS, decreases with α
--   Effect: Smooth shrinkage, keeps all features
-
-**Lasso Regression:**
-
--   Bias: Shrinkage + selection bias
--   Variance: Reduced through feature selection + estimation
--   Effect: Sparse solutions, automatic feature selection
-
 **Total Error Decomposition:** 
 
 For any learning algorithm, the expected error can be decomposed as: 
@@ -741,3 +722,142 @@ This perspective provides:
 -   Uncertainty quantification: Posterior distributions over coefficients
 -   Hyperparameter selection: Hierarchical Bayesian approaches
 -   Model comparison: Bayesian model selection criteria
+
+## Polynomial Regression
+### Limitations of Simple Linear Models
+Simple linear regression assumes that the relationship between the input features and the target variable is linear. If the true underlying relationship is non-linear (e.g., quadratic, sinusoidal), a simple linear model will not be able to capture this complexity. This leads to **underfitting**, where the model has high bias and performs poorly on both training and test data.
+
+<div align="center">
+<img src="assets/overfitting.png" alt="linear regression underfitting non-linear data" width="800" height="300">
+<p>Fig. linear regression underfitting non-linear data</p>
+</div>
+
+### Polynomial Regression
+
+#### Concept
+Polynomial regression extends linear regression by adding polynomial terms of the original features as new input features. For example, if we have a single feature $\large x$, we can create new features like $\large x^2, x^3, \dots, x^d$, where $\large d$ is the degree of the polynomial.
+
+The model then becomes:
+
+<div align="center">
+
+$$\large 
+h(x) = w_d x^d + w_{d-1} x^{d-1} + \dots + w_2 x^2 + w_1 x + b
+$$
+
+</div>
+
+This equation is still **linear in terms of the coefficients** $\large w_j$ and $\large b$. Therefore, we can use the same linear regression techniques (like Gradient Descent or Normal Equation) to fit this model, but now on the *transformed* feature set $\large [x, x^2, \dots, x^d]$.
+
+#### Creating Polynomial Features
+If the original feature is $\large x$:
+*   Degree 1 (Linear): $\large [x]$
+*   Degree 2 (Quadratic): $\large [x, x^2]$
+*   Degree 3 (Cubic): $\large [x, x^2, x^3]$
+And so on. If there are multiple original features (e.g., $\large x_1, x_2$), polynomial features also include interaction terms (e.g., $\large x_1x_2, x_1^2x_2$, etc.), depending on the `interaction_only` parameter in tools like `sklearn.preprocessing.PolynomialFeatures`. 
+
+The `sklearn.preprocessing.PolynomialFeatures` transformer is a convenient tool for generating these features.
+
+#### Model
+Once polynomial features are created, a standard linear regression model is trained using these new features as input.
+
+### Overfitting
+
+#### Definition
+**Overfitting** occurs when a machine learning model learns the training data too well, including its noise and random fluctuations, rather than the underlying general pattern. As a result, an overfit model performs very well on the training data but poorly on unseen test data (it has poor generalization).
+
+<div align="center">
+<img src="assets/overfit.png" alt="linear regression underfitting non-linear data" width="1038.8" height="688.8">
+<p>Fig. Overfitting Example - High-degree polynomial fitting noisy data</p>
+</div>
+
+#### Causes and Consequences
+*   **Causes:**
+    *   Model Complexity: Using a model that is too complex for the amount of data available (e.g., a very high-degree polynomial for a small dataset with a simpler underlying trend).
+    *   Too many features: Especially if many are irrelevant or noisy.
+    *   Insufficient training data: Not enough data to constrain a complex model.
+    *   Training for too long: For iterative algorithms, excessive training can lead to fitting noise.
+*   **Consequences:**
+    *   Excellent performance on training data.
+    *   Poor performance on new, unseen data (test set, real-world deployment).
+    *   The model is not reliable or useful in practice.
+
+### The Bias-Variance Tradeoff
+This is a central concept in machine learning that describes the relationship between a model's complexity, its ability to fit the training data, and its ability to generalize to new data.
+
+#### Bias
+*   **Definition:** Bias is the error introduced by approximating a real-world problem, which may be complex, by a too-simple model. It represents the model's tendency to consistently learn the wrong thing by not taking into account all the information in the data.
+*   **High Bias (Underfitting):** The model makes strong assumptions about the data (e.g., assumes a linear relationship when it's quadratic). It fails to capture the underlying patterns, leading to poor performance on both training and test sets.
+    *   *Example:* Fitting a straight line to a U-shaped dataset.
+
+#### Variance
+*   **Definition:** Variance is the error introduced by the model's sensitivity to small fluctuations (noise) in the training data. It quantifies how much the model's predictions would change if it were trained on a different training dataset drawn from the same distribution.
+*   **High Variance (Overfitting):** The model learns the training data too closely, including its noise. It performs very well on the training data but poorly on the test data because it doesn't generalize to new, unseen examples.
+    *   *Example:* Fitting a very high-degree polynomial that wiggles through every training data point.
+
+#### The Tradeoff
+*   There is typically a tradeoff between bias and variance:
+    *   **Simple Models (Low Complexity):** Tend to have high bias and low variance.
+    *   **Complex Models (High Complexity):** Tend to have low bias (on training data) and high variance.
+*   The goal in model selection is to find a sweet spot that minimizes the total error (which is a function of bias, variance, and irreducible error). This usually involves finding a model that is complex enough to capture the true underlying patterns but not so complex that it overfits the noise.
+
+<div align="center">
+<img src="assets/regularization.jpg" alt="bias variance tradeoff curve" width="648" height="405">
+<p>Fig. Bias-Variance Tradeoff Curve - Showing U-shaped total error vs model complexity</p>
+</div>
+
+**Ridge Regression:**
+
+-   Bias: `-α(X^TX + αI)^(-1)θ` (shrinkage toward zero)
+-   Variance: Always smaller than OLS, decreases with α
+-   Effect: Smooth shrinkage, keeps all features
+
+**Lasso Regression:**
+
+-   Bias: Shrinkage + selection bias
+-   Variance: Reduced through feature selection + estimation
+-   Effect: Sparse solutions, automatic feature selection
+
+#### Mathematical Intuition (Conceptual) 
+Conceptually, the expected squared error of a prediction at a point $\large x$ can be decomposed:
+
+<div align="center">
+
+$$\large  
+E[(y - \hat{f}(x))^2] = (\text{Bias}[\hat{f}(x)])^2 + \text{Var}[\hat{f}(x)] + \sigma^2
+$$
+
+</div>
+
+Where:
+*   $\large y$: The true value.
+*   $\large \hat{f}(x)$: The model's prediction for $\large x$.
+*   $\large E[\cdot]$: Expected value (average over many training sets).
+*   $\large \text{Bias}[\hat{f}(x)] = E[\hat{f}(x)] - f(x)$ (where $\large f(x)$ is the true underlying function).
+*   $\large \text{Var}[\hat{f}(x)] = E[(\hat{f}(x) - E[\hat{f}(x)])^2]$.
+*   $\large \sigma^2$: Irreducible error (noise in the data itself that no model can eliminate).
+
+### Diagnosing Bias and Variance with Learning Curves
+
+#### What are Learning Curves? 
+Learning curves are plots of a model's performance (e.g., error or accuracy) on the training set and a validation set (or through cross-validation) as a function of the number of training examples used. They are a valuable tool for diagnosing whether a model is suffering more from bias or variance issues.
+
+<div align="center">
+<img src="assets/learningcurve.png" alt="machine learning learning curves">
+<p>Fig. Example Learning Curve Plot - Linear Regression (High Bias)</p>
+</div>
+
+#### Interpreting Learning Curves
+1.  **High Bias (Underfitting):**
+    *   Observation: Both the training score and the validation score will be low (high error) and will converge to similar (poor) values even with more data.
+    *   Indication: The model is too simple to capture the underlying structure of the data. Adding more training examples will likely not help much.
+    *   Possible Solutions: Use a more complex model (e.g., higher-degree polynomial, more features), decrease regularization.
+
+2.  **High Variance (Overfitting):**
+    *   Observation: There will be a large gap between the training score (high accuracy/low error) and the validation score (lower accuracy/higher error). The training score might be very good, while the validation score plateaus at a worse level.
+    *   Indication: The model is too complex and is fitting the noise in the training data.
+    *   Possible Solutions: Get more training data (often helps), use a simpler model, increase regularization, feature selection/reduction.
+
+3.  **Good Fit ("Just Right"):**
+    *   Observation: Both training and validation scores converge to a good value, and there is a small gap between them.
+    *   Indication: The model has a good balance of bias and variance for the given data.
