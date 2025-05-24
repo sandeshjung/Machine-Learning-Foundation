@@ -1,10 +1,6 @@
-# Supervised Classification
-
-## Logistic Regression
-
 ### Introduction
 
-Logistic Regression is a fundamental statistical method for binary classification problems, where we need to predict whether an instance belongs to one of two classes (e.g., spam/not spam, pass/fail, malignant/benign). Despite its name containing "regression," it is primarily a classification algorithm. It aims to model the probability $P(y=1 | \mathbf{x}; \mathbf{\theta})$ that an input $\mathbf{x}$ belongs to class 1, given parameters $\mathbf{\theta}$.
+Logistic Regression is a fundamental statistical method for binary classification problems, where we need to predict whether an instance belongs to one of two classes (e.g., spam/not spam, pass/fail, malignant/benign). Despite its name containing "regression," it is primarily a classification algorithm. It aims to model the probability $\large P(y=1 | \mathbf{x}; \mathbf{\theta})$ that an input $\large \mathbf{x}$ belongs to class 1, given parameters $\large \mathbf{\theta}$.
 
 #### Why Not Use Linear Regression for Classification?
 
@@ -28,19 +24,43 @@ Logistic Regression solves these issues by:
 
 Before diving into the sigmoid function, let's understand **odds** and **log-odds**:
 
-**Odds**: If the probability of an event is $p$, then the odds are: $$\text{Odds} = \frac{p}{1-p}$$
+**Odds**: If the probability of an event is $\large p$, then the odds are: 
 
--   If $p = 0.5$, odds = 1:1 (equal chance)
--   If $p = 0.8$, odds = 4:1 (4 times more likely to occur)
--   If $p = 0.2$, odds = 1:4 (4 times less likely to occur)
+<div align="center">
 
-**Log-Odds (Logit)**: The natural logarithm of the odds: $$\text{Logit}(p) = \ln\left(\frac{p}{1-p}\right)$$
+$$\large 
+\text{Odds} = \frac{p}{1-p}
+$$
 
-The log-odds can range from $-\infty$ to $+\infty$, making it suitable for linear modeling.
+</div>
+
+-   If $\large p = 0.5$, odds = 1:1 (equal chance)
+-   If $\large p = 0.8$, odds = 4:1 (4 times more likely to occur)
+-   If $\large p = 0.2$, odds = 1:4 (4 times less likely to occur)
+
+**Log-Odds (Logit)**: The natural logarithm of the odds: 
+
+<div align="center">
+
+$$\large 
+\text{Logit}(p) = \ln\left(\frac{p}{1-p}\right)
+$$
+
+</div>
+
+The log-odds can range from $\large -\infty$ to $\large +\infty$, making it suitable for linear modeling.
 
 ### The Sigmoid (Logistic) Function
 
-The sigmoid function is the inverse of the logit function: $$\sigma(z) = \frac{1}{1 + e^{-z}} = \frac{e^z}{1 + e^z}$$
+The sigmoid function is the inverse of the logit function: 
+
+<div align="center">
+
+$$\large 
+\sigma(z) = \frac{1}{1 + e^{-z}} = \frac{e^z}{1 + e^z}
+$$
+
+</div>
 
 <div align="center">
 <img src="assets/sigmoid.png" width="500", height="320">
@@ -49,31 +69,34 @@ The sigmoid function is the inverse of the logit function: $$\sigma(z) = \frac{1
 
 **Key Properties:**
 
--   Range: $(0, 1)$ - perfect for probabilities
--   Monotonic: Always increasing, so higher $z$ values always correspond to higher probabilities
+-   Range: $\large (0, 1)$ - perfect for probabilities
+-   Monotonic: Always increasing, so higher $\large z$ values always correspond to higher probabilities
 -   S-shaped curve: Gentle transitions at extremes, steep in the middle
--   Symmetric around 0.5: $\sigma(-z) = 1 - \sigma(z)$
--   Derivative: $\sigma'(z) = \sigma(z)(1 - \sigma(z))$ - this elegant property simplifies gradient calculations
+-   Symmetric around 0.5: $\large \sigma(-z) = 1 - \sigma(z)$
+-   Derivative: $\large \sigma'(z) = \sigma(z)(1 - \sigma(z))$ - this elegant property simplifies gradient calculations
 
-**Interpretation of $z$ values:**
+**Interpretation of $\large z$ values:**
 
--   $z = 0 \Rightarrow \sigma(z) = 0.5$ (neutral/uncertain)
--   $z > 0 \Rightarrow \sigma(z) > 0.5$ (favors class 1)
--   $z < 0 \Rightarrow \sigma(z) < 0.5$ (favors class 0)
--   $z = \pm 2 \Rightarrow \sigma(z) \approx 0.88/0.12$ (fairly confident)
--   $z = \pm 4 \Rightarrow \sigma(z) \approx 0.98/0.02$ (very confident)
+-   $\large z = 0 \Rightarrow \sigma(z) = 0.5$ (neutral/uncertain)
+-   $\large z > 0 \Rightarrow \sigma(z) > 0.5$ (favors class 1)
+-   $\large z < 0 \Rightarrow \sigma(z) < 0.5$ (favors class 0)
+-   $\large z = \pm 2 \Rightarrow \sigma(z) \approx 0.88/0.12$ (fairly confident)
+-   $\large z = \pm 4 \Rightarrow \sigma(z) \approx 0.98/0.02$ (very confident)
 
 ### The Logistic Regression Model
 
-For input features $\mathbf{x} = [x_1, x_2, \ldots, x_n]^T$ and parameters $\boldsymbol{\theta} = [\theta_0, \theta_1, \ldots, \theta_n]^T$:
+For input features $\large \mathbf{x} = [x_1, x_2, \ldots, x_n]^T$ and parameters $\large \boldsymbol{\theta} = [\theta_0, \theta_1, \ldots, \theta_n]^T$:
 
-**Linear combination (logit)**: $$z = \theta_0 + \theta_1 x_1 + \theta_2 x_2 + \cdots + \theta_n x_n = \boldsymbol{\theta}^T \mathbf{x}'$$
+**Linear combination (logit)**: $$\large z = \theta_0 + \theta_1 x_1 + \theta_2 x_2 + \cdots + \theta_n x_n = \boldsymbol{\theta}^T \mathbf{x}'$$
 
-where $\mathbf{x}' = [1, x_1, x_2, \ldots, x_n]^T$ includes the bias term.
+where $\large \mathbf{x}' = [1, x_1, x_2, \ldots, x_n]^T$ includes the bias term.
 
-**Probability prediction**: $$P(y = 1 | \mathbf{x}; \boldsymbol{\theta}) = h_{\boldsymbol{\theta}}(\mathbf{x}) = \sigma(z) = \frac{1}{1 + e^{-\boldsymbol{\theta}^T \mathbf{x}'}}$$
+**Probability prediction**: $$\large P(y = 1 | \mathbf{x}; \boldsymbol{\theta}) = h_{\boldsymbol{\theta}}(\mathbf{x}) = \sigma(z) = \frac{1}{1 + e^{-\boldsymbol{\theta}^T \mathbf{x}'}}$$
 
-**Class prediction**: $$\hat{y} = \begin{cases} 1 & \text{if } h_{\boldsymbol{\theta}}(\mathbf{x}) \geq 0.5 \text{ (i.e., } z \geq 0\text{)} \ 0 & \text{if } h_{\boldsymbol{\theta}}(\mathbf{x}) < 0.5 \text{ (i.e., } z < 0\text{)} \end{cases}$$
+**Class prediction**: 
+$$\large 
+\hat{y} = \begin{cases} 1 & \text{if } h_{\boldsymbol{\theta}}(\mathbf{x}) \geq 0.5 \text{ (i.e., } z \geq 0\text{)} \ 0 & \text{if } h_{\boldsymbol{\theta}}(\mathbf{x}) < 0.5 \text{ (i.e., } z < 0\text{)} \end{cases}
+$$
 
 <div align="center">
 <img src="assets/logistic.png" width="600", height="350">
@@ -83,7 +106,15 @@ where $\mathbf{x}' = [1, x_1, x_2, \ldots, x_n]^T$ includes the bias term.
 ### Decision Boundary
 ### Linear Decision Boundaries
 
-The decision boundary occurs where $P(y=1|\mathbf{x}) = 0.5$, which happens when $z = 0$: $$\theta_0 + \theta_1 x_1 + \theta_2 x_2 + \cdots + \theta_n x_n = 0$$
+The decision boundary occurs where $\large P(y=1|\mathbf{x}) = 0.5$, which happens when $\large z = 0$: 
+
+<div align="center">
+
+$$\large 
+\theta_0 + \theta_1 x_1 + \theta_2 x_2 + \cdots + \theta_n x_n = 0
+$$
+
+</div>
 
 This is a **hyperplane** in $n$-dimensional space:
 
@@ -98,23 +129,23 @@ This is a **hyperplane** in $n$-dimensional space:
 
 **Geometric Interpretation:**
 
--   The normal vector to the decision boundary is $[\theta_1, \theta_2, \ldots, \theta_n]^T$
--   The distance from origin to the boundary is $|\theta_0|/||\boldsymbol{\theta}||$
+-   The normal vector to the decision boundary is $\large [\theta_1, \theta_2, \ldots, \theta_n]^T$
+-   The distance from origin to the boundary is $\large |\theta_0|/||\boldsymbol{\theta}||$
 -   Points are classified based on which side of the hyperplane they fall on
 
 ### Non-linear Decision Boundaries
 
 While basic logistic regression produces linear boundaries, we can create non-linear boundaries by:
 
-**Polynomial features**: $$z = \theta_0 + \theta_1 x_1 + \theta_2 x_2 + \theta_3 x_1^2 + \theta_4 x_2^2 + \theta_5 x_1 x_2$$
+**Polynomial features**: $$\large z = \theta_0 + \theta_1 x_1 + \theta_2 x_2 + \theta_3 x_1^2 + \theta_4 x_2^2 + \theta_5 x_1 x_2$$
 
-**Interaction terms**: $$z = \theta_0 + \theta_1 x_1 + \theta_2 x_2 + \theta_3 x_1 x_2$$
+**Interaction terms**: $$\large z = \theta_0 + \theta_1 x_1 + \theta_2 x_2 + \theta_3 x_1 x_2$$
 
 **Other transformations**:
 
--   Logarithmic: $\log(x_i)$
--   Trigonometric: $\sin(x_i), \cos(x_i)$
--   Radial basis functions: $e^{-||x_i - c||^2}$
+-   Logarithmic: $\large \log(x_i)$
+-   Trigonometric: $\large \sin(x_i), \cos(x_i)$
+-   Radial basis functions: $\large e^{-||x_i - c||^2}$
 
 ### Cost Function: Binary Cross-Entropy (Log Loss)
 For classification, Mean Squared Error (MSE) is generally not a good cost function because it can lead to a non-convex optimization problem when combined with the sigmoid function. Instead, **Binary Cross-Entropy (BCE) Loss**, also known as Log Loss, is used.
@@ -123,20 +154,52 @@ For classification, Mean Squared Error (MSE) is generally not a good cost functi
 
 Logistic regression uses **Maximum Likelihood Estimation (MLE)** to find optimal parameters. Given training data, we want to find parameters that make the observed data most likely.
 
-**Likelihood for a single sample**: $$L(\boldsymbol{\theta}) = P(y|\mathbf{x}; \boldsymbol{\theta}) = h_{\boldsymbol{\theta}}(\mathbf{x})^y \cdot (1 - h_{\boldsymbol{\theta}}(\mathbf{x}))^{1-y}$$
+**Likelihood for a single sample**: 
+
+<div align="center">
+
+$$\large 
+L(\boldsymbol{\theta}) = P(y|\mathbf{x}; \boldsymbol{\theta}) = h_{\boldsymbol{\theta}}(\mathbf{x})^y \cdot (1 - h_{\boldsymbol{\theta}}(\mathbf{x}))^{1-y}
+$$
+
+</div>
 
 This clever formulation works because:
 
--   If $y = 1$: $L = h_{\boldsymbol{\theta}}(\mathbf{x})^1 \cdot (1 - h_{\boldsymbol{\theta}}(\mathbf{x}))^0 = h_{\boldsymbol{\theta}}(\mathbf{x})$
--   If $y = 0$: $L = h_{\boldsymbol{\theta}}(\mathbf{x})^0 \cdot (1 - h_{\boldsymbol{\theta}}(\mathbf{x}))^1 = 1 - h_{\boldsymbol{\theta}}(\mathbf{x})$
+-   **If $\large y = 1$**: $\large L = h_{\boldsymbol{\theta}}(\mathbf{x})^1 \cdot (1 - h_{\boldsymbol{\theta}}(\mathbf{x}))^0 = h_{\boldsymbol{\theta}}(\mathbf{x})$
+-   **If $\large y = 0$**: $\large L = h_{\boldsymbol{\theta}}(\mathbf{x})^0 \cdot (1 - h_{\boldsymbol{\theta}}(\mathbf{x}))^1 = 1 - h_{\boldsymbol{\theta}}(\mathbf{x})$
 
-**Likelihood for all samples** (assuming independence): $$L(\boldsymbol{\theta}) = \prod_{i=1}^{m} h_{\boldsymbol{\theta}}(\mathbf{x}^{(i)})^{y^{(i)}} \cdot (1 - h_{\boldsymbol{\theta}}(\mathbf{x}^{(i)}))^{1-y^{(i)}}$$
+**Likelihood for all samples** (assuming independence): 
 
-**Log-likelihood** (easier to optimize): $$\ell(\boldsymbol{\theta}) = \log L(\boldsymbol{\theta}) = \sum_{i=1}^{m} \left[ y^{(i)} \log h_{\boldsymbol{\theta}}(\mathbf{x}^{(i)}) + (1-y^{(i)}) \log(1 - h_{\boldsymbol{\theta}}(\mathbf{x}^{(i)})) \right]$$
+<div align="center">
+
+$$\large 
+L(\boldsymbol{\theta}) = \prod_{i=1}^{m} h_{\boldsymbol{\theta}}(\mathbf{x}^{(i)})^{y^{(i)}} \cdot (1 - h_{\boldsymbol{\theta}}(\mathbf{x}^{(i)}))^{1-y^{(i)}}
+$$
+
+</div>
+
+**Log-likelihood** (easier to optimize): 
+
+<div align="center">
+
+$$\large 
+\ell(\boldsymbol{\theta}) = \log L(\boldsymbol{\theta}) = \sum_{i=1}^{m} \left[ y^{(i)} \log h_{\boldsymbol{\theta}}(\mathbf{x}^{(i)}) + (1-y^{(i)}) \log(1 - h_{\boldsymbol{\theta}}(\mathbf{x}^{(i)})) \right]
+$$
+
+</div>
 
 #### Binary Cross-Entropy Loss
 
-Since we typically minimize cost functions rather than maximize likelihood, we define: $$J(\boldsymbol{\theta}) = -\frac{1}{m} \ell(\boldsymbol{\theta}) = -\frac{1}{m} \sum_{i=1}^{m} \left[ y^{(i)} \log h_{\boldsymbol{\theta}}(\mathbf{x}^{(i)}) + (1-y^{(i)}) \log(1 - h_{\boldsymbol{\theta}}(\mathbf{x}^{(i)})) \right]$$
+Since we typically minimize cost functions rather than maximize likelihood, we define: 
+
+<div align="center">
+
+$$\large 
+J(\boldsymbol{\theta}) = -\frac{1}{m} \ell(\boldsymbol{\theta}) = -\frac{1}{m} \sum_{i=1}^{m} \left[ y^{(i)} \log h_{\boldsymbol{\theta}}(\mathbf{x}^{(i)}) + (1-y^{(i)}) \log(1 - h_{\boldsymbol{\theta}}(\mathbf{x}^{(i)})) \right]
+$$
+
+</div>
 
 **Properties of BCE Loss:**
 
@@ -147,10 +210,10 @@ Since we typically minimize cost functions rather than maximize likelihood, we d
 
 **Intuitive Understanding:**
 
--   When $y = 1$ and $h_{\boldsymbol{\theta}}(\mathbf{x}) \to 1$: Cost $\to 0$ (correct and confident)
--   When $y = 1$ and $h_{\boldsymbol{\theta}}(\mathbf{x}) \to 0$: Cost $\to \infty$ (wrong and confident)
--   When $y = 0$ and $h_{\boldsymbol{\theta}}(\mathbf{x}) \to 0$: Cost $\to 0$ (correct and confident)
--   When $y = 0$ and $h_{\boldsymbol{\theta}}(\mathbf{x}) \to 1$: Cost $\to \infty$ (wrong and confident)
+-   When $\large y = 1$ and $h_{\boldsymbol{\theta}}(\mathbf{x}) \to 1$: Cost $\large \to 0$ (correct and confident)
+-   When $\large y = 1$ and $h_{\boldsymbol{\theta}}(\mathbf{x}) \to 0$: Cost $\large \to \infty$ (wrong and confident)
+-   When $\large y = 0$ and $h_{\boldsymbol{\theta}}(\mathbf{x}) \to 0$: Cost $\large \to 0$ (correct and confident)
+-   When $\large y = 0$ and $h_{\boldsymbol{\theta}}(\mathbf{x}) \to 1$: Cost $\large \to \infty$ (wrong and confident)
 
 ### Optimization with Gradient Descent
 
@@ -158,21 +221,53 @@ Since we typically minimize cost functions rather than maximize likelihood, we d
 
 To derive the gradient, we need the partial derivative of $J(\boldsymbol{\theta})$ with respect to each parameter $\theta_j$.
 
-**Step 1: Derivative of sigmoid function** $$\frac{d\sigma(z)}{dz} = \sigma(z)(1 - \sigma(z))$$
+**Step 1: Derivative of sigmoid function** 
 
-**Step 2: Chain rule application** For a single sample $(x^{(i)}, y^{(i)})$: $$\frac{\partial}{\partial \theta_j} \left[-y^{(i)} \log h_{\boldsymbol{\theta}}(\mathbf{x}^{(i)}) - (1-y^{(i)}) \log(1 - h_{\boldsymbol{\theta}}(\mathbf{x}^{(i)}))\right]$$
+<div align="center">
 
-**Step 3: After applying chain rule and simplifying** $$\frac{\partial J(\boldsymbol{\theta})}{\partial \theta_j} = \frac{1}{m} \sum_{i=1}^{m} (h_{\boldsymbol{\theta}}(\mathbf{x}^{(i)}) - y^{(i)}) x_j^{(i)}$$
+$$
+\frac{d\sigma(z)}{dz} = \sigma(z)(1 - \sigma(z))
+$$
 
-This looks identical to the gradient for linear regression with MSE, but remember that $h_{\mathbf{\theta}}(\mathbf{x}^{(i)})$ here is $\sigma(\mathbf{x}^{(i)} \cdot \mathbf{\theta})$
+</div>
 
-**Vectorized form:** $$\nabla J(\boldsymbol{\theta}) = \frac{1}{m} \mathbf{X}^T (\mathbf{h} - \mathbf{y})$$
+**Step 2: Chain rule application** For a single sample $(x^{(i)}, y^{(i)})$: 
+
+<div align="center">
+
+$$\large \
+frac{\partial}{\partial \theta_j} \left[-y^{(i)} \log h_{\boldsymbol{\theta}}(\mathbf{x}^{(i)}) - (1-y^{(i)}) \log(1 - h_{\boldsymbol{\theta}}(\mathbf{x}^{(i)}))\right]
+$$
+
+</div>
+
+**Step 3: After applying chain rule and simplifying** 
+
+<div align="center">
+
+$$\large 
+\frac{\partial J(\boldsymbol{\theta})}{\partial \theta_j} = \frac{1}{m} \sum_{i=1}^{m} (h_{\boldsymbol{\theta}}(\mathbf{x}^{(i)}) - y^{(i)}) x_j^{(i)}
+$$
+
+</div>
+
+This looks identical to the gradient for linear regression with MSE, but remember that $\large h_{\mathbf{\theta}}(\mathbf{x}^{(i)})$ here is $\large \sigma(\mathbf{x}^{(i)} \cdot \mathbf{\theta})$
+
+**Vectorized form:** 
+
+<div align="center">
+
+$$\large 
+\nabla J(\boldsymbol{\theta}) = \frac{1}{m} \mathbf{X}^T (\mathbf{h} - \mathbf{y})
+$$
+
+</div>
 
 where:
 
--   $\mathbf{X}$ is the $m \times (n+1)$ design matrix
--   $\mathbf{h} = \sigma(\mathbf{X}\boldsymbol{\theta})$ is the vector of predictions
--   $\mathbf{y}$ is the vector of true labels
+-   $\large \mathbf{X}$ is the $\large m \times (n+1)$ design matrix
+-   $\large \mathbf{h} = \sigma(\mathbf{X}\boldsymbol{\theta})$ is the vector of predictions
+-   $\large \mathbf{y}$ is the vector of true labels
 
 #### Gradient Descent Algorithm
 
@@ -201,26 +296,50 @@ For epoch = 1 to max_epochs:
 
 Common schedules:
 
--   Step decay: $\eta_t = \eta_0 \cdot \gamma^{t/k}$
--   Exponential decay: $\eta_t = \eta_0 \cdot e^{-\lambda t}$
--   Cosine annealing: $\eta_t = \eta_{min} + \frac{1}{2}(\eta_{max} - \eta_{min})(1 + \cos(\frac{t\pi}{T}))$
+-   Step decay: $\large \eta_t = \eta_0 \cdot \gamma^{t/k}$
+-   Exponential decay: $\large \eta_t = \eta_0 \cdot e^{-\lambda t}$
+-   Cosine annealing: $\large \eta_t = \eta_{min} + \frac{1}{2}(\eta_{max} - \eta_{min})(1 + \cos(\frac{t\pi}{T}))$
 
 
 ### Related Topics
 
 #### Regularization
 
-**L1 Regularization (Lasso)**: $$J(\boldsymbol{\theta}) = \text{BCE}(\boldsymbol{\theta}) + \lambda \sum_{j=1}^{n} |\theta_j|$$
+**L1 Regularization (Lasso)**: 
+
+<div align="center">
+
+$$\large 
+J(\boldsymbol{\theta}) = \text{BCE}(\boldsymbol{\theta}) + \lambda \sum_{j=1}^{n} |\theta_j|
+$$
+
+</div>
 
 -   Promotes sparsity (feature selection)
 -   Some coefficients become exactly zero
 
-**L2 Regularization (Ridge)**: $$J(\boldsymbol{\theta}) = \text{BCE}(\boldsymbol{\theta}) + \lambda \sum_{j=1}^{n} \theta_j^2$$
+**L2 Regularization (Ridge)**: 
+
+<div align="center">
+
+$$\large 
+J(\boldsymbol{\theta}) = \text{BCE}(\boldsymbol{\theta}) + \lambda \sum_{j=1}^{n} \theta_j^2
+$$
+
+</div>
 
 -   Prevents overfitting by penalizing large weights
 -   Keeps all features but shrinks coefficients
 
-**Elastic Net**: $$J(\boldsymbol{\theta}) = \text{BCE}(\boldsymbol{\theta}) + \lambda_1 \sum_{j=1}^{n} |\theta_j| + \lambda_2 \sum_{j=1}^{n} \theta_j^2$$
+**Elastic Net**: 
+
+<div align="center">
+
+$$\large 
+J(\boldsymbol{\theta}) = \text{BCE}(\boldsymbol{\theta}) + \lambda_1 \sum_{j=1}^{n} |\theta_j| + \lambda_2 \sum_{j=1}^{n} \theta_j^2
+$$
+
+</div>
 
 -   Combines L1 and L2 penalties
 
@@ -234,8 +353,8 @@ Common schedules:
 
 **Common scaling methods:**
 
--   Standardization: $x' = \frac{x - \mu}{\sigma}$
--   Min-Max scaling: $x' = \frac{x - \min(x)}{\max(x) - \min(x)}$
+-   Standardization: $\large x' = \frac{x - \mu}{\sigma}$
+-   Min-Max scaling: $\large x' = \frac{x - \min(x)}{\max(x) - \min(x)}$
 -   Robust scaling: Uses median and IQR instead of mean and std
 
 #### Handling Imbalanced Datasets
@@ -272,20 +391,68 @@ Actual  0    TN      FP     (N)
 
 **Derived Metrics:**
 
-**Accuracy**: Overall correctness $$\text{Accuracy} = \frac{TP + TN}{TP + TN + FP + FN}$$
+**Accuracy**: Overall correctness 
 
-**Precision**: Exactness of positive predictions $$\text{Precision} = \frac{TP}{TP + FP}$$
+<div align="center">
 
-**Recall (Sensitivity/TPR)**: Completeness of positive detection $$\text{Recall} = \frac{TP}{TP + FN}$$
+$$\large 
+\text{Accuracy} = \frac{TP + TN}{TP + TN + FP + FN}
+$$
 
-**Specificity (TNR)**: Correct rejection rate $$\text{Specificity} = \frac{TN}{TN + FP}$$
+</div>
 
-**F1-Score**: Harmonic mean of precision and recall $$F_1 = 2 \cdot \frac{\text{Precision} \cdot \text{Recall}}{\text{Precision} + \text{Recall}}$$
+**Precision**: Exactness of positive predictions 
 
-**F-Beta Score**: Weighted harmonic mean $$F_\beta = (1 + \beta^2) \cdot \frac{\text{Precision} \cdot \text{Recall}}{\beta^2 \cdot \text{Precision} + \text{Recall}}$$
+<div align="center">
 
--   $\beta > 1$: Emphasizes recall
--   $\beta < 1$: Emphasizes precision
+$$\large 
+\text{Precision} = \frac{TP}{TP + FP}
+$$
+
+</div>
+
+**Recall (Sensitivity/TPR)**: Completeness of positive detection 
+
+<div align="center">
+
+$$\large 
+\text{Recall} = \frac{TP}{TP + FN}
+$$
+
+</div>
+
+**Specificity (TNR)**: Correct rejection rate 
+
+<div align="center">
+
+$$\large 
+\text{Specificity} = \frac{TN}{TN + FP}
+$$
+
+</div>
+
+**F1-Score**: Harmonic mean of precision and recall 
+
+<div align="center">
+
+$$\large 
+F_1 = 2 \cdot \frac{\text{Precision} \cdot \text{Recall}}{\text{Precision} + \text{Recall}}
+$$
+
+</div>
+
+**F-Beta Score**: Weighted harmonic mean 
+
+<div align="center">
+
+$$\large 
+F_\beta = (1 + \beta^2) \cdot \frac{\text{Precision} \cdot \text{Recall}}{\beta^2 \cdot \text{Precision} + \text{Recall}}
+$$
+
+</div>
+
+-   $\large \beta > 1$: Emphasizes recall
+-   $\large \beta < 1$: Emphasizes precision
 
 #### ROC and AUC Analysis
 
@@ -303,9 +470,17 @@ Actual  0    TN      FP     (N)
 
 #### Business-Oriented Metrics
 
-**Cost-sensitive evaluation**: $$\text{Total Cost} = C_{FP} \cdot FP + C_{FN} \cdot FN$$
+**Cost-sensitive evaluation**: 
 
-where $C_{FP}$ and $C_{FN}$ are business costs of false positives and false negatives.
+<div align="center">
+
+$$\large 
+\text{Total Cost} = C_{FP} \cdot FP + C_{FN} \cdot FN
+$$
+
+</div>
+
+where $\large C_{FP}$ and $\large C_{FN}$ are business costs of false positives and false negatives.
 
 ### Assumptions and Limitations
 
