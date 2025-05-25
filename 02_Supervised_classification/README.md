@@ -534,3 +534,287 @@ where $\large C_{FP}$ and $\large C_{FN}$ are business costs of false positives 
 -   K-fold cross-validation for parameter selection
 -   Stratified sampling to maintain class proportions
 -   Time series split for temporal data
+
+## Support Vector Machines and Kernels
+
+### Introduction
+
+Support Vector Machines (SVMs) were introduced by Vladimir Vapnik and his colleagues, building on statistical learning theory and the principle of structural risk minimization. SVMs represent one of the most theoretically grounded and practically successful machine learning algorithms, particularly excelling in high-dimensional spaces and scenarios with limited training data.
+
+#### Core Philosophy
+
+The fundamental insight behind SVMs is that **not all training examples are equally important**. The decision boundary should be determined primarily by the most "difficult" examples - those that lie closest to the boundary between classes. This leads to several key advantages:
+
+-   Robust generalization: By focusing on the most informative examples, SVMs often generalize better than methods that treat all training points equally
+-   Sparse solutions: Only support vectors influence the final model, leading to compact representations
+-   Maximum margin principle: Among all possible separating hyperplanes, choose the one with maximum margin for better generalization
+
+#### Mathematical Foundation: Statistical Learning Theory
+
+SVMs are grounded in **Vapnik-Chervonenkis (VC) theory**, which provides theoretical guarantees about generalization. The key insight is that generalization error is bounded by:
+
+$$\large 
+R(f) \leq R_{emp}(f) + \sqrt{\frac{h(\log(2m/h) + 1) - \log(\eta/4)}{m}}
+$$
+
+Where:
+
+-   $R(f)$ is the true risk (generalization error)
+-   $R_{emp}(f)$ is the empirical risk (training error)
+-   $h$ is the VC dimension of the function class
+-   $m$ is the number of training examples
+-   $\eta$ is the confidence parameter
+
+The maximum margin principle directly minimizes the VC dimension, leading to better generalization bounds.
+
+### Geometric Intuition and Margin Theory
+
+#### The Margin Concept
+
+The **margin** is the perpendicular distance from the decision boundary to the nearest data point. For a hyperplane defined by $\mathbf{w}^T\mathbf{x} + b = 0$:
+
+**Functional margin** for point $i$: $\hat{\gamma}_i = y_i(\mathbf{w}^T\mathbf{x}_i + b)$
+
+-   Always positive for correctly classified points
+-   Measures "confidence" of classification
+
+**Geometric margin** for point $i$: $\gamma_i = \frac{y_i(\mathbf{w}^T\mathbf{x}_i + b)}{||\mathbf{w}||}$
+
+-   Distance from point to hyperplane
+-   Scale-invariant (doesn't change if we scale $\mathbf{w}$ and $b$)
+
+**Total geometric margin**: $\gamma = \min_i \gamma_i$
+
+<div align="center">
+<img src="assets/marginal.jpg">
+<p>Fig. Maximum margin classification with support vector machines</p>
+</div>
+
+#### Why Maximum Margin?
+
+1.  Generalization: Larger margins typically lead to better generalization (supported by VC theory)
+2.  Noise robustness: Points far from the boundary are less likely to be misclassified due to noise
+3.  Unique solution: Among all separating hyperplanes, the maximum margin solution is unique
+
+#### Margin Calculation
+
+For a normalized hyperplane where the closest points satisfy $|\mathbf{w}^T\mathbf{x}_i + b| = 1$:
+
+-   The margin width is $\frac{2}{||\mathbf{w}||}$
+-   Maximizing margin ⟺ minimizing $||\mathbf{w}||$ ⟺ minimizing $\frac{1}{2}||\mathbf{w}||^2$
+
+### Linear SVM: Complete Mathematical Treatment
+
+<div align="center">
+<img src="assets/margin.png">
+<p>Fig. Hard Margin vs Soft Margin in SVM</p>
+</div>
+
+#### Hard Margin SVM (Linearly Separable Case)
+
+**Optimization problem**: $$\min_{\mathbf{w}, b} \frac{1}{2}||\mathbf{w}||^2$$ $$\text{subject to: } y_i(\mathbf{w}^T\mathbf{x}_i + b) \geq 1, \quad i = 1, \ldots, m$$
+
+This is a **convex quadratic programming** problem with linear constraints.
+
+**Lagrangian formulation**: $$L(\mathbf{w}, b, \boldsymbol{\alpha}) = \frac{1}{2}||\mathbf{w}||^2 - \sum_{i=1}^{m} \alpha_i [y_i(\mathbf{w}^T\mathbf{x}_i + b) - 1]$$
+
+Where $\alpha_i \geq 0$ are Lagrange multipliers.
+
+**KKT conditions**:
+
+1.  $\nabla_{\mathbf{w}} L = \mathbf{w} - \sum_{i=1}^{m} \alpha_i y_i \mathbf{x}_i = 0 \Rightarrow \mathbf{w} = \sum_{i=1}^{m} \alpha_i y_i \mathbf{x}_i$
+2.  $\frac{\partial L}{\partial b} = -\sum_{i=1}^{m} \alpha_i y_i = 0 \Rightarrow \sum_{i=1}^{m} \alpha_i y_i = 0$
+3.  $\alpha_i \geq 0$
+4.  $y_i(\mathbf{w}^T\mathbf{x}_i + b) - 1 \geq 0$
+5.  $\alpha_i [y_i(\mathbf{w}^T\mathbf{x}_i + b) - 1] = 0$ (complementary slackness)
+
+**Dual formulation**: $$\max_{\boldsymbol{\alpha}} W(\boldsymbol{\alpha}) = \sum_{i=1}^{m} \alpha_i - \frac{1}{2} \sum_{i=1}^{m} \sum_{j=1}^{m} \alpha_i \alpha_j y_i y_j \mathbf{x}_i^T \mathbf{x}_j$$ $$\text{subject to: } \sum_{i=1}^{m} \alpha_i y_i = 0, \quad \alpha_i \geq 0$$
+
+#### Soft Margin SVM (Non-separable Case)
+
+Real data is rarely perfectly separable. **Soft margin SVM** introduces slack variables $\xi_i \geq 0$ to allow some misclassifications:
+
+**Primal optimization problem**: $$\min_{\mathbf{w}, b, \boldsymbol{\xi}} \frac{1}{2}||\mathbf{w}||^2 + C \sum_{i=1}^{m} \xi_i$$ $$\text{subject to: } y_i(\mathbf{w}^T\mathbf{x}_i + b) \geq 1 - \xi_i, \quad \xi_i \geq 0$$
+
+**Interpretation of slack variables**:
+
+-   $\xi_i = 0$: Point is correctly classified and outside margin
+-   $0 < \xi_i < 1$: Point is correctly classified but inside margin
+-   $\xi_i = 1$: Point is exactly on the decision boundary
+-   $\xi_i > 1$: Point is misclassified
+
+**Dual formulation**: $$\max_{\boldsymbol{\alpha}} W(\boldsymbol{\alpha}) = \sum_{i=1}^{m} \alpha_i - \frac{1}{2} \sum_{i=1}^{m} \sum_{j=1}^{m} \alpha_i \alpha_j y_i y_j \mathbf{x}_i^T \mathbf{x}_j$$ $$\text{subject to: } \sum_{i=1}^{m} \alpha_i y_i = 0, \quad 0 \leq \alpha_i \leq C$$
+
+#### Support Vector Classification
+
+From the KKT conditions, we can classify training points:
+
+1.  **$\alpha_i = 0$**: Non-support vectors (correctly classified, outside margin)
+2.  **$0 < \alpha_i < C$**: Support vectors on margin boundary ($\xi_i = 0$)
+3.  **$\alpha_i = C$**: Support vectors inside margin or misclassified ($\xi_i > 0$)
+
+**Decision function**: $$f(\mathbf{x}) = \sum_{i \in SV} \alpha_i y_i \mathbf{x}_i^T \mathbf{x} + b$$
+
+Where $SV$ is the set of support vector indices.
+
+### Hinge Loss: Detailed Analysis
+
+#### Mathematical Definition
+
+The **hinge loss** provides a convex surrogate for the 0-1 loss:
+
+$$L_{hinge}(y, f(\mathbf{x})) = \max(0, 1 - yf(\mathbf{x}))$$
+
+Where $y \in {-1, +1}$ and $f(\mathbf{x}) = \mathbf{w}^T\mathbf{x} + b$.
+
+<div align="center">
+<img src="assets/hinge.png">
+<p>Fig. Hinge Loss</p>
+</div>
+
+#### Properties of Hinge Loss
+
+1.  Convex: Enables efficient optimization
+2.  Piecewise linear: Not differentiable everywhere, but has subgradients
+3.  Margin-based: Penalizes points within the margin, even if correctly classified
+4.  Sparse: Only support vectors contribute to the loss
+
+#### Subgradient Analysis
+
+The hinge loss is not differentiable at $yf(\mathbf{x}) = 1$. The subgradient is:
+
+$$\partial L_{hinge} = \begin{cases} 0 & \text{if } yf(\mathbf{x}) > 1 \ [-y\mathbf{x}, 0] & \text{if } yf(\mathbf{x}) = 1 \ -y\mathbf{x} & \text{if } yf(\mathbf{x}) < 1 \end{cases}$$
+
+#### Regularized Hinge Loss Objective
+
+The complete SVM objective combines hinge loss with L2 regularization:
+
+$$J(\mathbf{w}, b) = \frac{1}{m} \sum_{i=1}^{m} \max(0, 1 - y_i(\mathbf{w}^T\mathbf{x}_i + b)) + \frac{\lambda}{2}||\mathbf{w}||^2$$
+
+**Equivalent formulations**:
+
+-   $J(\mathbf{w}, b) = C \sum_{i=1}^{m} \max(0, 1 - y_i(\mathbf{w}^T\mathbf{x}_i + b)) + \frac{1}{2}||\mathbf{w}||^2$
+-   Where $C = \frac{1}{\lambda m}$
+
+### Optimization Algorithms
+
+#### Sequential Minimal Optimization (SMO)
+
+SMO, developed by John Platt, is the most popular algorithm for training SVMs. It breaks the large QP problem into smaller sub-problems:
+
+**Key insight**: The smallest possible optimization problem involves two variables (due to the constraint $\sum \alpha_i y_i = 0$).
+
+**Algorithm outline**:
+
+1.  Select two variables $\alpha_i, \alpha_j$ to optimize
+2.  Fix all other variables
+3.  Solve the 2-variable QP analytically
+4.  Repeat until convergence
+
+**Variable selection heuristics**:
+
+-   Choose variables that violate KKT conditions most
+-   Use second-order information for faster convergence
+
+#### Gradient Descent for Hinge Loss
+
+While not as efficient as SMO for traditional SVMs, gradient descent is useful for:
+
+-   Online learning scenarios
+-   Integration with deep learning frameworks
+-   Large-scale problems with approximate solutions
+
+**Subgradient descent update**: $$\mathbf{w}_{t+1} = \mathbf{w}_t - \eta_t \left( \lambda \mathbf{w}_t + \frac{1}{m} \sum_{i=1}^{m} \mathbf{g}_i \right)$$
+
+Where $\mathbf{g}_i$ is the subgradient of the hinge loss for sample $i$.
+
+**Stochastic subgradient descent**: $$\mathbf{w}_{t+1} = \mathbf{w}_t - \eta_t (\lambda \mathbf{w}_t + \mathbf{g}_{i_t})$$
+
+For randomly selected sample $i_t$.
+
+### Non-Linear SVMs
+
+#### The Challenge of Non-Linear Data
+Many real-world datasets are not linearly separable. A linear decision boundary will perform poorly.
+
+<div align="center">
+<img src="assets/nonlinear.png">
+<p>Fig. Non-Linearly Separable Data</p>
+</div>
+
+#### Mapping to Higher Dimensions
+One way to handle non-linear data is to map the original features $\mathbf{x}$ into a much higher-dimensional feature space $\phi(\mathbf{x})$ where the data might become linearly separable. An SVM could then find a linear hyperplane in this new, higher-dimensional space.
+
+### Kernel Methods: The Mathematical Foundation
+
+#### The Kernel Trick Explained
+
+The **kernel trick** allows us to work in high-dimensional feature spaces without explicitly computing the feature mappings. This is based on the **representer theorem**.
+
+**Representer Theorem**: For a wide class of regularized risk minimization problems, the optimal solution can be written as: $$f^*(\mathbf{x}) = \sum_{i=1}^{m} \alpha_i K(\mathbf{x}_i, \mathbf{x})$$
+
+#### Kernel Functions: Mathematical Properties
+
+A function $K: \mathcal{X} \times \mathcal{X} \rightarrow \mathbb{R}$ is a **valid kernel** (positive definite kernel) if:
+
+1.  **Symmetry**: $K(\mathbf{x}, \mathbf{x}') = K(\mathbf{x}', \mathbf{x})$
+2.  **Positive semi-definiteness**: For any ${\mathbf{x}_1, \ldots, \mathbf{x}_m}$, the Gram matrix $\mathbf{K}$ with $K_{ij} = K(\mathbf{x}_i, \mathbf{x}_j)$ is positive semi-definite
+
+**Mercer's theorem**: A continuous function $K$ is a valid kernel if and only if it can be expressed as: $$K(\mathbf{x}, \mathbf{x}') = \sum_{i=1}^{\infty} \lambda_i \phi_i(\mathbf{x}) \phi_i(\mathbf{x}')$$
+
+Where $\lambda_i \geq 0$ and ${\phi_i}$ are orthonormal functions.
+
+#### Common Kernels
+
+#### Linear Kernel
+
+$$K(\mathbf{x}, \mathbf{x}') = \mathbf{x}^T \mathbf{x}'$$
+
+**Feature mapping**: $\phi(\mathbf{x}) = \mathbf{x}$ (identity) **Use cases**: Linearly separable data, high-dimensional sparse data (text) **Computational complexity**: $O(d)$ where $d$ is input dimension
+
+#### Polynomial Kernel
+
+$$K(\mathbf{x}, \mathbf{x}') = (\gamma \mathbf{x}^T \mathbf{x}' + r)^d$$
+
+**Parameters**:
+
+-   $d$: degree (typically 2-4)
+-   $\gamma > 0$: scaling factor
+-   $r \geq 0$: offset term
+
+**Feature space dimension**: $\binom{d+n-1}{d}$ for degree $d$ and $n$ input features
+
+**Example** (degree 2, $n=2$): $$\phi(\mathbf{x}) = [x_1^2, x_2^2, \sqrt{2\gamma r}x_1, \sqrt{2\gamma r}x_2, \sqrt{2\gamma}x_1x_2, r]$$
+
+#### Radial Basis Function (RBF) Kernel
+
+$$K(\mathbf{x}, \mathbf{x}') = \exp\left(-\gamma ||\mathbf{x} - \mathbf{x}'||^2\right)$$
+
+**Feature space**: Infinite dimensional **Parameter**: $\gamma > 0$ controls kernel width
+
+-   Small $\gamma$: smooth, wide influence
+-   Large $\gamma$: complex, narrow influence
+
+**Taylor expansion**: $$K(\mathbf{x}, \mathbf{x}') = \exp(-\gamma ||\mathbf{x}||^2) \exp(-\gamma ||\mathbf{x}'||^2) \sum_{k=0}^{\infty} \frac{(2\gamma)^k}{k!} (\mathbf{x}^T \mathbf{x}')^k$$
+
+This shows RBF contains polynomial features of all degrees.
+
+#### Sigmoid Kernel
+
+$$K(\mathbf{x}, \mathbf{x}') = \tanh(\gamma \mathbf{x}^T \mathbf{x}' + r)$$
+
+**Note**: Not always positive definite (depends on parameters) **Connection**: Similar to neural networks with sigmoid activation
+
+### Key Hyperparameters
+Tuning SVMs often involves selecting:
+*   **`C` (Regularization Parameter):**
+    *   Controls the trade-off between achieving a low training error (fitting the data points) and enforcing a large margin (simplicity/regularization).
+    *   Small `C`: Wider margin, more misclassifications allowed (stronger regularization, higher bias, lower variance).
+    *   Large `C`: Narrower margin, fewer misclassifications allowed (weaker regularization, lower bias, higher variance).
+*   **Kernel Choice:** `linear`, `poly`, `rbf`, `sigmoid`, or custom.
+*   **Kernel-Specific Parameters:**
+    *   `gamma` (for `rbf`, `poly`, `sigmoid`): Defines how much influence a single training example has.
+    *   `degree` (for `poly`): The degree of the polynomial.
+    *   `coef0` (for `poly`, `sigmoid`): An independent term in the kernel function.
+
+These hyperparameters are typically chosen using techniques like cross-validation.
