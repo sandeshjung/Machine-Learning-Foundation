@@ -1,3 +1,7 @@
+# Supervised Classification
+
+## Logistic Regression
+
 ### Introduction
 
 Logistic Regression is a fundamental statistical method for binary classification problems, where we need to predict whether an instance belongs to one of two classes (e.g., spam/not spam, pass/fail, malignant/benign). Despite its name containing "regression," it is primarily a classification algorithm. It aims to model the probability $\large P(y=1 | \mathbf{x}; \mathbf{\theta})$ that an input $\large \mathbf{x}$ belongs to class 1, given parameters $\large \mathbf{\theta}$.
@@ -559,11 +563,11 @@ $$
 
 Where:
 
--   $R(f)$ is the true risk (generalization error)
--   $R_{emp}(f)$ is the empirical risk (training error)
--   $h$ is the VC dimension of the function class
--   $m$ is the number of training examples
--   $\eta$ is the confidence parameter
+-   $\large R(f)$ is the true risk (generalization error)
+-   $\large R_{emp}(f)$ is the empirical risk (training error)
+-   $\large h$ is the VC dimension of the function class
+-   $\large m$ is the number of training examples
+-   $\large \eta$ is the confidence parameter
 
 The maximum margin principle directly minimizes the VC dimension, leading to better generalization bounds.
 
@@ -571,19 +575,19 @@ The maximum margin principle directly minimizes the VC dimension, leading to bet
 
 #### The Margin Concept
 
-The **margin** is the perpendicular distance from the decision boundary to the nearest data point. For a hyperplane defined by $\mathbf{w}^T\mathbf{x} + b = 0$:
+The **margin** is the perpendicular distance from the decision boundary to the nearest data point. For a hyperplane defined by $\large \mathbf{w}^T\mathbf{x} + b = 0$:
 
-**Functional margin** for point $i$: $\hat{\gamma}_i = y_i(\mathbf{w}^T\mathbf{x}_i + b)$
+**Functional margin** for point $\large i$: $\large \hat{\gamma}_i = y_i(\mathbf{w}^T\mathbf{x}_i + b)$
 
 -   Always positive for correctly classified points
 -   Measures "confidence" of classification
 
-**Geometric margin** for point $i$: $\gamma_i = \frac{y_i(\mathbf{w}^T\mathbf{x}_i + b)}{||\mathbf{w}||}$
+**Geometric margin** for point $\large i$: $\Large \gamma_i = \frac{y_i(\mathbf{w}^T\mathbf{x}_i + b)}{||\mathbf{w}||}$
 
 -   Distance from point to hyperplane
--   Scale-invariant (doesn't change if we scale $\mathbf{w}$ and $b$)
+-   Scale-invariant (doesn't change if we scale $\large \mathbf{w}$ and $b$)
 
-**Total geometric margin**: $\gamma = \min_i \gamma_i$
+**Total geometric margin**: $\large \gamma = \min_i \gamma_i$
 
 <div align="center">
 <img src="assets/marginal.jpg">
@@ -598,10 +602,10 @@ The **margin** is the perpendicular distance from the decision boundary to the n
 
 #### Margin Calculation
 
-For a normalized hyperplane where the closest points satisfy $|\mathbf{w}^T\mathbf{x}_i + b| = 1$:
+For a normalized hyperplane where the closest points satisfy $\large |\mathbf{w}^T\mathbf{x}_i + b| = 1$:
 
--   The margin width is $\frac{2}{||\mathbf{w}||}$
--   Maximizing margin ⟺ minimizing $||\mathbf{w}||$ ⟺ minimizing $\frac{1}{2}||\mathbf{w}||^2$
+-   The margin width is $\large \frac{2}{||\mathbf{w}||}$
+-   Maximizing margin ⟺ minimizing $\large ||\mathbf{w}||$ ⟺ minimizing $\large \frac{1}{2}||\mathbf{w}||^2$
 
 ### Linear SVM: Complete Mathematical Treatment
 
@@ -612,50 +616,119 @@ For a normalized hyperplane where the closest points satisfy $|\mathbf{w}^T\math
 
 #### Hard Margin SVM (Linearly Separable Case)
 
-**Optimization problem**: $$\min_{\mathbf{w}, b} \frac{1}{2}||\mathbf{w}||^2$$ $$\text{subject to: } y_i(\mathbf{w}^T\mathbf{x}_i + b) \geq 1, \quad i = 1, \ldots, m$$
+**Optimization problem**: 
+
+<div align="center">
+
+$$\large 
+\min_{\mathbf{w}, b} \frac{1}{2}||\mathbf{w}||^2
+$$ 
+
+$$\large
+\text{subject to: } y_i(\mathbf{w}^T\mathbf{x}_i + b) \geq 1, \quad i = 1, \ldots, m
+$$
+
+</div>
 
 This is a **convex quadratic programming** problem with linear constraints.
 
-**Lagrangian formulation**: $$L(\mathbf{w}, b, \boldsymbol{\alpha}) = \frac{1}{2}||\mathbf{w}||^2 - \sum_{i=1}^{m} \alpha_i [y_i(\mathbf{w}^T\mathbf{x}_i + b) - 1]$$
+**Lagrangian formulation**: 
 
-Where $\alpha_i \geq 0$ are Lagrange multipliers.
+<div align="center">
+
+$$\large 
+L(\mathbf{w}, b, \boldsymbol{\alpha}) = \frac{1}{2}||\mathbf{w}||^2 - \sum_{i=1}^{m} \alpha_i [y_i(\mathbf{w}^T\mathbf{x}_i + b) - 1]
+$$
+
+</div>
+
+Where $\large \alpha_i \geq 0$ are Lagrange multipliers.
 
 **KKT conditions**:
 
-1.  $\nabla_{\mathbf{w}} L = \mathbf{w} - \sum_{i=1}^{m} \alpha_i y_i \mathbf{x}_i = 0 \Rightarrow \mathbf{w} = \sum_{i=1}^{m} \alpha_i y_i \mathbf{x}_i$
-2.  $\frac{\partial L}{\partial b} = -\sum_{i=1}^{m} \alpha_i y_i = 0 \Rightarrow \sum_{i=1}^{m} \alpha_i y_i = 0$
-3.  $\alpha_i \geq 0$
-4.  $y_i(\mathbf{w}^T\mathbf{x}_i + b) - 1 \geq 0$
-5.  $\alpha_i [y_i(\mathbf{w}^T\mathbf{x}_i + b) - 1] = 0$ (complementary slackness)
+1.  ![nabla_](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\nabla_{\mathbf{w}}%20L%20=%20\mathbf{w}%20-%20\sum_{i=1}^{m}%20\alpha_i%20y_i%20\mathbf{x}_i%20=%200%20\Rightarrow%20\mathbf{w}%20=%20\sum_{i=1}^{m}%20\alpha_i%20y_i%20\mathbf{x}_i)
+2.  $\large \frac{\partial L}{\partial b} = -\sum_{i=1}^{m} \alpha_i y_i = 0 \Rightarrow \sum_{i=1}^{m} \alpha_i y_i = 0$
+3.  $\large \alpha_i \geq 0$
+4.  $\large y_i(\mathbf{w}^T\mathbf{x}_i + b) - 1 \geq 0$
+5.  $\large \alpha_i [y_i(\mathbf{w}^T\mathbf{x}_i + b) - 1] = 0$ (complementary slackness)
 
-**Dual formulation**: $$\max_{\boldsymbol{\alpha}} W(\boldsymbol{\alpha}) = \sum_{i=1}^{m} \alpha_i - \frac{1}{2} \sum_{i=1}^{m} \sum_{j=1}^{m} \alpha_i \alpha_j y_i y_j \mathbf{x}_i^T \mathbf{x}_j$$ $$\text{subject to: } \sum_{i=1}^{m} \alpha_i y_i = 0, \quad \alpha_i \geq 0$$
+**Dual formulation**: 
+
+<div align="center">
+
+$$\large 
+\max_{\boldsymbol{\alpha}} W(\boldsymbol{\alpha}) = \sum_{i=1}^{m} \alpha_i - \frac{1}{2} \sum_{i=1}^{m} \sum_{j=1}^{m} \alpha_i \alpha_j y_i y_j \mathbf{x}_i^T \mathbf{x}_j
+$$
+
+![subject to](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\text{subject%20to:%20}%20\sum_{i=1}^{m}%20\alpha_i%20y_i%20=%200,%20\quad%20\alpha_i%20\geq%200)
+
+</div>
 
 #### Soft Margin SVM (Non-separable Case)
 
-Real data is rarely perfectly separable. **Soft margin SVM** introduces slack variables $\xi_i \geq 0$ to allow some misclassifications:
+Real data is rarely perfectly separable. **Soft margin SVM** introduces slack variables $\large \xi_i \geq 0$ to allow some misclassifications:
 
-**Primal optimization problem**: $$\min_{\mathbf{w}, b, \boldsymbol{\xi}} \frac{1}{2}||\mathbf{w}||^2 + C \sum_{i=1}^{m} \xi_i$$ $$\text{subject to: } y_i(\mathbf{w}^T\mathbf{x}_i + b) \geq 1 - \xi_i, \quad \xi_i \geq 0$$
+**Primal optimization problem**: 
+
+<div align="center">
+
+$$\large 
+\min_{\mathbf{w}, b, \boldsymbol{\xi}} \frac{1}{2}||\mathbf{w}||^2 + C \sum_{i=1}^{m} \xi_i
+$$
+
+</div>
+
+<div align="center">
+
+$$\large 
+\text{subject to: } y_i(\mathbf{w}^T\mathbf{x}_i + b) \geq 1 - \xi_i, \quad \xi_i \geq 0
+$$
+
+</div>
 
 **Interpretation of slack variables**:
 
--   $\xi_i = 0$: Point is correctly classified and outside margin
--   $0 < \xi_i < 1$: Point is correctly classified but inside margin
--   $\xi_i = 1$: Point is exactly on the decision boundary
--   $\xi_i > 1$: Point is misclassified
+-   $\large \xi_i = 0$: Point is correctly classified and outside margin
+-   $\large 0 < \xi_i < 1$: Point is correctly classified but inside margin
+-   $\large \xi_i = 1$: Point is exactly on the decision boundary
+-   $\large \xi_i > 1$: Point is misclassified
 
-**Dual formulation**: $$\max_{\boldsymbol{\alpha}} W(\boldsymbol{\alpha}) = \sum_{i=1}^{m} \alpha_i - \frac{1}{2} \sum_{i=1}^{m} \sum_{j=1}^{m} \alpha_i \alpha_j y_i y_j \mathbf{x}_i^T \mathbf{x}_j$$ $$\text{subject to: } \sum_{i=1}^{m} \alpha_i y_i = 0, \quad 0 \leq \alpha_i \leq C$$
+**Dual formulation**: 
+
+<div align="center">
+
+$$\large 
+\max_{\boldsymbol{\alpha}} W(\boldsymbol{\alpha}) = \sum_{i=1}^{m} \alpha_i - \frac{1}{2} \sum_{i=1}^{m} \sum_{j=1}^{m} \alpha_i \alpha_j y_i y_j \mathbf{x}_i^T \mathbf{x}_j
+$$
+
+</div>
+
+<div align="center">
+$$\large 
+\text{subject to: } \sum_{i=1}^{m} \alpha_i y_i = 0, \quad 0 \leq \alpha_i \leq C
+$$
+
+</div>
 
 #### Support Vector Classification
 
 From the KKT conditions, we can classify training points:
 
-1.  **$\alpha_i = 0$**: Non-support vectors (correctly classified, outside margin)
-2.  **$0 < \alpha_i < C$**: Support vectors on margin boundary ($\xi_i = 0$)
-3.  **$\alpha_i = C$**: Support vectors inside margin or misclassified ($\xi_i > 0$)
+1.  **\large $\alpha_i = 0$**: Non-support vectors (correctly classified, outside margin)
+2.  **\large $0 < \alpha_i < C$**: Support vectors on margin boundary ($\large \xi_i = 0$)
+3.  **\large $\alpha_i = C$**: Support vectors inside margin or misclassified ($\large \xi_i > 0$)
 
-**Decision function**: $$f(\mathbf{x}) = \sum_{i \in SV} \alpha_i y_i \mathbf{x}_i^T \mathbf{x} + b$$
+**Decision function**: 
 
-Where $SV$ is the set of support vector indices.
+<div align="center">
+
+$$\large 
+f(\mathbf{x}) = \sum_{i \in SV} \alpha_i y_i \mathbf{x}_i^T \mathbf{x} + b
+$$
+
+</div>
+
+Where $\large SV$ is the set of support vector indices.
 
 ### Hinge Loss: Detailed Analysis
 
@@ -663,9 +736,9 @@ Where $SV$ is the set of support vector indices.
 
 The **hinge loss** provides a convex surrogate for the 0-1 loss:
 
-$$L_{hinge}(y, f(\mathbf{x})) = \max(0, 1 - yf(\mathbf{x}))$$
+$$\large L_{hinge}(y, f(\mathbf{x})) = \max(0, 1 - yf(\mathbf{x}))$$
 
-Where $y \in {-1, +1}$ and $f(\mathbf{x}) = \mathbf{w}^T\mathbf{x} + b$.
+Where $\large y \in {-1, +1}$ and $\large f(\mathbf{x}) = \mathbf{w}^T\mathbf{x} + b$.
 
 <div align="center">
 <img src="assets/hinge.png">
@@ -681,20 +754,24 @@ Where $y \in {-1, +1}$ and $f(\mathbf{x}) = \mathbf{w}^T\mathbf{x} + b$.
 
 #### Subgradient Analysis
 
-The hinge loss is not differentiable at $yf(\mathbf{x}) = 1$. The subgradient is:
+The hinge loss is not differentiable at $\large yf(\mathbf{x}) = 1$. The subgradient is:
 
-$$\partial L_{hinge} = \begin{cases} 0 & \text{if } yf(\mathbf{x}) > 1 \ [-y\mathbf{x}, 0] & \text{if } yf(\mathbf{x}) = 1 \ -y\mathbf{x} & \text{if } yf(\mathbf{x}) < 1 \end{cases}$$
+$$\large 
+\partial L_{hinge} = \begin{cases} 0 & \text{if } yf(\mathbf{x}) > 1 \ [-y\mathbf{x}, 0] & \text{if } yf(\mathbf{x}) = 1 \ -y\mathbf{x} & \text{if } yf(\mathbf{x}) < 1 \end{cases}
+$$
 
 #### Regularized Hinge Loss Objective
 
 The complete SVM objective combines hinge loss with L2 regularization:
 
-$$J(\mathbf{w}, b) = \frac{1}{m} \sum_{i=1}^{m} \max(0, 1 - y_i(\mathbf{w}^T\mathbf{x}_i + b)) + \frac{\lambda}{2}||\mathbf{w}||^2$$
+$$\large 
+J(\mathbf{w}, b) = \frac{1}{m} \sum_{i=1}^{m} \max(0, 1 - y_i(\mathbf{w}^T\mathbf{x}_i + b)) + \frac{\lambda}{2}||\mathbf{w}||^2
+$$
 
 **Equivalent formulations**:
 
--   $J(\mathbf{w}, b) = C \sum_{i=1}^{m} \max(0, 1 - y_i(\mathbf{w}^T\mathbf{x}_i + b)) + \frac{1}{2}||\mathbf{w}||^2$
--   Where $C = \frac{1}{\lambda m}$
+-   $\large J(\mathbf{w}, b) = C \sum_{i=1}^{m} \max(0, 1 - y_i(\mathbf{w}^T\mathbf{x}_i + b)) + \frac{1}{2}||\mathbf{w}||^2$
+-   Where $\large C = \frac{1}{\lambda m}$
 
 ### Optimization Algorithms
 
@@ -702,11 +779,11 @@ $$J(\mathbf{w}, b) = \frac{1}{m} \sum_{i=1}^{m} \max(0, 1 - y_i(\mathbf{w}^T\mat
 
 SMO, developed by John Platt, is the most popular algorithm for training SVMs. It breaks the large QP problem into smaller sub-problems:
 
-**Key insight**: The smallest possible optimization problem involves two variables (due to the constraint $\sum \alpha_i y_i = 0$).
+**Key insight**: The smallest possible optimization problem involves two variables (due to the constraint $\large \sum \alpha_i y_i = 0$).
 
 **Algorithm outline**:
 
-1.  Select two variables $\alpha_i, \alpha_j$ to optimize
+1.  Select two variables $\large \alpha_i, \alpha_j$ to optimize
 2.  Fix all other variables
 3.  Solve the 2-variable QP analytically
 4.  Repeat until convergence
@@ -724,13 +801,25 @@ While not as efficient as SMO for traditional SVMs, gradient descent is useful f
 -   Integration with deep learning frameworks
 -   Large-scale problems with approximate solutions
 
-**Subgradient descent update**: $$\mathbf{w}_{t+1} = \mathbf{w}_t - \eta_t \left( \lambda \mathbf{w}_t + \frac{1}{m} \sum_{i=1}^{m} \mathbf{g}_i \right)$$
+**Subgradient descent update**: 
 
-Where $\mathbf{g}_i$ is the subgradient of the hinge loss for sample $i$.
+<div align="center">
 
-**Stochastic subgradient descent**: $$\mathbf{w}_{t+1} = \mathbf{w}_t - \eta_t (\lambda \mathbf{w}_t + \mathbf{g}_{i_t})$$
+![Subgradient descent update](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbf{w}_{t+1}%20=%20\mathbf{w}_t%20-%20\eta_t%20\left(%20\lambda%20\mathbf{w}_t%20+%20\frac{1}{m}%20\sum_{i=1}^{m}%20\mathbf{g}_i%20\right))
 
-For randomly selected sample $i_t$.
+</div>
+
+Where $\large \mathbf{g}_i$ is the subgradient of the hinge loss for sample $\large i$.
+
+**Stochastic subgradient descent**: 
+
+<div align="center">
+
+![Stochastic subgradient descent](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbf{w}_{t+1}%20=%20\mathbf{w}_t%20-%20\eta_t%20(\lambda%20\mathbf{w}_t%20+%20\mathbf{g}_{i_t}))
+
+</div>
+
+For randomly selected sample $\large i_t$.
 
 ### Non-Linear SVMs
 
@@ -743,7 +832,7 @@ Many real-world datasets are not linearly separable. A linear decision boundary 
 </div>
 
 #### Mapping to Higher Dimensions
-One way to handle non-linear data is to map the original features $\mathbf{x}$ into a much higher-dimensional feature space $\phi(\mathbf{x})$ where the data might become linearly separable. An SVM could then find a linear hyperplane in this new, higher-dimensional space.
+One way to handle non-linear data is to map the original features $\large \mathbf{x}$ into a much higher-dimensional feature space $\large \phi(\mathbf{x})$ where the data might become linearly separable. An SVM could then find a linear hyperplane in this new, higher-dimensional space.
 
 ### Kernel Methods: The Mathematical Foundation
 
@@ -751,57 +840,93 @@ One way to handle non-linear data is to map the original features $\mathbf{x}$ i
 
 The **kernel trick** allows us to work in high-dimensional feature spaces without explicitly computing the feature mappings. This is based on the **representer theorem**.
 
-**Representer Theorem**: For a wide class of regularized risk minimization problems, the optimal solution can be written as: $$f^*(\mathbf{x}) = \sum_{i=1}^{m} \alpha_i K(\mathbf{x}_i, \mathbf{x})$$
+**Representer Theorem**: For a wide class of regularized risk minimization problems, the optimal solution can be written as: 
+
+<div align="center">
+
+$$\large 
+f^*(\mathbf{x}) = \sum_{i=1}^{m} \alpha_i K(\mathbf{x}_i, \mathbf{x})
+$$
+
+</div>
 
 #### Kernel Functions: Mathematical Properties
 
-A function $K: \mathcal{X} \times \mathcal{X} \rightarrow \mathbb{R}$ is a **valid kernel** (positive definite kernel) if:
+A function $\large K: \mathcal{X} \times \mathcal{X} \rightarrow \mathbb{R}$ is a **valid kernel** (positive definite kernel) if:
 
-1.  **Symmetry**: $K(\mathbf{x}, \mathbf{x}') = K(\mathbf{x}', \mathbf{x})$
-2.  **Positive semi-definiteness**: For any ${\mathbf{x}_1, \ldots, \mathbf{x}_m}$, the Gram matrix $\mathbf{K}$ with $K_{ij} = K(\mathbf{x}_i, \mathbf{x}_j)$ is positive semi-definite
+1.  **Symmetry**: $\large K(\mathbf{x}, \mathbf{x}') = K(\mathbf{x}', \mathbf{x})$
+2.  **Positive semi-definiteness**: For any $\large {\mathbf{x}_1, \ldots, \mathbf{x}_m}$, the Gram matrix $\large \mathbf{K}$ with ![Large K](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20K_{ij}%20=%20K(\mathbf{x}_i,%20\mathbf{x}_j)) is positive semi-definite
 
-**Mercer's theorem**: A continuous function $K$ is a valid kernel if and only if it can be expressed as: $$K(\mathbf{x}, \mathbf{x}') = \sum_{i=1}^{\infty} \lambda_i \phi_i(\mathbf{x}) \phi_i(\mathbf{x}')$$
+**Mercer's theorem**: A continuous function $\large K$ is a valid kernel if and only if it can be expressed as:
 
-Where $\lambda_i \geq 0$ and ${\phi_i}$ are orthonormal functions.
+<div align="center">
+
+$$\large 
+K(\mathbf{x}, \mathbf{x}') = \sum_{i=1}^{\infty} \lambda_i \phi_i(\mathbf{x}) \phi_i(\mathbf{x}')
+$$
+
+</div>
+
+Where $\large \lambda_i \geq 0$ and $\large {\phi_i}$ are orthonormal functions.
 
 #### Common Kernels
 
 #### Linear Kernel
 
-$$K(\mathbf{x}, \mathbf{x}') = \mathbf{x}^T \mathbf{x}'$$
+$$\large K(\mathbf{x}, \mathbf{x}') = \mathbf{x}^T \mathbf{x}'$$
 
-**Feature mapping**: $\phi(\mathbf{x}) = \mathbf{x}$ (identity) **Use cases**: Linearly separable data, high-dimensional sparse data (text) **Computational complexity**: $O(d)$ where $d$ is input dimension
+**Feature mapping**: $\large \phi(\mathbf{x}) = \mathbf{x}$ (identity) **Use cases**: Linearly separable data, high-dimensional sparse data (text) **Computational complexity**: $\large O(d)$ where $\large d$ is input dimension
 
 #### Polynomial Kernel
 
-$$K(\mathbf{x}, \mathbf{x}') = (\gamma \mathbf{x}^T \mathbf{x}' + r)^d$$
+$$\large K(\mathbf{x}, \mathbf{x}') = (\gamma \mathbf{x}^T \mathbf{x}' + r)^d$$
 
 **Parameters**:
 
--   $d$: degree (typically 2-4)
--   $\gamma > 0$: scaling factor
--   $r \geq 0$: offset term
+-   $\large d$: degree (typically 2-4)
+-   $\large \gamma > 0$: scaling factor
+-   $\large r \geq 0$: offset term
 
-**Feature space dimension**: $\binom{d+n-1}{d}$ for degree $d$ and $n$ input features
+**Feature space dimension**: $\large \binom{d+n-1}{d}$ for degree $\large d$ and $\large n$ input features
 
-**Example** (degree 2, $n=2$): $$\phi(\mathbf{x}) = [x_1^2, x_2^2, \sqrt{2\gamma r}x_1, \sqrt{2\gamma r}x_2, \sqrt{2\gamma}x_1x_2, r]$$
+**Example** (degree 2, $\large n=2$): 
+
+<div align="center">
+
+$$\large 
+\phi(\mathbf{x}) = [x_1^2, x_2^2, \sqrt{2\gamma r}x_1, \sqrt{2\gamma r}x_2, \sqrt{2\gamma}x_1x_2, r]
+$$
+
+</div>
 
 #### Radial Basis Function (RBF) Kernel
 
-$$K(\mathbf{x}, \mathbf{x}') = \exp\left(-\gamma ||\mathbf{x} - \mathbf{x}'||^2\right)$$
+$$\large 
+K(\mathbf{x}, \mathbf{x}') = \exp\left(-\gamma ||\mathbf{x} - \mathbf{x}'||^2\right)
+$$
 
-**Feature space**: Infinite dimensional **Parameter**: $\gamma > 0$ controls kernel width
+**Feature space**: Infinite dimensional **Parameter**: $\large \gamma > 0$ controls kernel width
 
--   Small $\gamma$: smooth, wide influence
--   Large $\gamma$: complex, narrow influence
+-   Small $\large \gamma$: smooth, wide influence
+-   Large $\large \gamma$: complex, narrow influence
 
-**Taylor expansion**: $$K(\mathbf{x}, \mathbf{x}') = \exp(-\gamma ||\mathbf{x}||^2) \exp(-\gamma ||\mathbf{x}'||^2) \sum_{k=0}^{\infty} \frac{(2\gamma)^k}{k!} (\mathbf{x}^T \mathbf{x}')^k$$
+**Taylor expansion**: 
+
+<div align="center">
+
+$$\large 
+K(\mathbf{x}, \mathbf{x}') = \exp(-\gamma ||\mathbf{x}||^2) \exp(-\gamma ||\mathbf{x}'||^2) \sum_{k=0}^{\infty} \frac{(2\gamma)^k}{k!} (\mathbf{x}^T \mathbf{x}')^k
+$$
+
+</div>
 
 This shows RBF contains polynomial features of all degrees.
 
 #### Sigmoid Kernel
 
-$$K(\mathbf{x}, \mathbf{x}') = \tanh(\gamma \mathbf{x}^T \mathbf{x}' + r)$$
+$$\large 
+K(\mathbf{x}, \mathbf{x}') = \tanh(\gamma \mathbf{x}^T \mathbf{x}' + r)
+$$
 
 **Note**: Not always positive definite (depends on parameters) **Connection**: Similar to neural networks with sigmoid activation
 
