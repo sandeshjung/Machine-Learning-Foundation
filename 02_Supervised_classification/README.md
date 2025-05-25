@@ -94,9 +94,12 @@ where $\large \mathbf{x}' = [1, x_1, x_2, \ldots, x_n]^T$ includes the bias term
 **Probability prediction**: $$\large P(y = 1 | \mathbf{x}; \boldsymbol{\theta}) = h_{\boldsymbol{\theta}}(\mathbf{x}) = \sigma(z) = \frac{1}{1 + e^{-\boldsymbol{\theta}^T \mathbf{x}'}}$$
 
 **Class prediction**: 
-$$\large 
-\hat{y} = \begin{cases} 1 & \text{if } h_{\boldsymbol{\theta}}(\mathbf{x}) \geq 0.5 \text{ (i.e., } z \geq 0\text{)} \ 0 & \text{if } h_{\boldsymbol{\theta}}(\mathbf{x}) < 0.5 \text{ (i.e., } z < 0\text{)} \end{cases}
-$$
+
+When $\large h_{\theta}(x)\ge0.5$ (i.e.\ $z\ge0$), 
+
+set $$\large \hat y=1,$$
+
+otherwise $$\large \hat y=0.$$
 
 <div align="center">
 <img src="assets/logistic.png" width="600", height="350">
