@@ -714,9 +714,9 @@ $$
 
 From the KKT conditions, we can classify training points:
 
-1.  **\large $\alpha_i = 0$**: Non-support vectors (correctly classified, outside margin)
-2.  **\large $0 < \alpha_i < C$**: Support vectors on margin boundary ($\large \xi_i = 0$)
-3.  **\large $\alpha_i = C$**: Support vectors inside margin or misclassified ($\large \xi_i > 0$)
+1.  **$\large \alpha_i = 0$**: Non-support vectors (correctly classified, outside margin)
+2.  **$\large 0 < \alpha_i < C$**: Support vectors on margin boundary ($\large \xi_i = 0$)
+3.  **$\large \alpha_i = C$**: Support vectors inside margin or misclassified ($\large \xi_i > 0$)
 
 **Decision function**: 
 
@@ -1035,6 +1035,11 @@ $$\large
 x_j | C_k \sim \mathcal{N}(\mu_{kj}, \sigma_{kj}^2)
 $$
 
+<div align="center">
+<img src="assets/gaussian.png">
+<p>Decision Boundary of Gaussian Naive Bayes</p>
+</div>
+
 This means:
 
 -   Each feature follows a normal distribution within each class
@@ -1074,23 +1079,17 @@ For each class $\large C_k$ and feature $\large j$, we estimate:
 
 **Sample Mean:** 
 
-$$\large 
-\hat{\mu}_{kj} = \frac{1}{N_k} \sum_{i: y_i = k} x_{ij}
-$$
+![Sample Mean](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\hat{\mu}{kj}%20=%20\frac{1}{N_k}%20\sum{i:%20y_i%20=%20k}%20x_{ij})
 
 **Sample Variance:** 
 
-$$\large 
-\hat{\sigma}_{kj}^2 = \frac{1}{N_k} \sum_{i: y_i = k} (x_{ij} - \hat{\mu}_{kj})^2
-$$
+![sample variance](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\hat{\sigma}{kj}^2%20=%20\frac{1}{N_k}%20\sum{i:%20y_i%20=%20k}%20(x_{ij}%20-%20\hat{\mu}_{kj})^2)
 
 Where $\large N_k$ is the number of training samples in class $\large k$.
 
 **Variance smoothing:** To prevent division by zero when $\large \hat{\sigma}_{kj}^2 = 0$, add a small epsilon: 
 
-$$\large 
-\hat{\sigma}_{kj}^2 = \hat{\sigma}_{kj}^2 + \epsilon
-$$
+![Sample smoothing](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\hat{\sigma}{kj}^2%20=%20\hat{\sigma}{kj}^2%20+%20\epsilon)
 
 Typical values: $\large \epsilon = 10^{-9}$ to $\large 10^{-6}$
 
