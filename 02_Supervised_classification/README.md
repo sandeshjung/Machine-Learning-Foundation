@@ -943,3 +943,391 @@ Tuning SVMs often involves selecting:
     *   `coef0` (for `poly`, `sigmoid`): An independent term in the kernel function.
 
 These hyperparameters are typically chosen using techniques like cross-validation.
+
+## Naive Bayes Classifiers
+
+This section covers Naive Bayes classifiers, a family of simple probabilistic algorithms based on Bayes' theorem with a "naive" assumption of conditional independence between features. We explore Gaussian Naive Bayes for continuous features, Multinomial Naive Bayes,and Bernoulli Naive Bayes variants, commonly used for discrete count data like text.
+
+### Introduction to Naive Bayes
+Naive Bayes classifiers are probabilistic models that use Bayes' theorem to determine the probability of a class label given a set of input features. They are "naive" because they make a strong assumption that all features are conditionally independent of each other, given the class label.
+
+#### Bayes' Theorem Foundation
+Bayes' theorem provides the mathematical foundation for all Bayesian inference:
+
+$$\large 
+P(C_k | \mathbf{x}) = \frac{P(\mathbf{x} | C_k) P(C_k)}{P(\mathbf{x})}
+$$
+
+Let's break down each component with detailed explanations:
+
+**Posterior Probability** $\large P(C_k | \mathbf{x})$:
+
+-   This is what we want to compute: the probability that the true class is $\large C_k$ given that we've observed features $\large \mathbf{x}$
+-   Represents our updated belief about the class after seeing the evidence
+-   The goal of classification is to find $\large \arg\max_{k} P(C_k | \mathbf{x})$
+
+**Likelihood** $\large P(\mathbf{x} | C_k)$:
+
+-   The probability of observing the feature vector $\large \mathbf{x}$ given that the true class is $\large C_k$
+-   This captures how well the observed features "fit" with what we expect for class $\large C_k$
+-   Different Naive Bayes variants model this likelihood differently
+
+**Prior Probability** $\large P(C_k)$:
+
+-   Our initial belief about the probability of class $\large C_k$ before seeing any features
+-   Usually estimated from the training data as the relative frequency of each class
+-   Can incorporate domain knowledge if available
+
+**Evidence** $\large P(\mathbf{x})$:
+
+-   The marginal probability of observing the feature vector $\large \mathbf{x}$
+-   Acts as a normalization constant ensuring probabilities sum to 1
+-   Can be computed as: $\large P(\mathbf{x}) = \sum_{k} P(\mathbf{x} | C_k) P(C_k)$
+-   Often ignored during classification since it's the same for all classes
+
+#### The "Naive" Independence Assumption
+The computational challenge lies in estimating $\large P(\mathbf{x} | C_k) = P(x_1, x_2, \ldots, x_n | C_k)$ for high-dimensional feature vectors. Without assumptions, this would require estimating $\large 2^n$ parameters for binary features or infinite parameters for continuous features.
+
+The **naive independence assumption** states that: 
+
+$$\large 
+P(x_1, x_2, \ldots, x_n | C_k) = \prod_{j=1}^{n} P(x_j | C_k) 
+$$
+
+**Why is this assumption "naive"?**
+
+-   Real-world features are often correlated (e.g., in text, the words "machine" and "learning" often appear together)
+-   The assumption treats each feature as if it provides independent evidence about the class
+-   Despite being unrealistic, it often works well in practice due to the robustness of the classification decision
+
+**Mathematical justification for why it works:** Even when the independence assumption is violated, Naive Bayes can still be an optimal classifier if:
+
+1.  The decision boundaries are not significantly affected by feature dependencies
+2.  The relative ordering of posterior probabilities remains correct
+3.  The bias introduced by the independence assumption affects all classes equally
+
+#### Mathematical Intuition
+
+The classification decision becomes: 
+
+$$\large 
+\hat{y} = \arg\max_{k} P(C_k) \prod_{j=1}^{n} P(x_j | C_k)
+$$
+
+To avoid numerical underflow with many features, we work in log-space: 
+
+$$\large 
+\hat{y} = \arg\max_{k} \left[ \log P(C_k) + \sum_{j=1}^{n} \log P(x_j | C_k) \right]
+$$
+
+This transforms the product into a sum, making computation more stable and efficient.
+
+### Gaussian Naive Bayes (GNB)
+#### Theoretical Foundation
+
+Gaussian Naive Bayes is designed for continuous features that can be modeled using normal distributions. The key insight is that many real-world continuous features, while not perfectly normal, are sufficiently bell-shaped that the Gaussian assumption provides a reasonable approximation.
+
+#### Assumption for Continuous Features
+
+For each class $\large C_k$ and feature $\large x_j$, we assume: 
+
+$$\large 
+x_j | C_k \sim \mathcal{N}(\mu_{kj}, \sigma_{kj}^2)
+$$
+
+This means:
+
+-   Each feature follows a normal distribution within each class
+-   Different classes can have different means and variances for the same feature
+-   Features can have different distributions (different $\large \mu$ and $\large \sigma$) across classes
+
+**Important considerations:**
+
+-   The assumption is made separately for each class-feature combination
+-   Features don't need to have the same variance across classes (heteroscedastic)
+-   If a feature is clearly non-Gaussian, consider transformation (log, square root, etc.)
+
+#### Likelihood Calculation
+
+The likelihood for a continuous feature is given by the Gaussian probability density function:
+
+$$\large 
+P(x_j | C_k) = \frac{1}{\sqrt{2\pi\sigma_{kj}^2}} \exp\left(-\frac{(x_j - \mu_{kj})^2}{2\sigma_{kj}^2}\right)
+$$
+
+**Key insights:**
+
+-   This is a density, not a probability (can be > 1)
+-   The exponential term measures how far $\large x_j$ is from the class mean $\large \mu_{kj}$
+-   Smaller variance $\large \sigma_{kj}^2$ makes the distribution more "peaked" around the mean
+-   The normalization constant ensures the density integrates to 1
+
+**Log-likelihood for numerical stability:** 
+
+$$\large 
+\log P(x_j | C_k) = -\frac{1}{2}\log(2\pi\sigma_{kj}^2) - \frac{(x_j - \mu_{kj})^2}{2\sigma_{kj}^2}
+$$
+
+#### Parameter Estimation
+
+For each class $\large C_k$ and feature $\large j$, we estimate:
+
+**Sample Mean:** 
+
+$$\large 
+\hat{\mu}_{kj} = \frac{1}{N_k} \sum_{i: y_i = k} x_{ij}
+$$
+
+**Sample Variance:** 
+
+$$\large 
+\hat{\sigma}_{kj}^2 = \frac{1}{N_k} \sum_{i: y_i = k} (x_{ij} - \hat{\mu}_{kj})^2
+$$
+
+Where $\large N_k$ is the number of training samples in class $\large k$.
+
+**Variance smoothing:** To prevent division by zero when $\large \hat{\sigma}_{kj}^2 = 0$, add a small epsilon: 
+
+$$\large 
+\hat{\sigma}_{kj}^2 = \hat{\sigma}_{kj}^2 + \epsilon
+$$
+
+Typical values: $\large \epsilon = 10^{-9}$ to $\large 10^{-6}$
+
+#### Training Algorithm
+
+```
+Algorithm: Gaussian Naive Bayes Training
+Input: Training data (X, y) where X is n×d, y is n×1
+Output: Class priors P(C_k), means μ_{kj}, variances σ²_{kj}
+
+1. For each class k:
+   a. Calculate prior: P(C_k) = (# samples in class k) / (total samples)
+   b. For each feature j:
+      i. Calculate μ_{kj} = mean of feature j in class k
+      ii. Calculate σ²_{kj} = variance of feature j in class k
+      iii. Apply variance smoothing: σ²_{kj} += ε
+
+2. Store parameters for prediction
+```
+
+### Multinomial Naive Bayes (MNB)
+#### Theoretical Foundation
+
+Multinomial Naive Bayes models count data where each feature represents the number of times a particular event (e.g., word) occurs. It's based on the multinomial distribution, which generalizes the binomial distribution to multiple categories.
+
+The multinomial distribution models the probability of observing a particular combination of counts when drawing $\large n$ items from $\large k$ categories with probabilities $\large p_1, p_2, \ldots, p_k$:
+
+$$\large 
+P(x_1, x_2, \ldots, x_k | n, p_1, \ldots, p_k) = \frac{n!}{x_1! x_2! \cdots x_k!} \prod_{i=1}^{k} p_i^{x_i}
+$$
+
+#### Text Classification Applications
+
+**Bag of Words Model:**
+
+-   Documents are represented as vectors of word counts
+-   Vocabulary size determines feature dimensionality
+-   Word order is ignored (hence "bag" of words)
+-   Example: "the cat sat on the mat" → [the:2, cat:1, sat:1, on:1, mat:1]
+
+**TF-IDF Representation:**
+
+-   Term Frequency-Inverse Document Frequency
+-   Weights words by their importance: common words get lower weights
+-   Can be adapted for use with MNB with careful normalization
+
+#### Feature Representation
+
+**Document-Term Matrix:**
+
+-   Rows: documents
+-   Columns: unique words (vocabulary)
+-   Entries: count of word j in document i
+
+**Preprocessing steps:**
+
+1.  Tokenization: split text into words
+2.  Lowercasing: convert to lowercase
+3.  Stop word removal: remove common words (the, is, at, etc.)
+4.  Stemming/Lemmatization: reduce words to root forms
+5.  N-gram extraction: consider word sequences
+
+#### Likelihood Calculation
+
+For MNB, the likelihood is the probability of observing a particular word count given the class:
+
+$$\large 
+P(x_j | C_k) = \frac{N_{kj}}{N_k}
+$$
+
+Where:
+
+-   $\large N_{kj}$ = total count of feature $\large j$ in all documents of class $\large k$
+-   $\large N_k$ = total count of all features in all documents of class $\large k$
+
+**For a document with word counts $\large \mathbf{x} = (x_1, x_2, \ldots, x_V)$:** 
+
+$$\large 
+P(\mathbf{x} | C_k) = \frac{(\sum_j x_j)!}{\prod_j x_j!} \prod_{j=1}^{V} P(x_j | C_k)^{x_j}
+$$
+
+The multinomial coefficient is often ignored since it's the same across classes.
+
+#### Laplace Smoothing Deep Dive
+
+**The Zero-Frequency Problem:** If a word appears in a test document but never appeared in training documents of a particular class, the likelihood becomes zero, making the entire posterior zero.
+
+**Laplace (Add-One) Smoothing:** 
+
+$$\large 
+P(x_j | C_k) = \frac{N_{kj} + \alpha}{N_k + \alpha V}
+$$
+
+Where:
+
+-   $\large \alpha$ = smoothing parameter (typically 1)
+-   $\large V$ = vocabulary size
+-   Adds $\large \alpha$ to every word count (numerator)
+-   Adds $\large \alpha V$ to total count (denominator) to maintain probability properties
+
+**Effect of smoothing:**
+
+-   $\large \alpha = 0$: No smoothing (original estimates)
+-   $\large \alpha = 1$: Laplace smoothing
+-   $\large \alpha < 1$: Less aggressive smoothing
+-   $\large \alpha > 1$: More aggressive smoothing toward uniform distribution
+
+#### Training Algorithm
+
+```
+Algorithm: Multinomial Naive Bayes Training
+Input: Document-term matrix X, class labels y, smoothing α
+Output: Class priors P(C_k), feature probabilities P(x_j | C_k)
+
+1. Calculate class priors:
+   For each class k: P(C_k) = N_k / N
+
+2. Calculate feature likelihoods:
+   For each class k:
+     a. N_k = total word count in all documents of class k
+     b. For each feature j:
+        i. N_{kj} = count of feature j in class k
+        ii. P(x_j | C_k) = (N_{kj} + α) / (N_k + α*V)
+        iii. Store log(P(x_j | C_k)) for numerical stability
+
+3. Store all parameters
+```
+
+### Bernoulli Naive Bayes (BNB)
+#### Theoretical Foundation
+
+Bernoulli Naive Bayes models binary features that indicate presence or absence of attributes. Each feature follows a Bernoulli distribution with parameter $\large p_{kj} = P(x_j = 1 | C_k)$.
+
+The Bernoulli distribution is: 
+
+$$\large 
+P(X = x) = p^x (1-p)^{1-x} \text{ where } x \in {0, 1}
+$$
+
+#### Binary Feature Modeling
+
+**Applications:**
+
+-   Text classification with binary word presence/absence
+-   Medical diagnosis with symptom presence/absence
+-   Image classification with pixel activation patterns
+-   Web page classification with link presence
+
+**Feature Engineering:**
+
+-   Convert continuous features to binary using thresholds
+-   One-hot encoding of categorical variables
+-   Discretization of numerical features
+
+#### Likelihood Calculation
+
+For each feature $\large j$ and class $\large k$: 
+
+$$\large 
+P(x_j | C_k) = p_{kj}^{x_j} (1 - p_{kj})^{1-x_j}
+$$
+
+**Parameter estimation with smoothing:** 
+
+$$\large 
+p_{kj} = \frac{N_{kj1} + \alpha}{N_k + 2\alpha}
+$$
+
+Where:
+
+-   $\large N_{kj1}$ = number of documents in class $\large k$ where feature $\large j = 1$
+-   $\large N_k$ = total number of documents in class $k$
+-   $\large \alpha$ = smoothing parameter
+
+**Log-likelihood:** 
+
+$$\large 
+\log P(x_j | C_k) = x_j \log(p_{kj}) + (1-x_j) \log(1-p_{kj})
+$$
+
+#### Training Algorithm
+
+```
+Algorithm: Bernoulli Naive Bayes Training
+Input: Binary feature matrix X, class labels y, smoothing α
+Output: Class priors P(C_k), feature probabilities p_{kj}
+
+1. Calculate class priors:
+   For each class k: P(C_k) = N_k / N
+
+2. Calculate feature probabilities:
+   For each class k:
+     For each feature j:
+       a. Count N_{kj1} = # of samples in class k with x_j = 1
+       b. p_{kj} = (N_{kj1} + α) / (N_k + 2α)
+       c. Store log(p_{kj}) and log(1 - p_{kj})
+
+3. Store all parameters
+```
+
+### Prediction Process
+
+### General Prediction Framework
+
+The unified prediction process for all Naive Bayes variants:
+
+```
+Algorithm: General Naive Bayes Prediction
+Input: Test sample x_new, trained parameters
+Output: Predicted class and class probabilities
+
+1. Initialize scores for each class k:
+   score[k] = log(P(C_k))
+
+2. For each feature j in x_new:
+   For each class k:
+     score[k] += log(P(x_new[j] | C_k))
+
+3. Convert scores to probabilities (optional):
+   For each class k:
+     prob[k] = exp(score[k]) / Σ_i exp(score[i])
+
+4. Return:
+   - Predicted class: argmax_k score[k]
+   - Class probabilities: prob (if computed)
+```
+
+### Advantages and Disadvantages
+**Advantages:**
+*   Simple to implement and computationally efficient (fast training and prediction).
+*   Requires a relatively small amount of training data to estimate parameters.
+*   Often performs well even if the naive independence assumption is violated in practice.
+*   Handles high-dimensional data well (e.g., text classification).
+*   Naturally robust to irrelevant features (their likelihoods $\large P(x_j|C_k)$ will be similar across classes and won't strongly influence the posterior).
+
+**Disadvantages:**
+*   The strong "naive" independence assumption is often unrealistic for real-world data, which can limit its accuracy if features are highly correlated.
+*   **Zero-frequency problem** for discrete data if not handled by smoothing (like Laplace smoothing).
+*   For continuous features, Gaussian Naive Bayes assumes a normal distribution, which might not be true for all features. If the distribution is far from Gaussian, GNB might perform poorly. (Feature transformation can sometimes help).
+*   The predicted probabilities from Naive Bayes are often not well-calibrated (i.e., a predicted probability of 0.8 doesn't necessarily mean there's an 80% chance of that class). However, the rank ordering of probabilities is usually good enough for classification.
