@@ -150,4 +150,98 @@ A simple first diagnostic is to compare the model's error (e.g., MSE for regress
     *   Test Error: Low (and reasonably close to the training error)
     *   *Indication:* The model has learned the underlying patterns and generalizes well.
 
+## Cross-Validation
 
+Cross-validation is like getting multiple opinions before making an important decision. Instead of relying on a single train-test split to evaluate your model, you create multiple different splits and average the results to get a more reliable assessment.
+
+### Why Do We Need Cross-Validation?
+
+#### The Problem with Single Train-Test Splits
+
+Imagine you're a teacher evaluating a student's performance. Would you rely on just one test, or would you prefer multiple assessments? A single train-test split is like judging a student based on one exam - it might not represent their true ability.
+
+**Problems with single splits:**
+
+-   **Lucky/Unlucky splits**: Your test set might accidentally contain only easy or only hard examples
+-   **Data waste**: You're only using a portion of your data for training
+-   **Unreliable estimates**: Performance can vary dramatically based on which samples end up in your test set
+
+#### Real-World Example
+
+Consider a spam email classifier trained on 1000 emails:
+
+-   **Single split**: Use 800 for training, 200 for testing
+-   **Problem**: What if your test set happens to contain mostly obvious spam (like "URGENT!!! CLICK HERE!!!") or mostly subtle spam? Your accuracy estimate could be artificially high or low.
+
+### K-Fold Cross-Validation
+
+K-Fold CV is like conducting multiple experiments and averaging the results. Here's how it works:
+
+#### The Process
+In K-Fold Cross-Validation, the original training dataset is randomly partitioned into $K$ equally (or nearly equally) sized, non-overlapping subsets called "folds." The model is then trained and evaluated $K$ times:
+
+1.  In each iteration $i$ (from $\large 1$ to $K$):
+    *   **Validation Fold:** The $i$-th fold is held out as the validation set.
+    *   **Training Folds:** The remaining $K-1$ folds are used as the training set.
+    *   The model is trained on the training folds and evaluated on the validation fold.
+2.  The performance metric (e.g., accuracy, MSE) from each of the $\large K$ validation folds is recorded.
+3.  The overall cross-validation performance is typically reported as the **average** of these $\large K$ performance metrics. The standard deviation can also be reported to understand the variability of the performance.
+
+<div align="center">
+<img src="assets/kfold.png">
+<p>Fig. K-Fold Cross-Validation Diagram</p>
+</div>
+
+Common choices for $\large K$ are 5 or 10.
+
+#### Algorithm for K-Fold Cross-Validation
+1.  Shuffle the dataset randomly (optional, but recommended).
+2.  Split the dataset into $\large K$ folds.
+3.  Initialize a list to store performance scores from each fold.
+4.  **For** $\large i = 1, 2, \dots, K$:
+    1.  Select fold $\large i$ as the validation set ($\large \text{Data}_{val}^{(i)}$).
+    2.  Use the remaining $\large K-1$ folds as the training set ($\large \text{Data}_{train}^{(i)}$).
+    3.  Train a new model instance using $\large \text{Data}_{train}^{(i)}$.
+    4.  Evaluate the trained model on $\large \text{Data}_{val}^{(i)}$ and record the performance score (e.g., accuracy $\large A_i$).
+    5.  Add $\large A_i$ to the list of scores.
+5.  Calculate the average performance: $\large \text{Mean Score} = \frac{1}{K} \sum_{i=1}^{K} A_i$.
+6.  (Optional) Calculate the standard deviation of the scores.
+
+#### Advantages & Disadvantages
+*   **Advantages:**
+    *   Provides a more robust and reliable estimate of model performance compared to a single train-test split, as it uses all data for both training and validation across different iterations.
+    *   Reduces the variance of the performance estimate.
+*   **Disadvantages:**
+    *   Computationally more expensive, as it requires training and evaluating the model $\large K$ times.
+    *   Not ideal for time-series data where the temporal order matters (specialized CV techniques exist for time series).
+    *   Standard K-Fold might not preserve class proportions in classification, potentially leading to issues with imbalanced datasets (addressed by Stratified K-Fold).
+
+### Stratified K-Fold: Handling Imbalanced Data
+
+#### Motivation (Handling Imbalance) 
+In classification tasks, especially when the dataset has imbalanced class distributions (i.e., some classes have significantly fewer samples than others), standard K-Fold CV can lead to problematic splits. It's possible that some validation folds might contain very few or even zero instances of a minority class, making the evaluation for that fold unreliable or even impossible for certain metrics.
+
+#### The Process
+**Stratified K-Fold Cross-Validation** addresses this by ensuring that each fold is created by preserving the percentage of samples for each class as observed in the original dataset.
+*   For example, if class A makes up 20% of the original dataset and class B makes up 80%, then in each fold of Stratified K-Fold, class A will still make up approximately 20% of the samples in that fold, and class B approximately 80%.
+*   This leads to more reliable and representative estimates of model performance for classification tasks, particularly with imbalanced data.
+
+The overall algorithm is similar to K-Fold, but the splitting mechanism ensures stratification based on the class labels.
+
+## Using Cross-Validation
+
+#### For Model Performance Estimation 
+The primary use of CV is to get a more stable and unbiased estimate of how well a model is likely to perform on unseen data. The average score across the folds (e.g., mean accuracy or mean F1-score) and its standard deviation give a good indication of the model's expected performance and its consistency.
+
+#### For Hyperparameter Tuning
+Cross-validation is the gold standard for hyperparameter tuning (e.g., finding the best learning rate, regularization strength $\alpha$, polynomial degree, SVM kernel parameters like `C` or `gamma`).
+The process typically involves:
+1.  Defining a grid or range of hyperparameter values to test.
+2.  For each combination of hyperparameters:
+    a.  Perform K-Fold (or Stratified K-Fold) CV on the training data.
+    b.  Calculate the average validation performance for that set of hyperparameters.
+3.  Select the hyperparameter combination that yielded the best average validation performance.
+4.  **Retrain the model on the *entire* original training dataset** using these chosen best hyperparameters.
+5.  Finally, evaluate this retrained model on a completely separate, **held-out test set** (which was not used at all during the CV and hyperparameter tuning process) to get an unbiased estimate of the final model's performance.
+
+This ensures that the hyperparameter selection is not biased by a single, potentially lucky or unlucky, validation split.
