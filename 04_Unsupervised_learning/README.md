@@ -28,14 +28,19 @@ K-Means is an iterative algorithm:
     *   Using a more sophisticated method like K-Means++ (aims for better initial placement).
 2.  **Assignment Step:** Assign each data point $\large \mathbf{x}_i$ to the cluster whose centroid $\large \mathbf{\mu}_k$ is closest (e.g., using Euclidean distance).
 
-    $$\large 
-    \text{label}(\mathbf{x}_i) = \arg\min_{k \in \{1,\dots,K\}} \|\mathbf{x}_i - \mathbf{\mu}_k\|^2
-    $$
+    <div align="center">
+    
+    ![Assignment step](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20J_{Ridge}(\mathbf{\theta})%20=%20\frac{1}{2m}%20\sum_{i=1}^{m}%20(h_{\mathbf{\theta}}(\mathbf{x}%27^{(i)})%20-%20y^{(i)})^2%20+%20\alpha%20\sum_{j=1}^{n}%20\theta_j^2)
+
+    </div>
 
 3.  **Update Step:** Recalculate the centroid of each cluster as the mean of all data points assigned to it in the previous step.
-    $$\large 
-    \mathbf{\mu}_k = \frac{1}{|C_k|} \sum_{\mathbf{x}_i \in C_k} \mathbf{x}_i
-    $$
+    
+    <div align="center">
+
+    ![Update step](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbf{\mu}_k%20=%20\frac{1}{|C_k|}%20\sum_{\mathbf{x}_i%20\in%20C_k}%20\mathbf{x}_i)
+
+    </div>
 
     Where $\large |C_k|$ is the number of points in cluster $\large C_k$.
 4.  **Convergence:** Repeat steps 2 and 3 until the cluster assignments no longer change, the centroids no longer change significantly (below a tolerance), or a maximum number of iterations is reached.
