@@ -209,7 +209,7 @@ t-SNE is a non-linear dimensionality reduction technique primarily used for **vi
 #### High-Level Intuition
 1.  **High-Dimensional Similarities:** t-SNE models pairwise similarities between high-dimensional data points as conditional probabilities. Specifically, it calculates the probability $\large p_{j|i}$ that point $\large \mathbf{x}_i$ would pick point $\large \mathbf{x}_j$ as its neighbor if neighbors were chosen in proportion to their probability density under a Gaussian centered at $\large \mathbf{x}_i$. The variance of this Gaussian is determined based on a user-defined parameter called **perplexity**.
 2.  **Low-Dimensional Similarities:** It then models pairwise similarities between the corresponding low-dimensional embedding points $\large \mathbf{y}_i$ and $\large \mathbf{y}_j$ using a Student's t-distribution (with one degree of freedom, which is a Cauchy distribution). The t-distribution has heavier tails than a Gaussian, which helps to alleviate the "crowding problem" (where points tend to clump together in the center of the low-D map) and allows dissimilar points to be placed further apart.
-3.  **Minimizing Divergence:** t-SNE then optimizes the positions of the low-dimensional points $\large \mathbf{y}_i$ by minimizing the Kullback-Leibler (KL) divergence between the joint probability distribution derived from high-D similarities ($\large P_{ij} = (p_{j|i} + p_{i|j}) / 2N$) and the joint probability distribution derived from low-D similarities ($\large Q_{ij}$).
+3.  **Minimizing Divergence:** t-SNE then optimizes the positions of the low-dimensional points ![yi](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbf{y}i) by minimizing the Kullback-Leibler (KL) divergence between the joint probability distribution derived from high-D similarities (![similarities](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20P_{ij}%20=%20(p_{j|i}%20+%20p_{i|j})%20/%202N)) and the joint probability distribution derived from low-D similarities ($\large Q_{ij}$).
 
 #### Key Characteristics and Interpretation
 *   **Preserves Local Structure Well:** Excellent at revealing clusters and local groupings present in the high-dimensional data.
@@ -223,3 +223,16 @@ t-SNE is a non-linear dimensionality reduction technique primarily used for **vi
 *   **`n_iter`:** Number of optimization iterations. t-SNE needs to run for enough iterations to converge to a good solution (e.g., at least 250, often 1000 or more).
 *   **`learning_rate`:** Controls the step size in the optimization. (In `sklearn.manifold.TSNE`, `learning_rate='auto'` is available from version 1.1).
 *   **`init`:** Initialization method for the low-dimensional embedding (e.g., `'random'` or `'pca'`). PCA initialization can sometimes lead to more stable and globally consistent results.
+
+#### PCA vs. t-SNE
+| Feature            | PCA                                          | t-SNE                                                |
+|--------------------|----------------------------------------------|------------------------------------------------------|
+| **Type**           | Linear                                       | Non-linear                                           |
+| **Goal**           | Maximize variance, preserve global structure | Preserve local structure, visualization            |
+| **Determinism**    | Deterministic                                | Stochastic (results can vary slightly)             |
+| **Computation**    | Fast (SVD)                                   | Slow, especially for large N                         |
+| **Parameters**     | Number of components                         | Perplexity, iterations, learning rate, etc.          |
+| **Output Use**     | Pre-processing, noise reduction, compression | Primarily visualization, exploring cluster structure |
+| **Interpretability** | Components can be analyzed (linear combos)   | Axes in plot have no direct global meaning       |
+
+It's often beneficial to use PCA to reduce dimensions to an intermediate level (e.g., 30-50) before applying t-SNE, especially for very high-dimensional datasets. This can speed up t-SNE and sometimes improve the quality of the visualization by pre-filtering some noise.
