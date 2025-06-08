@@ -36,7 +36,7 @@ $$\large
 z_j^{(l)} = \sum_i w_{ji}^{(l)} a_i^{(l-1)} + b_j^{(l)}
 $$
 
-    In matrix form for all neurons in layer $\large l$: $\large \mathbf{z}^{(l)} = \mathbf{W}^{(l)} \mathbf{a}^{(l-1)} + \mathbf{b}^{(l)}$
+In matrix form for all neurons in layer $\large l$: $\large \mathbf{z}^{(l)} = \mathbf{W}^{(l)} \mathbf{a}^{(l-1)} + \mathbf{b}^{(l)}$
 2.  This sum $\large z_j^{(l)}$ is then passed through a non-linear **activation function** $\large g(\cdot)$ to produce the neuron's output $\large a_j^{(l)}$:
 
 $$\large 
@@ -87,12 +87,13 @@ $$\large
 L = -\frac{1}{m} \sum_{i=1}^{m} [y^{(i)} \log(a_{out}^{(i)}) + (1-y^{(i)}) \log(1 - a_{out}^{(i)})]
 $$
 
-    where $\large a_{out}$ is the output activation (predicted probability from the final sigmoid).
+where $\large a_{out}$ is the output activation (predicted probability from the final sigmoid).
 *   **Derivative of BCE Loss w.r.t. $a_{out}$:** Needed for backpropagation.
 
 $$\large 
 \frac{\partial L}{\partial a_{out}} = \frac{a_{out} - y}{a_{out}(1 - a_{out})}
-$$ (for a single sample)
+$$ 
+(for a single sample)
 
 
 ### The Forward Pass
