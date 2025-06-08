@@ -93,6 +93,7 @@ where $\large a_{out}$ is the output activation (predicted probability from the 
 $$\large 
 \frac{\partial L}{\partial a_{out}} = \frac{a_{out} - y}{a_{out}(1 - a_{out})}
 $$ 
+
 (for a single sample)
 
 
