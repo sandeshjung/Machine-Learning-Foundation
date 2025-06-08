@@ -172,9 +172,7 @@ $$
 3.  **Select Principal Components:** The columns of $\large \mathbf{V}$ (or rows of $\large \mathbf{V}^T$) are the principal components (directions). Select the first $\large k$ columns of $\large \mathbf{V}$ (denoted $\large \mathbf{V}_k$) corresponding to the $\large k$ largest singular values.
 4.  **Project Data:** Transform the centered data onto the new $\large k$-dimensional subspace:
 
-$$\large 
-\mathbf{X}_{pca} = \mathbf{X}_{centered} \mathbf{V}_k
-$$
+![Transform](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbf{X}_{pca}%20=%20\mathbf{X}_{centered}%20\mathbf{V}_k)
 
 The resulting $\large \mathbf{X}_{pca}$ is the data reduced to $\large k$ dimensions.
 
