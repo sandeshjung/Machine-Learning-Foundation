@@ -478,22 +478,39 @@ $$\large
 \mathbf{X}_0 \in \mathbb{R}^{N \times 3 \times 32 \times 32}
 $$ 
 
+<div align="center">
+
 ![conv1 block](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbf{X}1%20=%20\text{Conv2d}{3%20\rightarrow%2016}(\mathbf{X}_0)%20\in%20\mathbb{R}^{N%20\times%2016%20\times%2032%20\times%2032})
+
+</div>
+
 $$\large 
 \mathbf{X}_2 = \text{ReLU}(\mathbf{X}_1) \in \mathbb{R}^{N \times 16 \times 32 \times 32}
 $$
 
+<div align="center">
+
 ![conv1](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbf{X}3%20=%20\text{MaxPool}{2%20\times%202}(\mathbf{X}_2)%20\in%20\mathbb{R}^{N%20\times%2016%20\times%2016%20\times%2016})
+
+</div>
 
 **Convolutional Block 2:** 
 
+<div align="center">
+
 ![conv2 block](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbf{X}4%20=%20\text{Conv2d}{16%20\rightarrow%2032}(\mathbf{X}_3)%20\in%20\mathbb{R}^{N%20\times%2032%20\times%2016%20\times%2016})
+
+</div>
 
 $$\large 
 \mathbf{X}_5 = \text{ReLU}(\mathbf{X}_4) \in \mathbb{R}^{N \times 32 \times 16 \times 16}
 $$ 
 
+<div align="center">
+
 ![conv2](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbf{X}6%20=%20\text{MaxPool}{2%20\times%202}(\mathbf{X}_5)%20\in%20\mathbb{R}^{N%20\times%2032%20\times%208%20\times%208})
+
+</div>
 
 **Classification Head:** 
 
@@ -501,7 +518,11 @@ $$\large
 \mathbf{X}_7 = \text{Flatten}(\mathbf{X}_6) \in \mathbb{R}^{N \times 2048}
 $$ 
 
+<div align="center">
+
 ![classification head](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbf{X}_8%20=%20\text{Linear}_{2048%20\rightarrow%20128}(\mathbf{X}_7)%20\in%20\mathbb{R}^{N%20\times%20128})
+
+</div>
 
 $$\large 
 \mathbf{X}_9 = \text{ReLU}(\mathbf{X}_8) \in \mathbb{R}^{N \times 128}
@@ -515,47 +536,58 @@ $$
 
 **CNN Parameter Count:** 
 
-$$\large 
+$$\large \begin{align}  
 \text{Conv1:} &\quad (3 \times 3 \times 3 \times 16) + 16 = 448
+\end{align}
 $$ 
 
-$$\large 
+$$\large \begin{align}  
 \text{Conv2:} &\quad (3 \times 3 \times 16 \times 32) + 32 = 4,640
+\end{align}
 $$ 
 
-$$\large \text{FC1:} &\quad (2048 \times 128) + 128 = 262,272
+$$\large \begin{align}  
+\text{FC1:} &\quad (2048 \times 128) + 128 = 262,272
+\end{align}
 $$ 
 
-$$\large 
+$$\large \begin{align}  
 \text{FC2:} &\quad (128 \times 10) + 10 = 1,290
+\end{align}
 $$
 
-$$\large 
+$$\large \begin{align}  
 \text{Total:} &\quad 268,650 \text{ parameters}
+\end{align}
 $$
 
 **Equivalent MLP Parameter Count:** 
 
-$$\large 
+$$\large \begin{align}  
 \text{Input:} &\quad (3072 \times 128) + 128 = 393,344
+\end{align}
 $$ 
 
-$$\large 
+$$\large \begin{align}  
 \text{Hidden:} &\quad (128 \times 128) + 128 = 16,512
+\end{align}
 $$ 
 
-$$\large 
+$$\large \begin{align}  
 \text{Output:} &\quad (128 \times 10) + 10 = 1,290
+\end{align}
 $$ 
 
-$$ \large 
+$$ \large \begin{align}  
 \text{Total:} &\quad 411,146 \text{ parameters}
+\end{align}
 $$
 
 **Parameter Reduction:** 
 
-$$\large 
+$$\large \begin{align}  
 \text{Reduction} = \frac{411,146 - 268,650}{411,146} \times 100% = 53%
+\end{align}
 $$
 
 ### Loss Functions and Optimization
@@ -564,13 +596,21 @@ $$
 
 For classification with $\large C$ classes, given true label $\large y$ and predicted probabilities $\large \hat{\mathbf{p}}$:
 
+<div align="center">
+
 ![cross entropy](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathcal{L}{CE}%20=%20-\sum{i=1}^{C}%20y_i%20\log(\hat{p}_i)%20=%20-\log(\hat{p}_y))
+
+</div>
 
 Where $\large y_i = 1$ if $\large i$ is the true class, 0 otherwise.
 
 **Softmax Activation:** 
 
+<div align="center">
+
 ![softmax](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\hat{p}i%20=%20\frac{\exp(z_i)}{\sum{j=1}^{C}%20\exp(z_j)})
+
+</div>
 
 #### Backpropagation in CNNs
 
@@ -600,7 +640,11 @@ $$\large
 \sigma^2_{\mathcal{B}} = \frac{1}{m} \sum_{i=1}^{m} (x_i - \mu_{\mathcal{B}})^2
 $$
 
+<div align="center">
+
 ![batch norm](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\hat{x}i%20=%20\frac{x_i%20-%20\mu{\mathcal{B}}}{\sqrt{\sigma^2_{\mathcal{B}}%20+%20\epsilon}})
+
+</div>
 
 $$\large 
 BN(x_i) = \gamma \hat{x}_i + \beta
