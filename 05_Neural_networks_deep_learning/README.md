@@ -478,31 +478,22 @@ $$\large
 \mathbf{X}_0 \in \mathbb{R}^{N \times 3 \times 32 \times 32}
 $$ 
 
-$$\large 
-\mathbf{X}_1 = \text{Conv2d}_{3 \rightarrow 16}(\mathbf{X}_0) \in \mathbb{R}^{N \times 16 \times 32 \times 32}
-$$ 
-
+![conv1 block](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbf{X}1%20=%20\text{Conv2d}{3%20\rightarrow%2016}(\mathbf{X}_0)%20\in%20\mathbb{R}^{N%20\times%2016%20\times%2032%20\times%2032})
 $$\large 
 \mathbf{X}_2 = \text{ReLU}(\mathbf{X}_1) \in \mathbb{R}^{N \times 16 \times 32 \times 32}
 $$
 
-$$\large 
-\mathbf{X}_3 = \text{MaxPool}_{2 \times 2}(\mathbf{X}_2) \in \mathbb{R}^{N \times 16 \times 16 \times 16}
-$$
+![conv1](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbf{X}3%20=%20\text{MaxPool}{2%20\times%202}(\mathbf{X}_2)%20\in%20\mathbb{R}^{N%20\times%2016%20\times%2016%20\times%2016})
 
 **Convolutional Block 2:** 
 
-$$\large 
-\mathbf{X}_4 = \text{Conv2d}_{16 \rightarrow 32}(\mathbf{X}_3) \in \mathbb{R}^{N \times 32 \times 16 \times 16}
-$$ 
+![conv2 block](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbf{X}4%20=%20\text{Conv2d}{16%20\rightarrow%2032}(\mathbf{X}_3)%20\in%20\mathbb{R}^{N%20\times%2032%20\times%2016%20\times%2016})
 
 $$\large 
 \mathbf{X}_5 = \text{ReLU}(\mathbf{X}_4) \in \mathbb{R}^{N \times 32 \times 16 \times 16}
 $$ 
 
-$$\large 
-\mathbf{X}_6 = \text{MaxPool}_{2 \times 2}(\mathbf{X}_5) \in \mathbb{R}^{N \times 32 \times 8 \times 8}
-$$
+![conv2](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbf{X}6%20=%20\text{MaxPool}{2%20\times%202}(\mathbf{X}_5)%20\in%20\mathbb{R}^{N%20\times%2032%20\times%208%20\times%208})
 
 **Classification Head:** 
 
@@ -510,9 +501,7 @@ $$\large
 \mathbf{X}_7 = \text{Flatten}(\mathbf{X}_6) \in \mathbb{R}^{N \times 2048}
 $$ 
 
-$$\large 
-\mathbf{X}_8 = \text{Linear}_{2048 \rightarrow 128}(\mathbf{X}_7) \in \mathbb{R}^{N \times 128}
-$$ 
+![classification head](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbf{X}_8%20=%20\text{Linear}_{2048%20\rightarrow%20128}(\mathbf{X}_7)%20\in%20\mathbb{R}^{N%20\times%20128})
 
 $$\large 
 \mathbf{X}_9 = \text{ReLU}(\mathbf{X}_8) \in \mathbb{R}^{N \times 128}
@@ -527,13 +516,40 @@ $$
 **CNN Parameter Count:** 
 
 $$\large 
-\begin{align} \text{Conv1:} &\quad (3 \times 3 \times 3 \times 16) + 16 = 448 \ \text{Conv2:} &\quad (3 \times 3 \times 16 \times 32) + 32 = 4,640 \ \text{FC1:} &\quad (2048 \times 128) + 128 = 262,272 \ \text{FC2:} &\quad (128 \times 10) + 10 = 1,290 \ \text{Total:} &\quad 268,650 \text{ parameters} \end{align}
+\text{Conv1:} &\quad (3 \times 3 \times 3 \times 16) + 16 = 448
+$$ 
+
+$$\large 
+\text{Conv2:} &\quad (3 \times 3 \times 16 \times 32) + 32 = 4,640
+$$ 
+
+$$\large \text{FC1:} &\quad (2048 \times 128) + 128 = 262,272
+$$ 
+
+$$\large 
+\text{FC2:} &\quad (128 \times 10) + 10 = 1,290
+$$
+
+$$\large 
+\text{Total:} &\quad 268,650 \text{ parameters}
 $$
 
 **Equivalent MLP Parameter Count:** 
 
 $$\large 
-\begin{align} \text{Input:} &\quad (3072 \times 128) + 128 = 393,344 \ \text{Hidden:} &\quad (128 \times 128) + 128 = 16,512 \ \text{Output:} &\quad (128 \times 10) + 10 = 1,290 \ \text{Total:} &\quad 411,146 \text{ parameters} \end{align}
+\text{Input:} &\quad (3072 \times 128) + 128 = 393,344
+$$ 
+
+$$\large 
+\text{Hidden:} &\quad (128 \times 128) + 128 = 16,512
+$$ 
+
+$$\large 
+\text{Output:} &\quad (128 \times 10) + 10 = 1,290
+$$ 
+
+$$ \large 
+\text{Total:} &\quad 411,146 \text{ parameters}
 $$
 
 **Parameter Reduction:** 
@@ -548,17 +564,13 @@ $$
 
 For classification with $\large C$ classes, given true label $\large y$ and predicted probabilities $\large \hat{\mathbf{p}}$:
 
-$$\large 
-\mathcal{L}_{CE} = -\sum_{i=1}^{C} y_i \log(\hat{p}_i) = -\log(\hat{p}_y)
-$$
+![cross entropy](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathcal{L}{CE}%20=%20-\sum{i=1}^{C}%20y_i%20\log(\hat{p}_i)%20=%20-\log(\hat{p}_y))
 
 Where $\large y_i = 1$ if $\large i$ is the true class, 0 otherwise.
 
 **Softmax Activation:** 
 
-$$\large 
-\hat{p}_i = \frac{\exp(z_i)}{\sum_{j=1}^{C} \exp(z_j)}
-$$
+![softmax](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\hat{p}i%20=%20\frac{\exp(z_i)}{\sum{j=1}^{C}%20\exp(z_j)})
 
 #### Backpropagation in CNNs
 
@@ -588,9 +600,7 @@ $$\large
 \sigma^2_{\mathcal{B}} = \frac{1}{m} \sum_{i=1}^{m} (x_i - \mu_{\mathcal{B}})^2
 $$
 
-$$\large 
-\hat{x}_i = \frac{x_i - \mu_{\mathcal{B}}}{\sqrt{\sigma^2_{\mathcal{B}} + \epsilon}}
-$$
+![batch norm](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\hat{x}i%20=%20\frac{x_i%20-%20\mu{\mathcal{B}}}{\sqrt{\sigma^2_{\mathcal{B}}%20+%20\epsilon}})
 
 $$\large 
 BN(x_i) = \gamma \hat{x}_i + \beta
