@@ -285,3 +285,315 @@ $$
 Where $\large n_{in}$ is the number of input connections to the neuron.
 
 This mathematical framework provides the complete foundation for understanding and implementing MLPs with backpropagation from first principles.
+
+## Convolutional Neural Networks (CNNs)
+
+### Introduction to CNNs
+
+#### Why CNNs for Images?
+
+Traditional Multi-Layer Perceptrons (MLPs) face significant challenges when processing images:
+
+**High Dimensionality Problem:**
+
+-   A small 32×32 RGB image has 32 × 32 × 3 = 3,072 pixels
+-   Flattening this creates a vector of length 3,072
+-   The first hidden layer with 100 neurons would require 3,072 × 100 = 307,200 parameters
+-   For realistic images (224×224×3), this becomes 224 × 224 × 3 × 100 = 15,052,800 parameters in just the first layer!
+
+**Spatial Structure Loss:**
+
+-   MLPs treat each pixel independently
+-   They ignore the crucial spatial relationships between neighboring pixels
+-   A vertical edge at position (i,j) is fundamentally the same feature as a vertical edge at position (i+10,j+10)
+
+CNNs solve these problems through three key principles:
+
+1.  **Local Connectivity** (Sparse Interactions)
+2.  **Parameter Sharing** (Weight Sharing)
+3.  **Translation Equivariance**
+
+### Mathematical Foundations
+
+#### Convolution Operation
+
+The discrete 2D convolution operation between an input image $\large \mathbf{I}$ and a kernel $\large \mathbf{K}$ is defined as:
+
+$$\large 
+(\mathbf{I} * \mathbf{K})[i,j] = \sum_m \sum_n \mathbf{I}[m,n] \times \mathbf{K}[i-m, j-n]
+$$
+
+More commonly implemented as cross-correlation (which is what most deep learning frameworks use):
+
+$$\large 
+(\mathbf{I} * \mathbf{K})[i,j] = \sum_m \sum_n \mathbf{I}[i+m, j+n] \times \mathbf{K}[m,n]
+$$
+
+<div align="center">
+<img src="assets/convolution.png" height="400", width="1000">
+<p>Fig. Convolution Operation in CNN</p>
+</div>
+
+#### Output Size Calculation
+
+For a convolution operation, the output size is calculated as:
+
+$$\large 
+H_{out} = \left\lfloor \frac{H_{in} + 2P - K_h}{S} \right\rfloor + 1
+$$
+
+$$\large 
+W_{out} = \left\lfloor \frac{W_{in} + 2P - K_w}{S} \right\rfloor + 1
+$$
+
+Where:
+
+-   $\large H_{in}, W_{in}$ = input height and width
+-   $\large P$ = padding
+-   $\large K_h, K_w$ = kernel height and width
+-   $\large S$ = stride
+-   $\large \lfloor \cdot \rfloor$ = floor function
+
+#### Parameter Count
+
+For a convolutional layer:
+
+$$\large 
+\text{Parameters} = (K_h \times K_w \times C_{in} \times C_{out}) + C_{out}
+$$
+
+The $\large +C_{out}$ term accounts for bias parameters (one per output channel).
+
+### Core CNN Components
+
+#### Convolutional Layer
+
+**Mathematical Definition:** For input tensor $\large \mathbf{X} \in \mathbb{R}^{N \times C_{in} \times H_{in} \times W_{in}}$ and learnable weights $\large \mathbf{W} \in \mathbb{R}^{C_{out} \times C_{in} \times K_h \times K_w}$:
+
+$$\large 
+\mathbf{Y}[n,c_{out},h,w] = b[c_{out}] + \sum_{c_{in}} \sum_{k_h} \sum_{k_w} \mathbf{X}[n, c_{in}, h \cdot s + k_h, w \cdot s + k_w] \times \mathbf{W}[c_{out}, c_{in}, k_h, k_w]
+$$
+
+Where:
+
+-   $\large N$ = batch size
+-   $\large C_{in}, C_{out}$ = input/output channels
+-   $\large H_{in}, W_{in}$ = input height/width
+-   $\large K_h, K_w$ = kernel height/width
+-   $\large s$ = stride
+-   $\large b$ = bias vector
+
+**Key Properties:**
+
+-   **Local Connectivity:** Each output neuron connects only to a local region of the input (typically $\large 3 \times 3$ or $\large 5 \times 5$ pixels)
+-   **Parameter Sharing:** The same kernel weights are used across all spatial locations, dramatically reducing parameters
+-   **Translation Equivariance:** If the input is shifted, the output is shifted by the same amount: $\large f(T(\mathbf{x})) = T(f(\mathbf{x}))$
+
+<div align="center">
+<img src="assets/layer.png" height="400", width="1000">
+<p>Fig. Convolutional Neural Networks (CNNs) and Layer Types</p>
+</div>
+
+#### Activation Functions
+
+<div align="center">
+<img src="assets/activation.png" height="400", width="800">
+<p>Fig. Activation Functions</p>
+</div>
+
+**ReLU (Rectified Linear Unit):**
+
+$$\large 
+\text{ReLU}(x) = \max(0, x) = \begin{cases} x & \text{if } x > 0 \ 0 & \text{if } x \leq 0 \end{cases}
+$$
+
+**Mathematical Properties:**
+
+-   Introduces non-linearity: $\large f(\alpha \mathbf{x} + \beta \mathbf{y}) \neq \alpha f(\mathbf{x}) + \beta f(\mathbf{y})$
+-   Derivative: $\large \frac{d}{dx}\text{ReLU}(x) = \begin{cases} 1 & \text{if } x > 0 \ 0 & \text{if } x \leq 0 \end{cases}$
+-   Computationally efficient and helps mitigate vanishing gradients
+
+#### Pooling Layers
+
+**Max Pooling:** For a $\large 2 \times 2$ max pooling with stride 2:
+
+$$\large 
+\text{MaxPool}(\mathbf{X})[i,j] = \max{\mathbf{X}[2i, 2j], \mathbf{X}[2i, 2j+1], \mathbf{X}[2i+1, 2j], \mathbf{X}[2i+1, 2j+1]}
+$$
+
+**Average Pooling:**
+
+$$\large 
+\text{AvgPool}(\mathbf{X})[i,j] = \frac{1}{4}\sum_{p=0}^{1}\sum_{q=0}^{1} \mathbf{X}[2i+p, 2j+q]
+$$
+
+**General Pooling Formula:** For kernel size $\large k \times k$:
+
+$$\large 
+\text{Pool}(\mathbf{X})[i,j] = \text{PoolOp}{\mathbf{X}[si+p, sj+q] : 0 \leq p,q < k}
+$$
+
+Where $\large s$ is the stride and $\large \text{PoolOp}$ is either $\large \max$ or average.
+
+### CNN Architecture Principles
+
+#### Typical CNN Architecture Pattern
+
+A standard CNN follows this pattern:
+
+$$\large 
+\text{INPUT} \rightarrow [\text{CONV} \rightarrow \text{ACTIVATION} \rightarrow \text{POOL}]^N \rightarrow [\text{FC} \rightarrow \text{ACTIVATION}]^M \rightarrow \text{OUTPUT}
+$$
+
+#### Receptive Field Analysis
+
+The **receptive field** is the region in the input image that influences a particular neuron's output.
+
+**Recursive Formula:**
+
+$$\large 
+RF_{l+1} = RF_l + (k_l - 1) \times \prod_{i=1}^{l} s_i
+$$
+
+$$\large 
+J_{l+1} = J_l \times s_{l+1}
+$$
+
+Where:
+
+-   $\large RF_l$ = receptive field size at layer $\large l$
+-   $\large k_l$ = kernel size at layer $\large l$
+-   $\large s_i$ = stride at layer $\large i$
+-   $\large J_l$ = jump (distance between receptive field centers) at layer $\large l$
+
+### Mathematical Analysis of Information Flow
+
+#### Tensor Transformations
+
+Consider an input image of size $\large 32 \times 32 \times 3$ (CIFAR-10 format):
+
+**Convolutional Block 1:** 
+
+$$\large 
+\mathbf{X}_0 \in \mathbb{R}^{N \times 3 \times 32 \times 32}
+$$ 
+
+$$\large 
+\mathbf{X}_1 = \text{Conv2d}_{3 \rightarrow 16}(\mathbf{X}_0) \in \mathbb{R}^{N \times 16 \times 32 \times 32}
+$$ 
+
+$$\large 
+\mathbf{X}_2 = \text{ReLU}(\mathbf{X}_1) \in \mathbb{R}^{N \times 16 \times 32 \times 32}
+$$
+
+$$\large 
+\mathbf{X}_3 = \text{MaxPool}_{2 \times 2}(\mathbf{X}_2) \in \mathbb{R}^{N \times 16 \times 16 \times 16}
+$$
+
+**Convolutional Block 2:** 
+
+$$\large 
+\mathbf{X}_4 = \text{Conv2d}_{16 \rightarrow 32}(\mathbf{X}_3) \in \mathbb{R}^{N \times 32 \times 16 \times 16}
+$$ 
+
+$$\large 
+\mathbf{X}_5 = \text{ReLU}(\mathbf{X}_4) \in \mathbb{R}^{N \times 32 \times 16 \times 16}
+$$ 
+
+$$\large 
+\mathbf{X}_6 = \text{MaxPool}_{2 \times 2}(\mathbf{X}_5) \in \mathbb{R}^{N \times 32 \times 8 \times 8}
+$$
+
+**Classification Head:** 
+
+$$\large 
+\mathbf{X}_7 = \text{Flatten}(\mathbf{X}_6) \in \mathbb{R}^{N \times 2048}
+$$ 
+
+$$\large 
+\mathbf{X}_8 = \text{Linear}_{2048 \rightarrow 128}(\mathbf{X}_7) \in \mathbb{R}^{N \times 128}
+$$ 
+
+$$\large 
+\mathbf{X}_9 = \text{ReLU}(\mathbf{X}_8) \in \mathbb{R}^{N \times 128}
+$$ 
+
+$$\large 
+\mathbf{Y} = \text{Linear}_{128 \rightarrow 10}(\mathbf{X}_9) \in \mathbb{R}^{N \times 10}
+$$
+
+#### Parameter Efficiency Analysis
+
+**CNN Parameter Count:** 
+
+$$\large 
+\begin{align} \text{Conv1:} &\quad (3 \times 3 \times 3 \times 16) + 16 = 448 \ \text{Conv2:} &\quad (3 \times 3 \times 16 \times 32) + 32 = 4,640 \ \text{FC1:} &\quad (2048 \times 128) + 128 = 262,272 \ \text{FC2:} &\quad (128 \times 10) + 10 = 1,290 \ \text{Total:} &\quad 268,650 \text{ parameters} \end{align}
+$$
+
+**Equivalent MLP Parameter Count:** 
+
+$$\large 
+\begin{align} \text{Input:} &\quad (3072 \times 128) + 128 = 393,344 \ \text{Hidden:} &\quad (128 \times 128) + 128 = 16,512 \ \text{Output:} &\quad (128 \times 10) + 10 = 1,290 \ \text{Total:} &\quad 411,146 \text{ parameters} \end{align}
+$$
+
+**Parameter Reduction:** 
+
+$$\large 
+\text{Reduction} = \frac{411,146 - 268,650}{411,146} \times 100% = 53%
+$$
+
+### Loss Functions and Optimization
+
+#### Cross-Entropy Loss
+
+For classification with $\large C$ classes, given true label $\large y$ and predicted probabilities $\large \hat{\mathbf{p}}$:
+
+$$\large 
+\mathcal{L}_{CE} = -\sum_{i=1}^{C} y_i \log(\hat{p}_i) = -\log(\hat{p}_y)
+$$
+
+Where $\large y_i = 1$ if $\large i$ is the true class, 0 otherwise.
+
+**Softmax Activation:** 
+
+$$\large 
+\hat{p}_i = \frac{\exp(z_i)}{\sum_{j=1}^{C} \exp(z_j)}
+$$
+
+#### Backpropagation in CNNs
+
+**Gradient w.r.t. Kernel Weights:** 
+
+$$\large 
+\frac{\partial \mathcal{L}}{\partial \mathbf{W}[c_{out}, c_{in}, u, v]} = \sum_{i,j} \frac{\partial \mathcal{L}}{\partial \mathbf{Y}[c_{out}, i, j]} \cdot \mathbf{X}[c_{in}, i+u, j+v]
+$$
+
+**Gradient w.r.t. Input:** 
+
+$$\large 
+\frac{\partial \mathcal{L}}{\partial \mathbf{X}[c_{in}, i, j]} = \sum_{c_{out}} \sum_{u,v} \frac{\partial \mathcal{L}}{\partial \mathbf{Y}[c_{out}, i-u, j-v]} \cdot \mathbf{W}[c_{out}, c_{in}, u, v]
+$$
+
+### Normalization Techniques
+
+#### Batch Normalization
+
+For mini-batch $\large \mathcal{B} = {x_1, x_2, ..., x_m}$:
+
+$$\large 
+\mu_{\mathcal{B}} = \frac{1}{m} \sum_{i=1}^{m} x_i
+$$
+
+$$\large 
+\sigma^2_{\mathcal{B}} = \frac{1}{m} \sum_{i=1}^{m} (x_i - \mu_{\mathcal{B}})^2
+$$
+
+$$\large 
+\hat{x}_i = \frac{x_i - \mu_{\mathcal{B}}}{\sqrt{\sigma^2_{\mathcal{B}} + \epsilon}}
+$$
+
+$$\large 
+BN(x_i) = \gamma \hat{x}_i + \beta
+$$
+
+Where $\large \gamma$ and $\large \beta$ are learnable scale and shift parameters.
