@@ -651,3 +651,319 @@ BN(x_i) = \gamma \hat{x}_i + \beta
 $$
 
 Where $\large \gamma$ and $\large \beta$ are learnable scale and shift parameters.
+
+## Recurrent Neural Networks (RNN)
+
+Recurrent Neural Networks (RNNs) are a class of neural networks designed to work with sequential data. Unlike traditional feedforward networks, RNNs have connections that create loops, allowing information to persist and be passed from one step of the sequence to the next.
+
+**Key Applications:**
+- Natural Language Processing (text generation, translation)
+- Time Series Forecasting (stock prices, weather)
+- Speech Recognition and Generation
+- Music Composition
+- Video Analysis
+
+### What are RNNs?
+
+#### The Core Concept
+
+Traditional neural networks process fixed-size inputs and produce fixed-size outputs. RNNs can handle variable-length sequences by maintaining an internal "memory" state that gets updated at each time step.
+
+```
+Traditional NN: Input → Hidden → Output
+RNN:           Input₁ → Hidden₁ → Output₁
+                  ↓        ↓
+               Input₂ → Hidden₂ → Output₂
+                  ↓        ↓
+               Input₃ → Hidden₃ → Output₃
+```
+
+<div align="center">
+<img src="assets/rnn.png">
+<p>Fig. Recurrent Neural Networks (RNN) Architecture</p>
+</div>
+
+#### Key Features
+
+1. **Memory**: RNNs maintain hidden states that carry information across time steps
+2. **Parameter Sharing**: Same weights are used at each time step
+3. **Variable Length**: Can handle sequences of different lengths
+4. **Temporal Dependencies**: Can capture relationships between distant elements
+
+### RNN Mathematics
+
+#### Basic RNN Equations
+
+For a simple RNN at time step $t$:
+
+##### Hidden State Update:
+
+$$\large 
+h_t = \tanh(W_{hh} h_{t-1} + W_{xh} x_t + b_h)
+$$
+
+##### Output Calculation:
+$$\large 
+y_t = W_{hy} h_t + b_y
+$$
+
+**Where:**
+- $\large h_t$: Hidden state at time $\large t$
+- $\large x_t$: Input at time $\large t$
+- $\large y_t$: Output at time $\large t$
+- $\large W_{hh}$: Hidden-to-hidden weight matrix
+- $\large W_{xh}$: Input-to-hidden weight matrix
+- $\large W_{hy}$: Hidden-to-output weight matrix
+- $\large b_h, b_y$: Bias vectors
+- $\large \tanh$: Activation function (hyperbolic tangent)
+
+#### Matrix Dimensions
+
+For a batch of sequences:
+- Input: $\large x_t \in \mathbb{R}^{\text{batch\_size} \times \text{input\_size}}$
+- Hidden: $\large h_t \in \mathbb{R}^{\text{batch\_size} \times \text{hidden\_size}}$
+- Output: $\large y_t \in \mathbb{R}^{\text{batch\_size} \times \text{output\_size}}$
+
+Weight matrices:
+- $\large W_{xh} \in \mathbb{R}^{\text{input\_size} \times \text{hidden\_size}}$
+- $\large W_{hh} \in \mathbb{R}^{\text{hidden\_size} \times \text{hidden\_size}}$
+- $\large W_{hy} \in \mathbb{R}^{\text{hidden\_size} \times \text{output\_size}}$
+
+#### Unrolled RNN Computation
+
+For a sequence of length $\large T$, the RNN can be "unrolled" in time:
+
+$$\large 
+h_0 = 0 \text{ (or learned initial state)}
+$$
+
+$$\large 
+\begin{align}
+h_1 &= \tanh(W_{hh} h_0 + W_{xh} x_1 + b_h) \\
+h_2 &= \tanh(W_{hh} h_1 + W_{xh} x_2 + b_h) \\
+h_3 &= \tanh(W_{hh} h_2 + W_{xh} x_3 + b_h) \\
+&\vdots \\
+h_T &= \tanh(W_{hh} h_{T-1} + W_{xh} x_T + b_h)
+\end{align}
+$$
+
+$$\large 
+\begin{align}
+y_1 &= W_{hy} h_1 + b_y \\
+y_2 &= W_{hy} h_2 + b_y \\
+&\vdots \\
+y_T &= W_{hy} h_T + b_y
+\end{align}
+$$
+
+### Types of RNN Architectures
+
+#### 1. Vanilla RNN (Simple RNN)
+
+**Equation:**
+
+$$\large 
+h_t = \tanh(W_{hh} h_{t-1} + W_{xh} x_t + b_h)
+$$
+
+**Pros:**
+- Simple to understand and implement
+- Computationally efficient
+
+**Cons:**
+- Vanishing gradient problem
+- Cannot capture long-term dependencies
+- Limited memory capacity
+
+#### 2. Long Short-Term Memory (LSTM)
+
+LSTMs solve the vanishing gradient problem using gates that control information flow.
+
+<div align="center">
+<img src="assets/lstm.svg">
+<p>Fig. Long Short-Term Memory (LSTM) Architecture</p>
+</div>
+
+##### LSTM Equations:
+
+**Forget Gate:**
+
+$$\large 
+f_t = \sigma(W_f \cdot [h_{t-1}, x_t] + b_f)
+$$
+
+**Input Gate:**
+
+$$\large 
+i_t = \sigma(W_i \cdot [h_{t-1}, x_t] + b_i)
+$$
+
+$$\large 
+\tilde{C}_t = \tanh(W_C \cdot [h_{t-1}, x_t] + b_C)
+$$
+
+**Cell State Update:**
+
+$$\large 
+C_t = f_t \odot C_{t-1} + i_t \odot \tilde{C}_t
+$$
+
+**Output Gate:**
+
+$$\large 
+o_t = \sigma(W_o \cdot [h_{t-1}, x_t] + b_o)
+$$
+
+$$\large 
+h_t = o_t \odot \tanh(C_t)
+$$
+
+**Where:**
+- $\large \sigma$: Sigmoid function
+- $\large \odot$: Element-wise multiplication (Hadamard product)
+- $\large C_t$: Cell state at time $\large t$
+- $\large f_t, i_t, o_t$: Forget, input, and output gates
+
+#### 3. Gated Recurrent Unit (GRU)
+
+GRU is a simplified version of LSTM with fewer gates.
+
+<div align="center">
+<img src="assets/gru.svg">
+<p>Fig. Gated Recurrent Unit (GRU) Architecture</p>
+</div>
+
+##### GRU Equations:
+
+**Reset Gate:**
+
+$$\large 
+r_t = \sigma(W_r \cdot [h_{t-1}, x_t] + b_r)
+$$
+
+**Update Gate:**
+
+$$\large 
+z_t = \sigma(W_z \cdot [h_{t-1}, x_t] + b_z)
+$$
+
+**Candidate Hidden State:**
+
+$$\large 
+\tilde{h}_t = \tanh(W_h \cdot [r_t \odot h_{t-1}, x_t] + b_h)
+$$
+
+**Final Hidden State:**
+
+$$\large 
+h_t = (1 - z_t) \odot h_{t-1} + z_t \odot \tilde{h}_t
+$$
+
+### Training RNNs
+
+#### Backpropagation Through Time (BPTT)
+
+RNNs are trained using BPTT, which is backpropagation applied to the unrolled network.
+
+##### Forward Pass:
+1. Process sequence from $\large t=1$ to $\large t=T$
+2. Compute hidden states and outputs
+3. Calculate total loss over all time steps
+
+##### Backward Pass:
+1. Compute gradients from $\large t=T$ back to $\large t=1$
+2. Accumulate gradients for shared parameters
+3. Update weights using gradient descent
+
+#### Loss Function
+
+For regression (time series prediction):
+
+$$\large 
+\mathcal{L} = \frac{1}{T} \sum_{t=1}^{T} \|y_t - \hat{y}_t\|^2
+$$
+
+For classification:
+
+$$\large 
+\mathcal{L} = -\frac{1}{T} \sum_{t=1}^{T} \sum_{c} y_{t,c} \log(\hat{y}_{t,c})
+$$
+
+#### Gradient Calculation
+
+The gradient of the loss with respect to hidden state $\large h_t$:
+
+$$\large 
+\frac{\partial \mathcal{L}}{\partial h_t} = \frac{\partial \mathcal{L}}{\partial y_t} \frac{\partial y_t}{\partial h_t} + \frac{\partial \mathcal{L}}{\partial h_{t+1}} \frac{\partial h_{t+1}}{\partial h_t}
+$$
+
+This creates a chain of dependencies that can lead to vanishing gradients.
+
+### Common Problems and Solutions
+
+#### 1. Vanishing Gradient Problem
+
+**Problem:** Gradients become exponentially small as they propagate back through time.
+
+**Mathematical Explanation:**
+The gradient involves products of weight matrices:
+
+$$\large 
+\frac{\partial h_t}{\partial h_{t-k}} = \prod_{i=1}^{k} \frac{\partial h_{t-i+1}}{\partial h_{t-i}}
+$$
+
+If the largest eigenvalue of the weight matrix is $\large < 1$, gradients vanish.
+
+**Solutions:**
+- Use LSTM or GRU architectures
+- Gradient clipping
+- Better weight initialization
+- Skip connections
+
+#### 2. Exploding Gradient Problem
+
+**Problem:** Gradients become exponentially large.
+
+**Solution:**
+```python
+# Gradient clipping
+torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+```
+
+#### 3. Long-Term Dependencies
+
+**Problem:** Simple RNNs cannot remember information from distant past.
+
+**Solutions:**
+- LSTM/GRU architectures
+- Attention mechanisms
+- Transformer architectures
+
+### Comparison: RNN vs LSTM vs GRU
+
+| Feature | RNN | LSTM | GRU |
+|---------|-----|------|-----|
+| **Parameters** | Fewest | Most | Medium |
+| **Training Speed** | Fastest | Slowest | Medium |
+| **Memory Usage** | Lowest | Highest | Medium |
+| **Long-term Memory** | Poor | Excellent | Good |
+| **Vanishing Gradients** | Severe | Minimal | Minimal |
+| **Complexity** | Simple | Complex | Moderate |
+
+#### When to Use Each:
+
+- **Simple RNN:** Short sequences, computational constraints, educational purposes
+- **LSTM:** Long sequences, complex patterns, maximum performance needed
+- **GRU:** Balance between performance and efficiency, good default choice
+
+### Evaluation Metrics
+
+#### Regression Tasks:
+- **MSE (Mean Squared Error):** $\large \mathcal{L} = \frac{1}{n} \sum_{i=1}^{n} (y_{\text{true}} - y_{\text{pred}})^2$
+- **MAE (Mean Absolute Error):** $\large \mathcal{L} = \frac{1}{n} \sum_{i=1}^{n} |y_{\text{true}} - y_{\text{pred}}|$
+- **RMSE (Root MSE):** $\large \mathcal{L} = \sqrt{\text{MSE}}$
+
+#### Classification Tasks:
+- **Accuracy:** $\large \frac{TP + TN}{TP + TN + FP + FN}$
+- **F1-Score:** $\large \frac{2 \times \text{Precision} \times \text{Recall}}{\text{Precision} + \text{Recall}}$
+- **Cross-Entropy Loss:** $\large -\sum_{i} y_{\text{true}} \log(y_{\text{pred}})$
