@@ -967,3 +967,272 @@ torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
 - **Accuracy:** $\large \frac{TP + TN}{TP + TN + FP + FN}$
 - **F1-Score:** $\large \frac{2 \times \text{Precision} \times \text{Recall}}{\text{Precision} + \text{Recall}}$
 - **Cross-Entropy Loss:** $\large -\sum_{i} y_{\text{true}} \log(y_{\text{pred}})$
+
+## Attention Is All You Need
+
+This guide provides an in-depth explanation of the Transformer architecture introduced in "Attention Is All You Need" by Vaswani et al. (2017). This groundbreaking paper revolutionized natural language processing by demonstrating that attention mechanisms alone, without recurrence or convolution, could achieve state-of-the-art results in sequence-to-sequence tasks.
+
+<div align="center">
+<img src="assets/transformer.png">
+<p>Fig. Attention Is All You Need</p>
+</div>
+
+### The Revolutionary Insight
+
+#### Historical Context and Motivation
+
+Prior to Transformers, sequence modeling was dominated by sequential architectures:
+
+**Recurrent Neural Networks (RNNs/LSTMs):**
+- **Sequential Processing**: $\large h_t = f(h_{t-1}, x_t)$ - must process tokens one by one
+- **Vanishing Gradients**: Information degrades over long sequences
+- **Computational Bottleneck**: Cannot parallelize training across sequence length
+- **Limited Context**: Struggle with very long-range dependencies
+
+**Convolutional Neural Networks:**
+- **Local Receptive Fields**: Need $\large O(\log_k n)$ layers to connect distant positions
+- **Fixed Context Windows**: Limited ability to model variable-length dependencies
+- **Translation Invariance**: Not ideal for position-dependent sequence tasks
+
+#### The Transformer Solution
+
+The key insight: **attention mechanisms can replace recurrence entirely** by allowing direct modeling of dependencies between all pairs of positions in a sequence.
+
+**Core Innovation**: Self-attention computes representations by attending to all positions simultaneously:
+
+$$\large 
+\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
+$$
+
+This enables:
+- **Constant Path Length**: Direct connections between any two positions
+- **Parallel Computation**: All positions processed simultaneously  
+- **Dynamic Attention**: Context-dependent weighting of information
+- **Interpretability**: Attention weights reveal learned dependencies
+
+### Mathematical Foundation
+
+#### Scaled Dot-Product Attention
+
+The fundamental building block is scaled dot-product attention:
+
+$$\large 
+\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
+$$
+
+Where:
+- $\large Q \in \mathbb{R}^{n \times d_k}$: Query matrix (what we're looking for)
+- $\large K \in \mathbb{R}^{n \times d_k}$: Key matrix (what we're looking at)  
+- $\large V \in \mathbb{R}^{n \times d_v}$: Value matrix (what information we extract)
+- $\large n$: sequence length, $\large d_k$: key/query dimension, $\large d_v$: value dimension
+
+**Step-by-step computation:**
+
+1. **Compatibility Function**: Compute attention scores
+   
+$$\large 
+e_{ij} = \frac{q_i \cdot k_j}{\sqrt{d_k}}
+$$
+
+2. **Normalization**: Apply softmax to get attention weights
+
+$$\large 
+\alpha_{ij} = \frac{\exp(e_{ij})}{\sum_{k=1}^n \exp(e_{ik})}
+$$
+
+3. **Weighted Aggregation**: Compute output as weighted sum of values
+
+$$\large 
+o_i = \sum_{j=1}^n \alpha_{ij} v_j
+$$
+
+**Why scaling by $\large \sqrt{d_k}$?**
+Without scaling, dot products grow large for high dimensions, pushing softmax into saturation regions with vanishingly small gradients. The scaling factor keeps variance approximately 1.
+
+#### Multi-Head Attention
+
+Instead of performing single attention, the model uses multiple "attention heads":
+
+$$\large 
+\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \ldots, \text{head}_h)W^O
+$$
+
+where each head is:
+
+$$\large 
+\text{head}_i = \text{Attention}(QW_i^Q, KW_i^K, VW_i^V)
+$$
+
+**Parameter matrices:**
+- $\large W_i^Q \in \mathbb{R}^{d_{\text{model}} \times d_k}$: Query projection for head $\large i$
+- $\large W_i^K \in \mathbb{R}^{d_{\text{model}} \times d_k}$: Key projection for head $\large i$  
+- $\large W_i^V \in \mathbb{R}^{d_{\text{model}} \times d_v}$: Value projection for head $\large i$
+- $\large W^O \in \mathbb{R}^{hd_v \times d_{\text{model}}}$: Output projection
+
+**Intuition**: Different heads can specialize in different types of relationships:
+- **Syntactic head**: Focuses on grammatical dependencies (subject-verb, modifier-noun)
+- **Semantic head**: Captures meaning-based relationships (synonyms, antonyms)
+- **Positional head**: Models distance-based patterns (local vs. long-range)
+- **Coreference head**: Links pronouns to their referents
+
+#### Positional Encoding
+
+Since attention is permutation-invariant, we must inject positional information. The paper uses sinusoidal encodings:
+
+$$\large 
+PE_{(pos, 2i)} = \sin\left(\frac{pos}{10000^{2i/d_{\text{model}}}}\right)
+$$
+
+$$\large 
+PE_{(pos, 2i+1)} = \cos\left(\frac{pos}{10000^{2i/d_{\text{model}}}}\right)
+$$
+
+**Key properties:**
+- **Uniqueness**: Each position gets a unique encoding
+- **Relative Position**: $\large PE_{pos+k}$ can be represented as a linear function of $\large PE_{pos}$
+- **Extrapolation**: Can handle sequences longer than those seen during training
+- **Smooth Interpolation**: Similar positions have similar encodings
+
+**Alternative formulation using complex exponentials:**
+
+$$\large 
+PE_{pos} = \text{Re}\left[e^{i \cdot pos \cdot \omega_k}\right] \text{ where } \omega_k = \frac{1}{10000^{2k/d_{\text{model}}}}
+$$
+
+### Architecture Deep Dive
+
+#### Encoder Architecture
+
+The encoder consists of $\large N = 6$ identical layers, each containing:
+
+$$\large 
+\text{EncoderLayer}(x) = \text{LayerNorm}(x + \text{FFN}(\text{LayerNorm}(x + \text{MultiHead}(x, x, x))))
+$$
+
+**Components:**
+
+1. **Multi-Head Self-Attention**:
+$$\large 
+\text{SelfAttn}(X) = \text{MultiHead}(X, X, X)
+$$
+   - Queries, keys, and values all come from the same input
+   - Allows each position to attend to all positions in the input
+
+2. **Position-wise Feed-Forward Network**:
+$$\large 
+\text{FFN}(x) = \max(0, xW_1 + b_1)W_2 + b_2
+$$
+
+   - Applied identically to each position
+   - $\large W_1 \in \mathbb{R}^{d_{\text{model}} \times d_{ff}}$, $\large W_2 \in \mathbb{R}^{d_{ff} \times d_{\text{model}}}$
+   - Typically $\large d_{ff} = 4 \cdot d_{\text{model}} = 2048$
+
+3. **Residual Connections and Layer Normalization**:
+
+$$\large 
+\text{output} = \text{LayerNorm}(x + \text{Sublayer}(x))
+$$
+
+   - Pre-normalization variant shown above
+   - Enables training of very deep networks
+   - Layer norm: $\large \text{LN}(x) = \gamma \frac{x - \mu}{\sigma} + \beta$
+
+#### Decoder Architecture
+
+The decoder also has $\large N = 6$ layers, but with three sub-layers:
+
+1. **Masked Multi-Head Self-Attention**: Prevents positions from attending to subsequent positions
+2. **Multi-Head Cross-Attention**: Attends to encoder output
+3. **Position-wise Feed-Forward Network**
+
+**Masked Self-Attention**:
+
+$$\large 
+\text{MaskedAttn}(Q, K, V) = \text{softmax}\left(\frac{QK^T + M}{\sqrt{d_k}}\right)V
+$$
+
+where the mask matrix $M$ is:
+
+$$\large 
+M_{ij} = \begin{cases} 
+0 & \text{if } i \leq j \\
+-\infty & \text{if } i > j 
+\end{cases}
+$$
+
+This ensures causality: position $i$ can only attend to positions $\large j \leq i$.
+
+### Training Methodology
+
+#### Loss Function
+
+**Label Smoothing Cross-Entropy**:
+
+$$\large 
+\mathcal{L} = -\sum_{i=1}^{|V|} q_i \log p_i
+$$
+
+where the smoothed target distribution is:
+
+$$\large 
+q_i = \begin{cases}
+1 - \epsilon + \frac{\epsilon}{|V|} & \text{if } i = y \\
+\frac{\epsilon}{|V|} & \text{otherwise}
+\end{cases}
+$$
+
+Label smoothing with $\large \epsilon = 0.1$ prevents overconfident predictions and improves generalization.
+
+#### Learning Rate Schedule
+
+**Warmup and Decay**:
+
+$$\large 
+lr = d_{\text{model}}^{-0.5} \cdot \min(\text{step}^{-0.5}, \text{step} \cdot \text{warmup}^{-1.5})
+$$
+
+- **Warmup Phase**: Linear increase for first 4000 steps
+- **Decay Phase**: Inverse square root decay
+- Prevents early training instability in deep networks
+
+#### Regularization Techniques
+
+1. **Dropout**: Applied to attention weights and feed-forward outputs
+
+$$\large 
+\text{Dropout}(x) = \frac{x \odot \text{Bernoulli}(1-p)}{1-p}
+$$
+
+2. **Label Smoothing**: Regularizes the output distribution
+
+3. **Weight Decay**: L2 regularization on parameters
+
+### Key Theoretical Insights
+
+#### Universal Approximation
+
+Transformer layers are universal approximators for sequence-to-sequence functions under mild assumptions, providing theoretical justification for their empirical success.
+
+#### Inductive Biases
+
+Unlike CNNs (translation equivariance) or RNNs (sequential processing), Transformers have minimal inductive biases:
+- **Advantage**: More flexible, can learn diverse patterns
+- **Challenge**: Requires more data to learn basic structures
+
+#### Scaling Laws
+
+Transformers exhibit predictable scaling behavior:
+
+$$\large 
+\text{Loss} \propto (\text{Parameters})^{-\alpha} \times (\text{Data})^{-\beta} \times (\text{Compute})^{-\gamma}
+$$
+
+This predictability enables systematic scaling to larger models.
+
+### Conclusion
+
+"Attention Is All You Need" introduced a paradigm shift from sequential to parallel processing in deep learning. By demonstrating that attention mechanisms alone could achieve state-of-the-art results, it laid the foundation for the current era of large language models and transformed not just NLP, but artificial intelligence as a whole.
+
+The elegance of the Transformer lies in its simplicity: a few mathematical operations (matrix multiplication, softmax, layer normalization) combined in a principled way to create a powerful and general architecture. This simplicity, combined with excellent scaling properties and parallelizability, made it the ideal foundation for the large-scale models that define modern AI.
+
+The transformer architecture's success demonstrates the power of attention as a general mechanism for modeling relationships in structured data, with applications extending far beyond natural language to vision, multimodal learning, and scientific computing. As we continue to scale these models and explore their capabilities, the fundamental insights from "Attention Is All You Need" remain as relevant as ever.
