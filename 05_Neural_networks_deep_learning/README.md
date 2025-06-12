@@ -1273,7 +1273,7 @@ Where:
 
 **Mathematical Properties:**
 - **Convergence:** Under convex assumptions and decreasing learning rate $\large \left(\sum_{t=1}^{\infty} \eta_t = \infty, \sum_{t=1}^{\infty} \eta_t^2 < \infty\right)$, SGD converges to global minimum
-- **Noise:** Mini-batch gradients are unbiased estimators of true gradient: $\large \mathbb{E}[\nabla \mathcal{L}_{\text{batch}}] = \nabla \mathcal{L}_{\text{true}}$
+- **Noise:** Mini-batch gradients are unbiased estimators of true gradient: ![Noise](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbb{E}[\nabla%20\mathcal{L}_{\text{batch}}]%20=%20\nabla%20\mathcal{L}_{\text{true}})
 - **Variance:** $\large \text{Var}(\nabla \mathcal{L}_{\text{batch}}) = \frac{\sigma^2}{B}$ where $\large \sigma^2$ is gradient variance and $\large B$ is batch size
 
 **Technical Challenges:**
@@ -1292,9 +1292,9 @@ Where:
 
 **Technical Formulation:**
 
-$$\large 
-\mathbf{v}_t = \gamma \mathbf{v}_{t-1} + \eta \nabla_{\boldsymbol{\theta}} \mathcal{L}(\boldsymbol{\theta}_t)
-$$
+<div align="center">
+![SGDWM](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbf{v}_t%20=%20\gamma%20\mathbf{v}_{t-1}%20+%20\eta%20\nabla_{\boldsymbol{\theta}}%20\mathcal{L}(\boldsymbol{\theta}_t))
+</div>
 
 $$\large 
 \boldsymbol{\theta}_{t+1} = \boldsymbol{\theta}_t - \mathbf{v}_t
@@ -1313,9 +1313,9 @@ $$
 **Nesterov Accelerated Gradient (NAG):**
 More sophisticated momentum variant that "looks ahead":
 
-$$\large 
-\mathbf{v}_t = \gamma \mathbf{v}_{t-1} + \eta \nabla_{\boldsymbol{\theta}} \mathcal{L}(\boldsymbol{\theta}_t - \gamma \mathbf{v}_{t-1})
-$$
+<div align="center">
+![Nesterov](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbf{v}_t%20=%20\gamma%20\mathbf{v}_{t-1}%20+%20\eta%20\nabla_{\boldsymbol{\theta}}%20\mathcal{L}(\boldsymbol{\theta}_t%20-%20\gamma%20\mathbf{v}_{t-1}))
+</div>
 
 #### Adaptive Learning Rate Methods
 
@@ -1328,9 +1328,9 @@ $$
 
 **Technical Formulation:**
 
-$$\large 
-\mathbf{G}_t = \mathbf{G}_{t-1} + \mathbf{g}_t \odot \mathbf{g}_t
-$$
+<div align="center">
+![adagrad](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbf{G}_t%20=%20\mathbf{G}_{t-1}%20+%20\mathbf{g}_t%20\odot%20\mathbf{g}_t)
+</div>
 
 $$\large 
 \boldsymbol{\theta}_{t+1} = \boldsymbol{\theta}_t - \frac{\eta}{\sqrt{\mathbf{G}_t + \epsilon}} \odot \mathbf{g}_t
@@ -1351,9 +1351,9 @@ Where $\large \mathbf{G}_t$ accumulates squared gradients element-wise, and $\la
 
 **Technical Innovation:** Solves AdaGrad's diminishing learning rate problem using exponential moving average:
 
-$$\large 
-\mathbf{v}_t = \rho \mathbf{v}_{t-1} + (1-\rho) \mathbf{g}_t^2
-$$
+<div align="center">
+![RMSProp](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbf{v}_t%20=%20\rho%20\mathbf{v}_{t-1}%20+%20(1-\rho)%20\mathbf{g}_t^2)
+</div>
 
 $$\large 
 \boldsymbol{\theta}_{t+1} = \boldsymbol{\theta}_t - \frac{\eta}{\sqrt{\mathbf{v}_t + \epsilon}} \mathbf{g}_t
@@ -1371,13 +1371,13 @@ $$
 **Technical Formulation:**
 Adam combines momentum with adaptive learning rates using bias-corrected exponential moving averages:
 
-$$\large 
-\mathbf{m}_t = \beta_1 \mathbf{m}_{t-1} + (1-\beta_1) \mathbf{g}_t \quad \text{(momentum estimate)}
-$$
+<div align="center">
+![adam1](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbf{m}_t%20=%20\beta_1%20\mathbf{m}_{t-1}%20+%20(1-\beta_1)%20\mathbf{g}_t%20\quad%20\text{(momentum%20estimate)})
+</div>
 
-$$\large 
-\mathbf{v}_t = \beta_2 \mathbf{v}_{t-1} + (1-\beta_2) \mathbf{g}_t^2 \quad \text{(second moment estimate)}
-$$
+<div align="center">
+![adam2](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbf{v}_t%20=%20\beta_2%20\mathbf{v}_{t-1}%20+%20(1-\beta_2)%20\mathbf{g}_t^2%20\quad%20\text{(second%20moment%20estimate)})
+</div>
 
 **Bias Correction:**
 
@@ -1517,31 +1517,31 @@ $$
 <p>Fig. Regularization</p>
 </div>
 
-**Mathematical Perspective:** Overfitting represents poor generalization from empirical risk $\large \mathcal{R}_{\text{emp}}$ to true risk $\large \mathcal{R}_{\text{true}}$:
+**Mathematical Perspective:** Overfitting represents poor generalization from empirical risk ![maths](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathcal{R}_{\text{emp}}$%20to%20true%20risk%20$\large%20\mathcal{R}_{\text{true}}):
 
-$$\large 
-\mathcal{R}_{\text{true}}(\boldsymbol{\theta}) = \mathbb{E}_{(x,y)\sim P}[\mathcal{L}(f_{\boldsymbol{\theta}}(x), y)]
-$$
+<div align="center">
+![over1](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathcal{R}_{\text{true}}(\boldsymbol{\theta})%20=%20\mathbb{E}_{(x,y)\sim%20P}[\mathcal{L}(f_{\boldsymbol{\theta}}(x),%20y)])
+</div>
 
-$$\large 
-\mathcal{R}_{\text{emp}}(\boldsymbol{\theta}) = \frac{1}{n}\sum_{i=1}^n \mathcal{L}(f_{\boldsymbol{\theta}}(x_i), y_i)
-$$
+<div align="center">
+![over2](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathcal{R}_{\text{emp}}(\boldsymbol{\theta})%20=%20\frac{1}{n}\sum_{i=1}^n%20\mathcal{L}(f_{\boldsymbol{\theta}}(x_i),%20y_i))
+</div>
 
 #### L2 Regularization (Weight Decay)
 
 **Technical Formulation:**
 
-$$\large 
-\mathcal{L}_{\text{total}} = \mathcal{L}_{\text{original}} + \frac{\lambda}{2} \|\boldsymbol{\theta}\|_2^2 = \mathcal{L}_{\text{original}} + \frac{\lambda}{2} \sum_{i} \theta_i^2
-$$
+<div align="center">
+![l2](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathcal{L}_{\text{total}}%20=%20\mathcal{L}_{\text{original}}%20+%20\frac{\lambda}{2}%20\|\boldsymbol{\theta}\|_2^2%20=%20\mathcal{L}_{\text{original}}%20+%20\frac{\lambda}{2}%20\sum_{i}%20\theta_i^2)
+</div>
 
 **Mathematical Analysis:**
 
 **Gradient Update with L2:**
 
-$$\large 
-\frac{\partial \mathcal{L}_{\text{total}}}{\partial \boldsymbol{\theta}} = \frac{\partial \mathcal{L}_{\text{original}}}{\partial \boldsymbol{\theta}} + \lambda \boldsymbol{\theta}
-$$
+<div align="center">
+![gradl2](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\frac{\partial%20\mathcal{L}_{\text{total}}}{\partial%20\boldsymbol{\theta}}%20=%20\frac{\partial%20\mathcal{L}_{\text{original}}}{\partial%20\boldsymbol{\theta}}%20+%20\lambda%20\boldsymbol{\theta})
+</div>
 
 **Weight Decay Interpretation:**
 
@@ -1613,9 +1613,9 @@ $$\large
 \sigma_{\mathcal{B}}^2 = \frac{1}{m}\sum_{i=1}^m (x_i - \mu_{\mathcal{B}})^2
 $$
 
-$$\large 
-\hat{x}_i = \frac{x_i - \mu_{\mathcal{B}}}{\sqrt{\sigma_{\mathcal{B}}^2 + \epsilon}}
-$$
+<div align="center">
+![batch](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\hat{x}_i%20=%20\frac{x_i%20-%20\mu_{\mathcal{B}}}{\sqrt{\sigma_{\mathcal{B}}^2%20+%20\epsilon}})
+</div>
 
 $$\large 
 y_i = \gamma \hat{x}_i + \beta
