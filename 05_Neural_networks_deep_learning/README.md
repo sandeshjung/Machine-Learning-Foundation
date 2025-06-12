@@ -1236,3 +1236,454 @@ This predictability enables systematic scaling to larger models.
 The elegance of the Transformer lies in its simplicity: a few mathematical operations (matrix multiplication, softmax, layer normalization) combined in a principled way to create a powerful and general architecture. This simplicity, combined with excellent scaling properties and parallelizability, made it the ideal foundation for the large-scale models that define modern AI.
 
 The transformer architecture's success demonstrates the power of attention as a general mechanism for modeling relationships in structured data, with applications extending far beyond natural language to vision, multimodal learning, and scientific computing. As we continue to scale these models and explore their capabilities, the fundamental insights from "Attention Is All You Need" remain as relevant as ever.
+
+## Optimizers, Schedulers, & Regularization 
+
+#### Why These Techniques Matter
+
+**Conceptual Framework:** Training neural networks involves three fundamental challenges:
+1. **Optimization Strategy** (Optimizers) - How to navigate the loss landscape efficiently
+2. **Learning Rate Management** (Schedulers) - How to balance exploration and exploitation over time
+3. **Generalization Control** (Regularization) - How to prevent overfitting and improve test performance
+
+**Technical Context:** Neural network training is fundamentally an optimization problem where we seek to minimize a loss function $\large \mathcal{L}(\boldsymbol{\theta})$ over high-dimensional parameter space $\large \boldsymbol{\theta}$. The challenges arise from the non-convex nature of this landscape, the stochastic nature of mini-batch training, and the bias-variance tradeoff in model complexity.
+
+### Optimization Algorithms
+
+#### Stochastic Gradient Descent (SGD)
+
+**Conceptual Analogy:** Like a ball rolling down a hill to find the bottom.
+
+<div align="center">
+<img src="assets/stochastic.png">
+<p>Fig. Stochastic Gradient Descent: Understanding the Basics</p>
+</div>
+
+**Technical Foundation:**
+SGD approximates the true gradient using mini-batches, leading to the update rule:
+
+$$\large 
+\boldsymbol{\theta}_{t+1} = \boldsymbol{\theta}_t - \eta \nabla_{\boldsymbol{\theta}} \mathcal{L}(\boldsymbol{\theta}_t)
+$$
+
+Where:
+- $\large \boldsymbol{\theta}$ represents the model parameters (weights and biases)
+- $\large \eta$ is the learning rate (step size)
+- $\large \nabla \mathcal{L}(\boldsymbol{\theta})$ is the gradient of the loss function with respect to parameters
+
+**Mathematical Properties:**
+- **Convergence:** Under convex assumptions and decreasing learning rate $\large \left(\sum_{t=1}^{\infty} \eta_t = \infty, \sum_{t=1}^{\infty} \eta_t^2 < \infty\right)$, SGD converges to global minimum
+- **Noise:** Mini-batch gradients are unbiased estimators of true gradient: $\large \mathbb{E}[\nabla \mathcal{L}_{\text{batch}}] = \nabla \mathcal{L}_{\text{true}}$
+- **Variance:** $\large \text{Var}(\nabla \mathcal{L}_{\text{batch}}) = \frac{\sigma^2}{B}$ where $\large \sigma^2$ is gradient variance and $\large B$ is batch size
+
+**Technical Challenges:**
+1. **High Variance:** Mini-batch gradients have noise proportional to $\large \frac{1}{\sqrt{B}}$
+2. **Poor Conditioning:** In ill-conditioned problems (large condition number $\large \kappa = \frac{\lambda_{\max}}{\lambda_{\min}}$), convergence rate degrades to $\large \mathcal{O}(\kappa)$
+3. **Saddle Points:** In high dimensions, SGD can get stuck near saddle points due to gradient noise
+
+**Implementation Considerations:**
+- Learning rate typically chosen via grid search or learning rate finder
+- Batch size affects both computational efficiency and gradient quality
+- Momentum helps with both convergence speed and noise reduction
+
+#### SGD with Momentum
+
+**Conceptual Analogy:** A heavy boulder rolling down the hill that builds momentum and doesn't get thrown off course by small bumps.
+
+**Technical Formulation:**
+
+$$\large 
+\mathbf{v}_t = \gamma \mathbf{v}_{t-1} + \eta \nabla_{\boldsymbol{\theta}} \mathcal{L}(\boldsymbol{\theta}_t)
+$$
+
+$$\large 
+\boldsymbol{\theta}_{t+1} = \boldsymbol{\theta}_t - \mathbf{v}_t
+$$
+
+**Mathematical Analysis:**
+- **Exponential Moving Average:** Velocity $\large \mathbf{v}_t$ is an exponentially weighted average of past gradients
+- **Effective Learning Rate:** In consistent gradient directions, effective step size becomes $\large \frac{\eta}{1-\gamma}$
+- **Oscillation Damping:** Reduces oscillations by factor of $\large (1-\gamma)$ in directions with sign-alternating gradients
+
+**Technical Benefits:**
+1. **Acceleration:** In convex quadratic functions, optimal momentum $\large \gamma = \frac{\sqrt{\kappa} - 1}{\sqrt{\kappa} + 1}$ gives convergence rate $\large \mathcal{O}(\sqrt{\kappa})$ vs $\large \mathcal{O}(\kappa)$ for SGD
+2. **Noise Filtering:** Acts as low-pass filter on gradient noise, smoothing the optimization path
+3. **Saddle Point Escape:** Momentum helps escape saddle points by maintaining velocity through zero-gradient regions
+
+**Nesterov Accelerated Gradient (NAG):**
+More sophisticated momentum variant that "looks ahead":
+
+$$\large 
+\mathbf{v}_t = \gamma \mathbf{v}_{t-1} + \eta \nabla_{\boldsymbol{\theta}} \mathcal{L}(\boldsymbol{\theta}_t - \gamma \mathbf{v}_{t-1})
+$$
+
+#### Adaptive Learning Rate Methods
+
+**Technical Motivation:** Fixed learning rates are suboptimal because:
+- Different parameters may require different learning rates
+- Optimal learning rate changes during training
+- Sparse features need different treatment than dense features
+
+#### AdaGrad
+
+**Technical Formulation:**
+
+$$\large 
+\mathbf{G}_t = \mathbf{G}_{t-1} + \mathbf{g}_t \odot \mathbf{g}_t
+$$
+
+$$\large 
+\boldsymbol{\theta}_{t+1} = \boldsymbol{\theta}_t - \frac{\eta}{\sqrt{\mathbf{G}_t + \epsilon}} \odot \mathbf{g}_t
+$$
+
+Where $\large \mathbf{G}_t$ accumulates squared gradients element-wise, and $\large \odot$ denotes element-wise operations.
+
+**Mathematical Properties:**
+- **Per-parameter Learning Rates:** Each parameter gets learning rate $\large \frac{\eta}{\sqrt{\sum g_i^2 + \epsilon}}$
+- **Theoretical Guarantees:** Regret bound $\large \mathcal{O}(\sqrt{T})$ for convex functions
+- **Sparse Optimization:** Performs well on sparse data by giving larger updates to infrequent features
+
+**Technical Limitations:**
+- **Gradient Accumulation:** $\large \mathbf{G}_t$ grows monotonically, causing learning rates to approach zero
+- **Premature Stopping:** In non-convex settings, can stop learning before reaching good solutions
+
+#### RMSProp
+
+**Technical Innovation:** Solves AdaGrad's diminishing learning rate problem using exponential moving average:
+
+$$\large 
+\mathbf{v}_t = \rho \mathbf{v}_{t-1} + (1-\rho) \mathbf{g}_t^2
+$$
+
+$$\large 
+\boldsymbol{\theta}_{t+1} = \boldsymbol{\theta}_t - \frac{\eta}{\sqrt{\mathbf{v}_t + \epsilon}} \mathbf{g}_t
+$$
+
+**Technical Advantages:**
+- **Decay Factor:** $\rho$ (typically 0.9) prevents indefinite accumulation
+- **Stationary Adaptation:** Adapts to non-stationary objectives by "forgetting" old gradients
+- **Scale Invariance:** Updates are invariant to diagonal rescaling of parameters
+
+#### Adam Optimizer
+
+**Conceptual Analogy:** A smart hiker who remembers both direction traveled (momentum) and terrain steepness (adaptive rates).
+
+**Technical Formulation:**
+Adam combines momentum with adaptive learning rates using bias-corrected exponential moving averages:
+
+$$\large 
+\mathbf{m}_t = \beta_1 \mathbf{m}_{t-1} + (1-\beta_1) \mathbf{g}_t \quad \text{(momentum estimate)}
+$$
+
+$$\large 
+\mathbf{v}_t = \beta_2 \mathbf{v}_{t-1} + (1-\beta_2) \mathbf{g}_t^2 \quad \text{(second moment estimate)}
+$$
+
+**Bias Correction:**
+
+$$\large 
+\hat{\mathbf{m}}_t = \frac{\mathbf{m}_t}{1-\beta_1^t}, \quad \hat{\mathbf{v}}_t = \frac{\mathbf{v}_t}{1-\beta_2^t}
+$$
+
+**Parameter Update:**
+
+$$\large 
+\boldsymbol{\theta}_{t+1} = \boldsymbol{\theta}_t - \frac{\eta}{\sqrt{\hat{\mathbf{v}}_t} + \epsilon} \hat{\mathbf{m}}_t
+$$
+
+**Mathematical Properties:**
+- **Bias Correction:** Essential for early training steps when estimates are biased toward zero
+- **Effective Learning Rate:** Per-parameter learning rate is $\large \frac{\eta}{\sqrt{\hat{\mathbf{v}}_t}}$, adapted based on gradient history
+- **Convergence:** Under certain assumptions, converges to stationary points in non-convex settings
+
+**Technical Parameters:**
+- $\large \beta_1 = 0.9$: Controls momentum decay (first moment)
+- $\large \beta_2 = 0.999$: Controls variance decay (second moment)
+- $\large \epsilon = 10^{-8}$: Numerical stability constant
+- $\large \eta = 0.001$: Base learning rate (often needs tuning)
+
+**Advanced Variants:**
+- **AdamW:** Decouples weight decay from gradient-based updates
+- **RAdam:** Adds warm-up period to improve early training stability
+- **AdaBound:** Smoothly transitions from Adam to SGD during training
+
+### Learning Rate Scheduling
+
+#### Theoretical Foundation
+
+**Learning Rate Tradeoffs:**
+- **High LR:** Fast initial progress but poor convergence (large final oscillations)
+- **Low LR:** Stable convergence but slow progress (may not reach optimum in finite time)
+- **Optimal Strategy:** Start high for exploration, decrease for exploitation
+
+**Mathematical Insight:** For SGD, learning rate schedule $\large \eta_t$ should satisfy:
+- $\large \sum_{t=1}^{\infty} \eta_t = \infty$ (progress condition)
+- $\large \sum_{t=1}^{\infty} \eta_t^2 < \infty$ (convergence condition)
+
+#### Scheduling Strategies
+
+#### 1. Step Decay (StepLR)
+
+**Technical Implementation:**
+
+$$\large 
+\eta_t = \eta_0 \cdot \gamma^{\lfloor t/s \rfloor}
+$$
+
+Where $\large s$ is step size and $\large \gamma$ is decay factor.
+
+**Mathematical Properties:**
+- **Piecewise Constant:** Learning rate remains constant within each "step"
+- **Geometric Progression:** Learning rates form geometric sequence: $\large \eta_0, \eta_0\gamma, \eta_0\gamma^2, \ldots$
+- **Hyperparameter Sensitivity:** Requires careful tuning of step size and decay factor
+
+**Implementation:**
+```python
+scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
+# Reduces LR by 10x every 10 epochs
+```
+
+#### 2. Reduce on Plateau (ReduceLROnPlateau)
+
+**Technical Approach:** Adaptive scheduling based on validation metrics:
+
+```
+if no_improvement_for >= patience:
+    η_new = η_current × factor
+```
+
+**Mathematical Justification:**
+- **Loss Plateaus:** Indicate approaching local minimum or saddle point
+- **Adaptive Reduction:** Automatically adjusts to training dynamics
+- **Metric-Driven:** Uses validation loss/accuracy rather than fixed schedule
+
+**Technical Parameters:**
+- **Mode:** 'min' for loss, 'max' for accuracy
+- **Factor:** Reduction ratio (typically 0.1-0.5)
+- **Patience:** Number of epochs to wait before reduction
+- **Cooldown:** Minimum epochs between reductions
+
+#### 3. Exponential Decay (ExponentialLR)
+
+**Mathematical Form:**
+
+$$\large 
+\eta_t = \eta_0 \cdot \gamma^t
+$$
+
+**Properties:**
+- **Smooth Decay:** Continuous reduction each epoch
+- **Exponential Nature:** Rapid initial decay, slower later
+- **Single Hyperparameter:** Only $\gamma$ needs tuning
+
+#### 4. Cosine Annealing (CosineAnnealingLR)
+
+**Mathematical Formulation:**
+
+$$\large 
+\eta_t = \eta_{\min} + \frac{1}{2}(\eta_{\max} - \eta_{\min})\left(1 + \cos\left(\frac{t\pi}{T}\right)\right)
+$$
+
+**Technical Advantages:**
+- **Smooth Transition:** Gradual cosine-shaped decay
+- **Natural Schedule:** Mimics cooling processes in physics
+- **Restart Capability:** Can be combined with warm restarts (SGDR)
+
+**Advanced: Cosine Annealing with Warm Restarts (SGDR):**
+Periodically resets learning rate to help escape local minima:
+
+$$\large 
+\eta_t = \eta_{\min} + \frac{1}{2}(\eta_{\max} - \eta_{\min})\left(1 + \cos\left(\frac{T_{\text{cur}}}{T_i}\pi\right)\right)
+$$
+
+### Regularization
+
+#### Theoretical Foundation of Overfitting
+
+**Bias-Variance Decomposition:**
+For prediction error $\large E$, we have:
+
+$$\large 
+E = \text{Bias}^2 + \text{Variance} + \text{Noise}
+$$
+
+**Overfitting occurs when:**
+- Model complexity exceeds optimal level
+- Variance term dominates bias term
+- Training error $\ll$ validation error
+
+<div align="center">
+<img src="assets/regularization.png" width="700" height="400">
+<p>Fig. Regularization</p>
+</div>
+
+**Mathematical Perspective:** Overfitting represents poor generalization from empirical risk $\large \mathcal{R}_{\text{emp}}$ to true risk $\large \mathcal{R}_{\text{true}}$:
+
+$$\large 
+\mathcal{R}_{\text{true}}(\boldsymbol{\theta}) = \mathbb{E}_{(x,y)\sim P}[\mathcal{L}(f_{\boldsymbol{\theta}}(x), y)]
+$$
+
+$$\large 
+\mathcal{R}_{\text{emp}}(\boldsymbol{\theta}) = \frac{1}{n}\sum_{i=1}^n \mathcal{L}(f_{\boldsymbol{\theta}}(x_i), y_i)
+$$
+
+#### L2 Regularization (Weight Decay)
+
+**Technical Formulation:**
+
+$$\large 
+\mathcal{L}_{\text{total}} = \mathcal{L}_{\text{original}} + \frac{\lambda}{2} \|\boldsymbol{\theta}\|_2^2 = \mathcal{L}_{\text{original}} + \frac{\lambda}{2} \sum_{i} \theta_i^2
+$$
+
+**Mathematical Analysis:**
+
+**Gradient Update with L2:**
+
+$$\large 
+\frac{\partial \mathcal{L}_{\text{total}}}{\partial \boldsymbol{\theta}} = \frac{\partial \mathcal{L}_{\text{original}}}{\partial \boldsymbol{\theta}} + \lambda \boldsymbol{\theta}
+$$
+
+**Weight Decay Interpretation:**
+
+$$\large 
+\boldsymbol{\theta}_{t+1} = \boldsymbol{\theta}_t - \eta(\nabla \mathcal{L} + \lambda \boldsymbol{\theta}_t) = (1 - \eta\lambda)\boldsymbol{\theta}_t - \eta \nabla \mathcal{L}
+$$
+
+The factor $\large (1 - \eta\lambda)$ causes weights to "decay" toward zero.
+
+**Theoretical Justification:**
+1. **Bayesian Perspective:** L2 regularization corresponds to Gaussian prior on weights: $\large P(\boldsymbol{\theta}) \propto \exp\left(-\frac{\lambda}{2}\|\boldsymbol{\theta}\|_2^2\right)$
+2. **Capacity Control:** Limits effective model capacity by constraining weight magnitudes
+3. **Smoothness:** Encourages smoother functions (smaller derivatives)
+
+**Technical Considerations:**
+- **$\large \lambda$ Selection:** Cross-validation or validation-based tuning
+- **Scale Dependence:** Should adjust $\lambda$ with batch size and learning rate
+- **Layer-Specific:** Can apply different $\lambda$ to different layers
+
+#### Dropout
+
+**Technical Mechanism:**
+During training, each neuron is retained with probability $\large p$:
+
+$$\large 
+h_i^{(l)} = \begin{cases} 
+\frac{a_i^{(l)}}{p} & \text{with probability } p \\
+0 & \text{with probability } 1-p
+\end{cases}
+$$
+
+**Mathematical Foundation:**
+
+**Ensemble Interpretation:** Dropout trains $\large 2^n$ different networks (where $\large n$ is number of neurons) and averages their predictions.
+
+**Regularization Effect:** Dropout adds noise to hidden units, equivalent to adding penalty term:
+
+$$\large 
+\lambda \sum_i \mathbb{E}[(h_i - \mathbb{E}[h_i])^2]
+$$
+
+**Theoretical Analysis:**
+1. **Co-adaptation Prevention:** Forces neurons to be useful independently
+2. **Feature Bagging:** Each forward pass uses different feature subset
+3. **Noise Injection:** Acts as data-dependent noise regularization
+
+**Technical Implementation Details:**
+- **Inverted Dropout:** Scale remaining activations by $\frac{1}{p}$ during training
+- **Inference:** Use all neurons but don't scale (since expectation is preserved)
+- **Placement:** Typically applied to fully connected layers, not convolutional layers
+
+**Advanced Variants:**
+- **DropConnect:** Randomly zeros weights instead of activations
+- **Spatial Dropout:** Drops entire feature maps in CNNs
+- **Stochastic Depth:** Randomly skips entire layers
+
+#### Additional Regularization Techniques
+
+#### Batch Normalization
+
+**Technical Formulation:**
+For mini-batch $\large \mathcal{B} = \{x_1, x_2, \ldots, x_m\}$:
+
+$$\large 
+\mu_{\mathcal{B}} = \frac{1}{m}\sum_{i=1}^m x_i
+$$
+
+$$\large 
+\sigma_{\mathcal{B}}^2 = \frac{1}{m}\sum_{i=1}^m (x_i - \mu_{\mathcal{B}})^2
+$$
+
+$$\large 
+\hat{x}_i = \frac{x_i - \mu_{\mathcal{B}}}{\sqrt{\sigma_{\mathcal{B}}^2 + \epsilon}}
+$$
+
+$$\large 
+y_i = \gamma \hat{x}_i + \beta
+$$
+
+**Regularization Effects:**
+- **Internal Covariate Shift:** Reduces internal covariate shift
+- **Smoothing Effect:** Makes loss landscape smoother
+- **Implicit Regularization:** Noise from batch statistics acts as regularizer
+
+#### Early Stopping
+
+**Technical Implementation:**
+1. Monitor validation loss during training
+2. Save model at best validation performance
+3. Stop when validation loss stops improving for patience epochs
+4. Restore best model
+
+**Mathematical Justification:**
+- **Implicit Regularization:** Training time acts as regularization parameter
+- **Optimal Stopping:** Balances underfitting vs overfitting
+- **Cross-validation:** Uses validation set to estimate generalization
+
+#### Data Augmentation
+
+**Technical Approach:** Artificially expand training set through transformations:
+- **Image:** Rotation, scaling, cropping, color jittering
+- **Text:** Synonym replacement, back-translation
+- **Audio:** Time stretching, pitch shifting, noise addition
+
+**Mathematical Effect:**
+- **Sample Complexity:** Reduces required training data
+- **Invariance:** Encourages model invariance to transformations
+- **Regularization:** Acts as data-dependent noise injection
+
+**Advanced Techniques:**
+- **Mixup:** Convex combinations of training examples: $\large \tilde{x} = \lambda x_i + (1-\lambda) x_j$, $\tilde{y} = \lambda y_i + (1-\lambda) y_j$
+- **CutMix:** Regional combination of image patches
+- **AutoAugment:** Learning optimal augmentation policies
+
+### Practical Implementation Guidelines
+
+#### Optimizer Selection
+- **Start with Adam** for most problems (good default)
+- **Use SGD + Momentum** for fine-tuning or when computational budget allows extensive hyperparameter search
+- **Consider AdamW** for transformer models or when weight decay is important
+
+#### Learning Rate Scheduling
+- **ReduceLROnPlateau** when you can monitor validation metrics
+- **CosineAnnealingLR** for fixed training duration
+- **StepLR** when you have domain knowledge about training phases
+
+#### Regularization Strategy
+- **Always use early stopping** as baseline regularization
+- **Add L2 regularization** ($\large \lambda \in [10^{-5}, 10^{-3}]$) for dense layers
+- **Apply dropout** ($\large p \in [0.1, 0.5]$) to fully connected layers
+- **Use data augmentation** appropriate to your domain
+
+### Hyperparameter Tuning Order
+1. **Learning rate** (most important)
+2. **Batch size** (affects gradient quality and memory)
+3. **Architecture** (model capacity)  
+4. **Regularization strength** ($\large \lambda$, dropout rate)
+5. **Scheduler parameters** (step size, decay factors)
+
+### Common Hyperparameter Ranges
+- **Learning Rate:** $\large \eta \in [10^{-4}, 10^{-1}]$
+- **Momentum:** $\large \gamma \in [0.9, 0.99]$
+- **Adam Parameters:** $\large \beta_1 \in [0.9, 0.95]$, $\large \beta_2 \in [0.99, 0.999]$
+- **Weight Decay:** $\large \lambda \in [10^{-6}, 10^{-2}]$
+- **Dropout:** $\large p \in [0.1, 0.7]$
