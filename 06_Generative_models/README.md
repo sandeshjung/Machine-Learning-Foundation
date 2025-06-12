@@ -114,9 +114,11 @@ $$
 
 The encoder network parameterizes the variational posterior. For computational tractability, we typically assume a factorized Gaussian form:
 
-$$\large 
-q_{\phi}(\mathbf{z}|\mathbf{x}) = \mathcal{N}(\mathbf{z}; \boldsymbol{\mu}_{\phi}(\mathbf{x}), \text{diag}(\boldsymbol{\sigma}^2_{\phi}(\mathbf{x})))
-$$
+<div align="center">
+
+![encoder](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20q_{\phi}(\mathbf{z}|\mathbf{x})%20=%20\mathcal{N}(\mathbf{z};%20\boldsymbol{\mu}_{\phi}(\mathbf{x}),%20\text{diag}(\boldsymbol{\sigma}^2_{\phi}(\mathbf{x}))))
+
+</div>>
 
 Where:
 
@@ -143,9 +145,11 @@ The decoder network parameterizes the conditional likelihood of data given laten
 
 **For Continuous Data** (e.g., real-valued images): 
 
-$$\large 
-p_{\theta}(\mathbf{x}|\mathbf{z}) = \mathcal{N}(\mathbf{x}; \boldsymbol{\mu}_{\theta}(\mathbf{z}), \sigma^2_{dec}\mathbf{I})
-$$
+<div align="center">
+
+![continuous](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20p_{\theta}(\mathbf{x}|\mathbf{z})%20=%20\mathcal{N}(\mathbf{x};%20\boldsymbol{\mu}_{\theta}(\mathbf{z}),%20\sigma^2_{dec}\mathbf{I}))
+
+</div>
 
 Where $\large \sigma^2_{dec}$ can be fixed or learned.
 
@@ -185,24 +189,28 @@ This choice provides several advantages:
 
 **For Gaussian Distributions**: 
 
-$$\large 
-\mathbf{z} = \boldsymbol{\mu}_{\phi}(\mathbf{x}) + \boldsymbol{\sigma}_{\phi}(\mathbf{x}) \odot \boldsymbol{\epsilon}
-$$
+<div align="center">
+
+![gaussian](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbf{z}%20=%20\boldsymbol{\mu}_{\phi}(\mathbf{x})%20+%20\boldsymbol{\sigma}_{\phi}(\mathbf{x})%20\odot%20\boldsymbol{\epsilon})
+
+</div>
 
 Where:
 
 -   $\large \boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$ is auxiliary noise
 -   $\large \odot$ denotes element-wise multiplication
--   $\large \boldsymbol{\sigma}_{\phi}(\mathbf{x}) = \exp(0.5 \cdot \log \boldsymbol{\sigma}^2_{\phi}(\mathbf{x}))$
+-   ![phi](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\boldsymbol{\sigma}_{\phi}(\mathbf{x})%20=%20\exp(0.5%20\cdot%20\log%20\boldsymbol{\sigma}^2_{\phi}(\mathbf{x})))
 
 **Gradient Flow**: 
 
-$$\large 
-\frac{\partial}{\partial \phi} \mathbb{E}_{q_{\phi}(\mathbf{z}|\mathbf{x})}[f(\mathbf{z})] = \mathbb{E}_{p(\boldsymbol{\epsilon})}\left[\frac{\partial f(\mathbf{z})}{\partial \mathbf{z}} \frac{\partial \mathbf{z}}{\partial \phi}\right]
-$$
+<div align="center">
+
+![gradient](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\frac{\partial}{\partial%20\phi}%20\mathbb{E}_{q_{\phi}(\mathbf{z}|\mathbf{x})}[f(\mathbf{z})]%20=%20\mathbb{E}_{p(\boldsymbol{\epsilon})}\left[\frac{\partial%20f(\mathbf{z})}{\partial%20\mathbf{z}}%20\frac{\partial%20\mathbf{z}}{\partial%20\phi}\right])
+
+</div>
 
 <div align="center">
-<img src="assets/reparam.png" width="1200" height="700">
+<img src="assets/reparam.png" width="1200" height="625" style="background-color: white;">
 <p>Fig. The Reparameterization Trick</p>
 </div>
 
@@ -217,9 +225,11 @@ $$
 
 **Goal**: Maximize the marginal log-likelihood of observed data: 
 
-$$\large 
-\mathcal{L}_{ML} = \sum_{i=1}^{N} \log p_{\theta}(\mathbf{x}^{(i)})
-$$
+<div align="center">
+
+![goal](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathcal{L}_{ML}%20=%20\sum_{i=1}^{N}%20\log%20p_{\theta}(\mathbf{x}^{(i)}))
+
+</div>
 
 **Challenge**: $\large \log p_{\theta}(\mathbf{x}) = \log \int p_{\theta}(\mathbf{x}|\mathbf{z})p(\mathbf{z}),d\mathbf{z}$ is intractable.
 
@@ -227,36 +237,44 @@ $$
 
 For any variational distribution $\large q_{\phi}(\mathbf{z}|\mathbf{x})$, we can write:
 
-$$\large 
-\log p_{\theta}(\mathbf{x}) = \mathbb{E}_{q_{\phi}(\mathbf{z}|\mathbf{x})}[\log p_{\theta}(\mathbf{x})] = \mathbb{E}_{q_{\phi}(\mathbf{z}|\mathbf{x})}\left[\log \frac{p_{\theta}(\mathbf{x},\mathbf{z})}{p_{\theta}(\mathbf{z}|\mathbf{x})}\right]
-$$
+<div align="center">
 
-$$\large 
-= \mathbb{E}_{q_{\phi}(\mathbf{z}|\mathbf{x})}\left[\log \frac{p_{\theta}(\mathbf{x},\mathbf{z})q_{\phi}(\mathbf{z}|\mathbf{x})}{p_{\theta}(\mathbf{z}|\mathbf{x})q_{\phi}(\mathbf{z}|\mathbf{x})}\right]
-$$
+![vlb1](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\log%20p_{\theta}(\mathbf{x})%20=%20\mathbb{E}_{q_{\phi}(\mathbf{z}|\mathbf{x})}[\log%20p_{\theta}(\mathbf{x})]%20=%20\mathbb{E}_{q_{\phi}(\mathbf{z}|\mathbf{x})}\left[\log%20\frac{p_{\theta}(\mathbf{x},\mathbf{z})}{p_{\theta}(\mathbf{z}|\mathbf{x})}\right])
 
-$$\large 
-= \underbrace{\mathbb{E}_{q_{\phi}(\mathbf{z}|\mathbf{x})}\left[\log \frac{p_{\theta}(\mathbf{x},\mathbf{z})}{q_{\phi}(\mathbf{z}|\mathbf{x})}\right]}_{\text{ELBO}} + \underbrace{D_{KL}(q_{\phi}(\mathbf{z}|\mathbf{x}) | p_{\theta}(\mathbf{z}|\mathbf{x}))}_{\geq 0}
-$$
+</div>>
+
+<div align="center">
+
+![vlb2](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20=%20\mathbb{E}_{q_{\phi}(\mathbf{z}|\mathbf{x})}\left[\log%20\frac{p_{\theta}(\mathbf{x},\mathbf{z})q_{\phi}(\mathbf{z}|\mathbf{x})}{p_{\theta}(\mathbf{z}|\mathbf{x})q_{\phi}(\mathbf{z}|\mathbf{x})}\right])
+
+</div>
+
+<div align="center">
+
+![vlb3](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20=%20\underbrace{\mathbb{E}_{q_{\phi}(\mathbf{z}|\mathbf{x})}\left[\log%20\frac{p_{\theta}(\mathbf{x},\mathbf{z})}{q_{\phi}(\mathbf{z}|\mathbf{x})}\right]}_{\text{ELBO}}%20+%20\underbrace{D_{KL}(q_{\phi}(\mathbf{z}|\mathbf{x})%20|%20p_{\theta}(\mathbf{z}|\mathbf{x}))}_{\geq%200})
+
+</div>
 
 #### ELBO Decomposition
 
 The Evidence Lower Bound (ELBO) can be expressed as:
 
-$$\large 
-\mathcal{L}_{ELBO}(\theta, \phi; \mathbf{x}) = \mathbb{E}_{q_{\phi}(\mathbf{z}|\mathbf{x})}[\log p_{\theta}(\mathbf{x}|\mathbf{z})] - D_{KL}(q_{\phi}(\mathbf{z}|\mathbf{x}) | p(\mathbf{z}))
-$$
+<div align="center">
+
+![elbo](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathcal{L}_{ELBO}(\theta,%20\phi;%20\mathbf{x})%20=%20\mathbb{E}_{q_{\phi}(\mathbf{z}|\mathbf{x})}[\log%20p_{\theta}(\mathbf{x}|\mathbf{z})]%20-%20D_{KL}(q_{\phi}(\mathbf{z}|\mathbf{x})%20|%20p(\mathbf{z})))
+
+</div>
 
 **Two Interpretations**:
 
 1.  **Reconstruction + Regularization**:
     
-    -   **Reconstruction Term**: $\large \mathbb{E}_{q_{\phi}(\mathbf{z}|\mathbf{x})}[\log p_{\theta}(\mathbf{x}|\mathbf{z})]$
+    -   **Reconstruction Term**: ![reconstruction](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbb{E}_{q_{\phi}(\mathbf{z}|\mathbf{x})}[\log%20p_{\theta}(\mathbf{x}|\mathbf{z})])
     -   **Regularization Term**: $\large -D_{KL}(q_{\phi}(\mathbf{z}|\mathbf{x}) | p(\mathbf{z}))$
 2.  **Rate-Distortion**:
     
     -   **Rate**: $\large D_{KL}(q_{\phi}(\mathbf{z}|\mathbf{x}) | p(\mathbf{z}))$ (information cost)
-    -   **Distortion**: $\large -\mathbb{E}_{q_{\phi}(\mathbf{z}|\mathbf{x})}[\log p_{\theta}(\mathbf{x}|\mathbf{z})]$ (reconstruction error)
+    -   **Distortion**: ![distortion](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20-\mathbb{E}_{q_{\phi}(\mathbf{z}|\mathbf{x})}[\log%20p_{\theta}(\mathbf{x}|\mathbf{z})]) (reconstruction error)
 
 ### Implementation Details
 
@@ -294,38 +312,44 @@ Linear(512, D) + Sigmoid (for binary data)
 
 **Total Loss (Negative ELBO)**: 
 
-$$\large 
-\mathcal{L}_{VAE} = \mathcal{L}_{recon} + \beta \cdot \mathcal{L}_{KL}
-$$
+![negelbo](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathcal{L}_{VAE}%20=%20\mathcal{L}_{recon}%20+%20\beta%20\cdot%20\mathcal{L}_{KL})
 
 **Reconstruction Loss**:
 
 -   **Binary Cross-Entropy** (for binary/normalized data): 
 
-$$\large 
-\mathcal{L}_{recon} = -\sum_{i=1}^{D} x_i \log \hat{x}_i + (1-x_i)\log(1-\hat{x}_i)
-$$
+<div align="center">
+
+![bce](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathcal{L}_{recon}%20=%20-\sum_{i=1}^{D}%20x_i%20\log%20\hat{x}_i%20+%20(1-x_i)\log(1-\hat{x}_i))
+
+</div>>
     
 -   **Mean Squared Error** (for continuous data): 
 
-$$\large 
-\mathcal{L}_{recon} = \frac{1}{D}\sum_{i=1}^{D} (x_i - \hat{x}_i)^2
-$$
+<div align="center">
+
+![mse](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathcal{L}_{recon}%20=%20\frac{1}{D}\sum_{i=1}^{D}%20(x_i%20-%20\hat{x}_i)^2)
+
+</div>>
     
 
 **KL Divergence Loss**: 
 
-$$\large 
-\mathcal{L}_{KL} = \frac{1}{2}\sum_{j=1}^{d}\left(\mu_j^2 + \sigma_j^2 - 1 - \log \sigma_j^2\right)
-$$
+<div align="center">
+
+![kl](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathcal{L}_{KL}%20=%20\frac{1}{2}\sum_{j=1}^{d}\left(\mu_j^2%20+%20\sigma_j^2%20-%201%20-%20\log%20\sigma_j^2\right))
+
+</div>>
 
 #### β-VAE Extension
 
 The β-VAE introduces a hyperparameter β to control the trade-off: 
 
-$$\large 
-\mathcal{L}_{\beta-VAE} = \mathbb{E}_{q_{\phi}(\mathbf{z}|\mathbf{x})}[\log p_{\theta}(\mathbf{x}|\mathbf{z})] - \beta \cdot D_{KL}(q_{\phi}(\mathbf{z}|\mathbf{x}) | p(\mathbf{z}))
-$$
+<div align="center">
+
+![bvae](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathcal{L}_{\beta-VAE}%20=%20\mathbb{E}_{q_{\phi}(\mathbf{z}|\mathbf{x})}[\log%20p_{\theta}(\mathbf{x}|\mathbf{z})]%20-%20\beta%20\cdot%20D_{KL}(q_{\phi}(\mathbf{z}|\mathbf{x})%20|%20p(\mathbf{z})))
+
+</div>>
 
 **Effects of β**:
 
