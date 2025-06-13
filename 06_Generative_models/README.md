@@ -33,7 +33,7 @@ A standard autoencoder consists of:
 -   **Encoder**: $\large f_{\phi}: \mathbb{R}^D \rightarrow \mathbb{R}^d$ mapping input $\large \mathbf{x}$ to latent code $\large \mathbf{h} = f_{\phi}(\mathbf{x})$
 -   **Decoder**: $\large g_{\theta}: \mathbb{R}^d \rightarrow \mathbb{R}^D$ reconstructing $\large \hat{\mathbf{x}} = g_{\theta}(\mathbf{h})$
 
-**Objective**: Minimize reconstruction error $\large \mathcal{L}_{AE} = |\mathbf{x} - g_{\theta}(f_{\phi}(\mathbf{x}))|^2$
+**Objective**: Minimize reconstruction error ![objective](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathcal{L}_{AE}%20=%20|\mathbf{x}%20-%20g_{\theta}(f_{\phi}(\mathbf{x}))|^2)
 
 **Limitations**:
 
@@ -118,7 +118,7 @@ The encoder network parameterizes the variational posterior. For computational t
 
 ![encoder](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20q_{\phi}(\mathbf{z}|\mathbf{x})%20=%20\mathcal{N}(\mathbf{z};%20\boldsymbol{\mu}_{\phi}(\mathbf{x}),%20\text{diag}(\boldsymbol{\sigma}^2_{\phi}(\mathbf{x}))))
 
-</div>>
+</div>
 
 Where:
 
@@ -210,7 +210,7 @@ Where:
 </div>
 
 <div align="center">
-<img src="assets/reparam.png" width="1200" height="625" style="background-color: white;">
+<img src="assets/reparam.png" width="1000" height="550" style="background-color: white;">
 <p>Fig. The Reparameterization Trick</p>
 </div>
 
@@ -241,7 +241,7 @@ For any variational distribution $\large q_{\phi}(\mathbf{z}|\mathbf{x})$, we ca
 
 ![vlb1](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\log%20p_{\theta}(\mathbf{x})%20=%20\mathbb{E}_{q_{\phi}(\mathbf{z}|\mathbf{x})}[\log%20p_{\theta}(\mathbf{x})]%20=%20\mathbb{E}_{q_{\phi}(\mathbf{z}|\mathbf{x})}\left[\log%20\frac{p_{\theta}(\mathbf{x},\mathbf{z})}{p_{\theta}(\mathbf{z}|\mathbf{x})}\right])
 
-</div>>
+</div>
 
 <div align="center">
 
@@ -322,7 +322,7 @@ Linear(512, D) + Sigmoid (for binary data)
 
 ![bce](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathcal{L}_{recon}%20=%20-\sum_{i=1}^{D}%20x_i%20\log%20\hat{x}_i%20+%20(1-x_i)\log(1-\hat{x}_i))
 
-</div>>
+</div>
     
 -   **Mean Squared Error** (for continuous data): 
 
@@ -330,7 +330,7 @@ Linear(512, D) + Sigmoid (for binary data)
 
 ![mse](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathcal{L}_{recon}%20=%20\frac{1}{D}\sum_{i=1}^{D}%20(x_i%20-%20\hat{x}_i)^2)
 
-</div>>
+</div>
     
 
 **KL Divergence Loss**: 
@@ -339,7 +339,7 @@ Linear(512, D) + Sigmoid (for binary data)
 
 ![kl](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathcal{L}_{KL}%20=%20\frac{1}{2}\sum_{j=1}^{d}\left(\mu_j^2%20+%20\sigma_j^2%20-%201%20-%20\log%20\sigma_j^2\right))
 
-</div>>
+</div>
 
 #### β-VAE Extension
 
@@ -349,10 +349,311 @@ The β-VAE introduces a hyperparameter β to control the trade-off:
 
 ![bvae](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathcal{L}_{\beta-VAE}%20=%20\mathbb{E}_{q_{\phi}(\mathbf{z}|\mathbf{x})}[\log%20p_{\theta}(\mathbf{x}|\mathbf{z})]%20-%20\beta%20\cdot%20D_{KL}(q_{\phi}(\mathbf{z}|\mathbf{x})%20|%20p(\mathbf{z})))
 
-</div>>
+</div>
 
 **Effects of β**:
 
 -   **β < 1**: Prioritizes reconstruction, may lead to posterior collapse
 -   **β = 1**: Standard VAE
 -   **β > 1**: Emphasizes disentanglement, may sacrifice reconstruction quality
+
+## Generative Adversarial Networks (GANs)
+
+Generative models aim to learn the underlying probability distribution $\large p_{data}(\mathbf{x})$ of a given dataset $\large \mathcal{D} = {\mathbf{x}^{(1)}, \mathbf{x}^{(2)}, \ldots, \mathbf{x}^{(N)}}$ where each $\large \mathbf{x}^{(i)} \in \mathbb{R}^d$. The ultimate goal is to generate new samples $\large \mathbf{x}_{new}$ that are indistinguishable from the original data distribution.
+
+<div align="center">
+<img src="assets/gan.png" width="800" height="350">
+<p>Generative Adversarial Networks (GANs)</p>
+</div>
+
+Traditional approaches to generative modeling include:
+
+-   **Maximum Likelihood Estimation (MLE)**: Directly maximizing $\large \mathbb{E}_{\mathbf{x} \sim p_{data}}[\log p_{\theta}(\mathbf{x})]$
+-   **Variational Autoencoders (VAEs)**: Using variational inference to approximate intractable posteriors
+-   **Autoregressive Models**: Modeling $\large p(\mathbf{x}) = \prod_{i=1}^d p(x_i | x_{<i})$
+
+#### The GAN Revolution
+
+Generative Adversarial Networks, introduced by Goodfellow et al. (2014), revolutionized generative modeling by framing it as a **two-player zero-sum game** between:
+
+1.  **Generator $\large G_{\theta_g}$**: Maps random noise $\large \mathbf{z} \sim p_z(\mathbf{z})$ to synthetic data $\large G(\mathbf{z})$
+2.  **Discriminator $\large D_{\theta_d}$**: Distinguishes between real data $\large \mathbf{x} \sim p_{data}(\mathbf{x})$ and generated data $\large G(\mathbf{z})$
+
+The key insight is that we don't need to explicitly model $\large p_{data}(\mathbf{x})$ instead, we implicitly learn it through adversarial training.
+
+### Theoretical Foundations
+
+#### Density Estimation vs. Implicit Generation
+
+Classical generative models attempt to explicitly learn $\large p_{data}(\mathbf{x})$ by parameterizing a probability density function. This approach faces several challenges:
+
+-   **Normalizing Constant**: Computing $\large \int p_{\theta}(\mathbf{x}) d\mathbf{x} = 1$ is often intractable
+-   **Mode Coverage**: Ensuring the model captures all modes of complex, high-dimensional distributions
+-   **Sample Quality**: Balancing likelihood maximization with sample quality
+
+GANs sidestep these issues through **implicit density modeling**. Instead of learning $\large p_{data}(\mathbf{x})$ directly, GANs learn a transformation $\large G: \mathcal{Z} \rightarrow \mathcal{X}$ such that if $\large \mathbf{z} \sim p_z(\mathbf{z})$, then $\large G(\mathbf{z})$ follows a distribution close to $\large p_{data}(\mathbf{x})$.
+
+#### Information-Theoretic Perspective
+
+From an information theory standpoint, the discriminator $D$ estimates the density ratio:
+
+$$\large 
+D^*(\mathbf{x}) = \frac{p_{data}(\mathbf{x})}{p_{data}(\mathbf{x}) + p_g(\mathbf{x})}
+$$
+
+where $\large p_g(\mathbf{x})$ is the generator's induced distribution. This optimal discriminator provides a signal for improving the generator.
+
+### Mathematical Formulation
+
+#### The Minimax Objective
+
+The GAN training objective is formulated as a minimax game:
+
+$$\large 
+\min_G \max_D V(D, G) = \mathbb{E}_{\mathbf{x} \sim p_{data}(\mathbf{x})}[\log D(\mathbf{x})] + \mathbb{E}_{\mathbf{z} \sim p_z(\mathbf{z})}[\log(1 - D(G(\mathbf{z})))]
+$$
+
+Let's decompose this objective:
+
+**Expected Value for Real Data:** 
+
+$$\large 
+\mathbb{E}_{\mathbf{x} \sim p_{data}(\mathbf{x})}[\log D(\mathbf{x})] = \int_{\mathcal{X}} p_{data}(\mathbf{x}) \log D(\mathbf{x}) d\mathbf{x}
+$$
+
+**Expected Value for Generated Data:** 
+
+$$\large 
+\mathbb{E}_{\mathbf{z} \sim p_z(\mathbf{z})}[\log(1 - D(G(\mathbf{z})))] = \int_{\mathcal{Z}} p_z(\mathbf{z}) \log(1 - D(G(\mathbf{z}))) d\mathbf{z}
+$$
+
+Using the change of variables $\large \mathbf{x} = G(\mathbf{z})$: 
+
+$$\large 
+= \int_{\mathcal{X}} p_g(\mathbf{x}) \log(1 - D(\mathbf{x})) d\mathbf{x}
+$$
+
+where $\large p_g(\mathbf{x})$ is the generator's induced distribution.
+
+#### Optimal Discriminator Analysis
+
+For a fixed generator $\large G$, the optimal discriminator $\large D^*$ maximizes:
+
+$$\large 
+V(D, G) = \int_{\mathcal{X}} [p_{data}(\mathbf{x}) \log D(\mathbf{x}) + p_g(\mathbf{x}) \log(1 - D(\mathbf{x}))] d\mathbf{x}
+$$
+
+Taking the functional derivative with respect to $\large D(\mathbf{x})$ and setting it to zero:
+
+$$\large 
+\frac{\delta V}{\delta D} = \frac{p_{data}(\mathbf{x})}{D(\mathbf{x})} - \frac{p_g(\mathbf{x})}{1 - D(\mathbf{x})} = 0
+$$
+
+Solving for $\large D^*(\mathbf{x})$:
+
+$$\large 
+D^*(\mathbf{x}) = \frac{p_{data}(\mathbf{x})}{p_{data}(\mathbf{x}) + p_g(\mathbf{x})}
+$$
+
+#### Global Optimum and Convergence
+
+Substituting $\large D^*$ back into the value function:
+
+$$\large 
+V(D^*, G) = \mathbb{E}_{\mathbf{x} \sim p_{data}} \left[\log \frac{p_{data}(\mathbf{x})}{p_{data}(\mathbf{x}) + p_g(\mathbf{x})}\right] + \mathbb{E}_{\mathbf{x} \sim p_g} \left[\log \frac{p_g(\mathbf{x})}{p_{data}(\mathbf{x}) + p_g(\mathbf{x})}\right]
+$$
+
+This can be rewritten in terms of the Jensen-Shannon (JS) divergence:
+
+$$\large 
+V(D^*, G) = -\log 4 + 2 \cdot D_{JS}(p_{data} | p_g)
+$$
+
+where: 
+
+$$\large 
+D_{JS}(p_{data} | p_g) = \frac{1}{2}D_{KL}\left(p_{data} | \frac{p_{data} + p_g}{2}\right) + \frac{1}{2}D_{KL}\left(p_g | \frac{p_{data} + p_g}{2}\right)
+$$
+
+**Key Insight**: The global minimum is achieved when $\large p_g = p_{data}$, giving $\large V(D^_, G^_) = -\log 4$ and $\large D^*(\mathbf{x}) = \frac{1}{2}$ everywhere.
+
+#### Alternative Generator Objectives
+
+The original generator objective $\large \min_G \mathbb{E}_{\mathbf{z}}[\log(1 - D(G(\mathbf{z})))]$ can suffer from vanishing gradients. Common alternatives include:
+
+**Non-saturating Loss:** 
+
+$$\large 
+\max_G \mathbb{E}_{\mathbf{z}}[\log D(G(\mathbf{z}))]
+$$
+
+**Least Squares GAN (LSGAN):** 
+
+$$\large 
+\min_G \mathbb{E}_{\mathbf{z}}[(D(G(\mathbf{z})) - 1)^2]
+$$
+
+**Wasserstein GAN:** 
+
+$$\large 
+\min_G \max_{D \in \mathcal{D}} \mathbb{E}_{\mathbf{x} \sim p_{data}}[D(\mathbf{x})] - \mathbb{E}_{\mathbf{z} \sim p_z}[D(G(\mathbf{z}))]
+$$
+
+### Game Theory Perspective
+
+#### Nash Equilibrium
+
+GANs can be viewed as a two-player zero-sum game where:
+
+-   **Player 1 (Generator)**: Strategy space $\large \mathcal{G}$ (all possible generators)
+-   **Player 2 (Discriminator)**: Strategy space $\large \mathcal{D}$ (all possible discriminators)
+-   **Payoff Function**: $\large V(D, G)$
+
+A Nash equilibrium $\large (G^_, D^_)$ satisfies: 
+
+$$\large 
+V(D^_, G^_) \leq V(D, G^_) \quad \forall D \in \mathcal{D}
+$$ 
+
+$$\large 
+V(D^_, G^_) \geq V(D^_, G) \quad \forall G \in \mathcal{G}
+$$
+
+#### Mixed Strategy Interpretation
+
+In practice, alternating optimization can be viewed as a mixed strategy where players alternate moves. The learning dynamics can be analyzed using concepts from evolutionary game theory.
+
+#### Stackelberg Competition
+
+Some GAN variants adopt a Stackelberg (leader-follower) framework where one network (typically the discriminator) acts as the leader, and the other responds optimally.
+
+### Network Architectures
+
+#### Deep Convolutional GANs (DCGANs)
+
+For image generation, DCGANs use architectural guidelines:
+
+<div align="center">
+<img src="assets/dcgan.png" width="800" height="400">
+<p>Fig. Deep Convolutional GANs (DCGANs)</p>
+</div>
+
+**Generator Architecture:**
+
+-   Input: Latent vector $\large \mathbf{z} \in \mathbb{R}^{n_z}$ (typically $\large n_z = 100$)
+-   Fully connected layer: $\large \mathbf{z} \rightarrow \mathbb{R}^{4 \times 4 \times 512}$
+-   Transposed convolutions with stride 2 for upsampling
+-   Batch normalization after each layer (except output)
+-   ReLU activation (except Tanh for output)
+
+Mathematical representation: 
+
+$$\large 
+\mathbf{h}_0 = \text{Reshape}(\text{Linear}(\mathbf{z}))
+$$ 
+
+$$\large 
+\mathbf{h}_{i+1} = \text{ConvTranspose2d}(\text{BatchNorm}(\text{ReLU}(\mathbf{h}_i)))
+$$ 
+
+$$\large 
+\mathbf{x}_{gen} = \text{Tanh}(\text{ConvTranspose2d}(\mathbf{h}_L))
+$$
+
+**Discriminator Architecture:**
+
+-   Input: Image $\large \mathbf{x} \in \mathbb{R}^{H \times W \times C}$
+-   Strided convolutions for downsampling
+-   LeakyReLU activation with slope 0.2
+-   No batch normalization in first layer
+-   Output: Single scalar (logit)
+
+#### Progressive Growing
+
+Progressive GANs start with low-resolution images and gradually increase resolution:
+
+$$\large 
+G_4: \mathbb{R}^{512} \rightarrow \mathbb{R}^{4 \times 4 \times 3}
+$$ 
+
+$$\large 
+G_8: \mathbb{R}^{512} \rightarrow \mathbb{R}^{8 \times 8 \times 3}
+$$ 
+
+$$\large 
+\vdots
+$$ 
+
+$$\large 
+G_{1024}: \mathbb{R}^{512} \rightarrow \mathbb{R}^{1024 \times 1024 \times 3}
+$$
+
+#### StyleGAN Architecture
+
+StyleGAN introduces style-based generation:
+
+**Mapping Network:** $\large f: \mathcal{Z} \rightarrow \mathcal{W}$ 
+
+$$\large 
+\mathbf{w} = f(\mathbf{z})
+$$
+
+**Synthesis Network:** Uses adaptive instance normalization (AdaIN): 
+
+$$\large 
+\text{AdaIN}(\mathbf{x}_i, \mathbf{y}) = \mathbf{y}_{s,i} \frac{\mathbf{x}_i - \mu(\mathbf{x}_i)}{\sigma(\mathbf{x}_i)} + \mathbf{y}_{b,i}
+$$
+
+where $\large \mathbf{y} = (\mathbf{y}_{s,i}, \mathbf{y}_{b,i})$ are style parameters derived from $\large \mathbf{w}$.
+
+### Loss Functions and Optimization
+
+#### Binary Cross-Entropy Loss
+
+The standard GAN loss uses binary cross-entropy:
+
+**Discriminator Loss:** 
+
+$$\large 
+L_D = -\mathbb{E}_{\mathbf{x} \sim p_{data}}[\log D(\mathbf{x})] - \mathbb{E}_{\mathbf{z} \sim p_z}[\log(1 - D(G(\mathbf{z})))]
+$$
+
+**Generator Loss:** 
+
+$$\large 
+L_G = -\mathbb{E}_{\mathbf{z} \sim p_z}[\log D(G(\mathbf{z}))]
+$$
+
+#### Wasserstein Distance
+
+WGAN uses the Wasserstein-1 distance: 
+
+$$\large 
+W_1(p_{data}, p_g) = \inf_{\gamma \in \Pi(p_{data}, p_g)} \mathbb{E}_{(\mathbf{x}, \mathbf{y}) \sim \gamma}[|\mathbf{x} - \mathbf{y}|]
+$$
+
+Using the Kantorovich-Rubinstein duality: 
+
+$$\large 
+W_1(p_{data}, p_g) = \sup_{|f|_L \leq 1} \mathbb{E}_{\mathbf{x} \sim p_{data}}[f(\mathbf{x})] - \mathbb{E}_{\mathbf{x} \sim p_g}[f(\mathbf{x})]
+$$
+
+#### Gradient Penalty
+
+WGAN-GP adds a gradient penalty term: 
+
+$$\large 
+\mathcal{L} = \mathbb{E}_{\tilde{\mathbf{x}} \sim p_g}[D(\tilde{\mathbf{x}})] - \mathbb{E}_{\mathbf{x} \sim p_{data}}[D(\mathbf{x})] + \lambda \mathbb{E}_{\hat{\mathbf{x}} \sim p_{\hat{\mathbf{x}}}}[(|\nabla_{\hat{\mathbf{x}}} D(\hat{\mathbf{x}})| - 1)^2]
+$$
+
+where $\large \hat{\mathbf{x}} = \epsilon \mathbf{x} + (1-\epsilon)\tilde{\mathbf{x}}$ with $\large \epsilon \sim \text{Uniform}[0,1]$.
+
+#### Spectral Normalization
+
+Spectral normalization constrains the Lipschitz constant: 
+
+$$\large 
+\bar{W} = W / \sigma(W)
+$$
+
+where $\large \sigma(W)$ is the spectral norm (largest singular value) of weight matrix $\large W$.
