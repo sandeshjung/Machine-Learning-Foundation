@@ -409,23 +409,29 @@ where $\large p_g(\mathbf{x})$ is the generator's induced distribution. This opt
 
 The GAN training objective is formulated as a minimax game:
 
-$$\large 
-\min_G \max_D V(D, G) = \mathbb{E}_{\mathbf{x} \sim p_{data}(\mathbf{x})}[\log D(\mathbf{x})] + \mathbb{E}_{\mathbf{z} \sim p_z(\mathbf{z})}[\log(1 - D(G(\mathbf{z})))]
-$$
+<div align="center">
+
+![minimax](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\min_G%20\max_D%20V(D,%20G)%20=%20\mathbb{E}_{\mathbf{x}%20\sim%20p_{data}(\mathbf{x})}[\log%20D(\mathbf{x})]%20+%20\mathbb{E}_{\mathbf{z}%20\sim%20p_z(\mathbf{z})}[\log(1%20-%20D(G(\mathbf{z})))])
+
+</div>
 
 Let's decompose this objective:
 
 **Expected Value for Real Data:** 
 
-$$\large 
-\mathbb{E}_{\mathbf{x} \sim p_{data}(\mathbf{x})}[\log D(\mathbf{x})] = \int_{\mathcal{X}} p_{data}(\mathbf{x}) \log D(\mathbf{x}) d\mathbf{x}
-$$
+<div align="center">
+
+![real](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbb{E}_{\mathbf{x}%20\sim%20p_{data}(\mathbf{x})}[\log%20D(\mathbf{x})]%20=%20\int_{\mathcal{X}}%20p_{data}(\mathbf{x})%20\log%20D(\mathbf{x})%20d\mathbf{x})
+
+</div>
 
 **Expected Value for Generated Data:** 
 
-$$\large 
-\mathbb{E}_{\mathbf{z} \sim p_z(\mathbf{z})}[\log(1 - D(G(\mathbf{z})))] = \int_{\mathcal{Z}} p_z(\mathbf{z}) \log(1 - D(G(\mathbf{z}))) d\mathbf{z}
-$$
+<div align="center">
+
+![generated](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbb{E}_{\mathbf{z}%20\sim%20p_z(\mathbf{z})}[\log(1%20-%20D(G(\mathbf{z})))]%20=%20\int_{\mathcal{Z}}%20p_z(\mathbf{z})%20\log(1%20-%20D(G(\mathbf{z})))%20d\mathbf{z})
+
+</div>
 
 Using the change of variables $\large \mathbf{x} = G(\mathbf{z})$: 
 
@@ -459,9 +465,11 @@ $$
 
 Substituting $\large D^*$ back into the value function:
 
-$$\large 
-V(D^*, G) = \mathbb{E}_{\mathbf{x} \sim p_{data}} \left[\log \frac{p_{data}(\mathbf{x})}{p_{data}(\mathbf{x}) + p_g(\mathbf{x})}\right] + \mathbb{E}_{\mathbf{x} \sim p_g} \left[\log \frac{p_g(\mathbf{x})}{p_{data}(\mathbf{x}) + p_g(\mathbf{x})}\right]
-$$
+<div align="center">
+
+![global](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20V(D^*,%20G)%20=%20\mathbb{E}_{\mathbf{x}%20\sim%20p_{data}}%20\left[\log%20\frac{p_{data}(\mathbf{x})}{p_{data}(\mathbf{x})%20+%20p_g(\mathbf{x})}\right]%20+%20\mathbb{E}_{\mathbf{x}%20\sim%20p_g}%20\left[\log%20\frac{p_g(\mathbf{x})}{p_{data}(\mathbf{x})%20+%20p_g(\mathbf{x})}\right])
+
+</div>
 
 This can be rewritten in terms of the Jensen-Shannon (JS) divergence:
 
@@ -495,9 +503,11 @@ $$
 
 **Wasserstein GAN:** 
 
-$$\large 
-\min_G \max_{D \in \mathcal{D}} \mathbb{E}_{\mathbf{x} \sim p_{data}}[D(\mathbf{x})] - \mathbb{E}_{\mathbf{z} \sim p_z}[D(G(\mathbf{z}))]
-$$
+<div align="center">
+
+![wasserstein](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\min_G%20\max_{D%20\in%20\mathcal{D}}%20\mathbb{E}_{\mathbf{x}%20\sim%20p_{data}}[D(\mathbf{x})]%20-%20\mathbb{E}_{\mathbf{z}%20\sim%20p_z}[D(G(\mathbf{z}))])
+
+</div>
 
 ### Game Theory Perspective
 
@@ -509,14 +519,14 @@ GANs can be viewed as a two-player zero-sum game where:
 -   **Player 2 (Discriminator)**: Strategy space $\large \mathcal{D}$ (all possible discriminators)
 -   **Payoff Function**: $\large V(D, G)$
 
-A Nash equilibrium $\large (G^_, D^_)$ satisfies: 
+A Nash equilibrium $\large (G', D')$ satisfies: 
 
 $$\large 
-V(D^_, G^_) \leq V(D, G^_) \quad \forall D \in \mathcal{D}
+V(D', G') \leq V(D, G') \quad \forall D \in \mathcal{D}
 $$ 
 
 $$\large 
-V(D^_, G^_) \geq V(D^_, G) \quad \forall G \in \mathcal{G}
+V(D', G') \geq V(D', G) \quad \forall G \in \mathcal{G}
 $$
 
 #### Mixed Strategy Interpretation
@@ -600,11 +610,13 @@ $$
 
 **Synthesis Network:** Uses adaptive instance normalization (AdaIN): 
 
-$$\large 
-\text{AdaIN}(\mathbf{x}_i, \mathbf{y}) = \mathbf{y}_{s,i} \frac{\mathbf{x}_i - \mu(\mathbf{x}_i)}{\sigma(\mathbf{x}_i)} + \mathbf{y}_{b,i}
-$$
+<div align="center">
 
-where $\large \mathbf{y} = (\mathbf{y}_{s,i}, \mathbf{y}_{b,i})$ are style parameters derived from $\large \mathbf{w}$.
+![synthesis](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\text{AdaIN}(\mathbf{x}_i,%20\mathbf{y})%20=%20\mathbf{y}_{s,i}%20\frac{\mathbf{x}_i%20-%20\mu(\mathbf{x}_i)}{\sigma(\mathbf{x}_i)}%20+%20\mathbf{y}_{b,i})
+
+</div>
+
+where ![style](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbf{y}%20=%20(\mathbf{y}_{s,i},%20\mathbf{y}_{b,i})) are style parameters derived from $\large \mathbf{w}$.
 
 ### Loss Functions and Optimization
 
@@ -614,9 +626,11 @@ The standard GAN loss uses binary cross-entropy:
 
 **Discriminator Loss:** 
 
-$$\large 
-L_D = -\mathbb{E}_{\mathbf{x} \sim p_{data}}[\log D(\mathbf{x})] - \mathbb{E}_{\mathbf{z} \sim p_z}[\log(1 - D(G(\mathbf{z})))]
-$$
+<div align="center">
+
+![discriminator](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20L_D%20=%20-\mathbb{E}_{\mathbf{x}%20\sim%20p_{data}}[\log%20D(\mathbf{x})]%20-%20\mathbb{E}_{\mathbf{z}%20\sim%20p_z}[\log(1%20-%20D(G(\mathbf{z})))])
+
+</div>
 
 **Generator Loss:** 
 
@@ -634,17 +648,21 @@ $$
 
 Using the Kantorovich-Rubinstein duality: 
 
-$$\large 
-W_1(p_{data}, p_g) = \sup_{|f|_L \leq 1} \mathbb{E}_{\mathbf{x} \sim p_{data}}[f(\mathbf{x})] - \mathbb{E}_{\mathbf{x} \sim p_g}[f(\mathbf{x})]
-$$
+<div align="center">
+
+![kantorovich](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20W_1(p_{data},%20p_g)%20=%20\sup_{|f|_L%20\leq%201}%20\mathbb{E}_{\mathbf{x}%20\sim%20p_{data}}[f(\mathbf{x})]%20-%20\mathbb{E}_{\mathbf{x}%20\sim%20p_g}[f(\mathbf{x})])
+
+</div>
 
 #### Gradient Penalty
 
 WGAN-GP adds a gradient penalty term: 
 
-$$\large 
-\mathcal{L} = \mathbb{E}_{\tilde{\mathbf{x}} \sim p_g}[D(\tilde{\mathbf{x}})] - \mathbb{E}_{\mathbf{x} \sim p_{data}}[D(\mathbf{x})] + \lambda \mathbb{E}_{\hat{\mathbf{x}} \sim p_{\hat{\mathbf{x}}}}[(|\nabla_{\hat{\mathbf{x}}} D(\hat{\mathbf{x}})| - 1)^2]
-$$
+<div align="center">
+
+![wgan](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathcal{L}%20=%20\mathbb{E}_{\tilde{\mathbf{x}}%20\sim%20p_g}[D(\tilde{\mathbf{x}})]%20-%20\mathbb{E}_{\mathbf{x}%20\sim%20p_{data}}[D(\mathbf{x})]%20+%20\lambda%20\mathbb{E}_{\hat{\mathbf{x}}%20\sim%20p_{\hat{\mathbf{x}}}}[(|\nabla_{\hat{\mathbf{x}}}%20D(\hat{\mathbf{x}})|%20-%201)^2])
+
+</div>
 
 where $\large \hat{\mathbf{x}} = \epsilon \mathbf{x} + (1-\epsilon)\tilde{\mathbf{x}}$ with $\large \epsilon \sim \text{Uniform}[0,1]$.
 
