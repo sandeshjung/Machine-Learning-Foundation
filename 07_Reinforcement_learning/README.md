@@ -21,6 +21,12 @@ This cyclical process continues until either:
 -   A maximum number of steps is executed
 -   The learning process is manually terminated
 
+<div align="center">
+<img src="assets/rl.png" width="1100" height="600">
+<p>Fig. Reinforcement Learning</p>
+</div>
+
+
 #### Key Components and Terminology
 
 **Agent ($\large \mathcal{A}$)**: The learner and decision-maker that perceives the environment and selects actions.
@@ -188,17 +194,21 @@ The **action-value function** $\large Q^\pi(s, a)$ gives the expected return whe
 
 The Bellman equations express the recursive relationship between value functions:
 
-**Bellman Expectation Equation for $\large V^\pi$**: 
+**Bellman Expectation Equation for** ![asd](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20V^\pi): 
 
-$$\large 
-V^\pi(s) = \sum_{a} \pi(a \mid s) \sum_{s', r} p(s', r \mid s, a)[r + \gamma V^\pi(s')]
-$$
+<div align="center">
 
-**Bellman Expectation Equation for $\large Q^\pi$**: 
+![bellman](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20V^\pi(s)%20=%20\sum_{a}%20\pi(a%20\mid%20s)%20\sum_{s%27,%20r}%20p(s%27,%20r%20\mid%20s,%20a)[r%20+%20\gamma%20V^\pi(s%27)])
 
-$$\large 
-Q^\pi(s, a) = \sum_{s', r} p(s', r \mid s, a)\left[r + \gamma \sum_{a'} \pi(a' \mid s') Q^\pi(s', a')\right]
-$$
+</div>
+
+**Bellman Expectation Equation for** ![qpi](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20Q^\pi$): 
+
+<div align="center">
+
+![bell](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20Q^\pi(s,%20a)%20=%20\sum_{s%27,%20r}%20p(s%27,%20r%20\mid%20s,%20a)\left[r%20+%20\gamma%20\sum_{a%27}%20\pi(a%27%20\mid%20s%27)%20Q^\pi(s%27,%20a%27)\right])
+
+</div>
 
 These equations form the basis for many RL algorithms, including temporal difference learning and Q-learning.
 
@@ -339,7 +349,7 @@ $$
 
 ![baseline](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\nabla_\theta%20J(\theta)%20=%20\mathbb{E}_{\tau%20\sim%20\pi_\theta}\left[\sum_{t=0}^{T-1}%20\nabla_\theta%20\log%20\pi_\theta(A_t%20\mid%20S_t)%20(G_t%20-%20b(S_t))\right])
 
-</div>>
+</div>
 
 Common baselines include:
 
