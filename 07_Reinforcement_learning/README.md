@@ -45,9 +45,11 @@ The central problem in RL can be formally stated as:
 
 Mathematically, this translates to:
 
-$$\large 
-\pi^* = \arg\max_{\pi} \mathbb{E}_{\tau \sim \pi}\left[\sum_{t=0}^{T} \gamma^t R_{t+1} \mid S_0\right]
-$$
+<div align="center">
+
+![mdp](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\pi^*%20=%20\arg\max_{\pi}%20\mathbb{E}_{\tau%20\sim%20\pi}\left[\sum_{t=0}^{T}%20\gamma^t%20R_{t+1}%20\mid%20S_0\right])
+
+</div>
 
 where:
 
@@ -151,6 +153,7 @@ $$
 $$\large 
 \pi_\theta(a \mid s) = \frac{\exp(\phi(s, a)^T \theta)}{\sum_{a'} \exp(\phi(s, a')^T \theta)}
 $$ 
+
 (Softmax policy)
 
 where $\large \phi(s, a)$ are feature vectors and $\large \theta$ are learnable parameters.
@@ -165,17 +168,21 @@ Given a policy $\large \pi$, we can evaluate its performance through its value f
 
 The **state-value function** $\large V^\pi(s)$ gives the expected return when starting in state $\large s$ and following policy $\large \pi$:
 
-$$\large 
-V^\pi(s) = \mathbb{E}_\pi[G_t \mid S_t = s] = \mathbb{E}_\pi\left[\sum_{k=0}^{\infty} \gamma^k R_{t+k+1} \mid S_t = s\right]
-$$
+<div align="center">
+
+![state](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20V^\pi(s)%20=%20\mathbb{E}_\pi[G_t%20\mid%20S_t%20=%20s]%20=%20\mathbb{E}_\pi\left[\sum_{k=0}^{\infty}%20\gamma^k%20R_{t+k+1}%20\mid%20S_t%20=%20s\right])
+
+</div>
 
 #### Action-Value Functions
 
 The **action-value function** $\large Q^\pi(s, a)$ gives the expected return when starting in state $\large s$, taking action $\large a$, and then following policy $\large \pi$:
 
-$$\large 
-Q^\pi(s, a) = \mathbb{E}_\pi[G_t \mid S_t = s, A_t = a] = \mathbb{E}_\pi\left[\sum_{k=0}^{\infty} \gamma^k R_{t+k+1} \mid S_t = s, A_t = a\right]
-$$
+<div align="center">
+
+![action](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20Q^\pi(s,%20a)%20=%20\mathbb{E}_\pi[G_t%20\mid%20S_t%20=%20s,%20A_t%20=%20a]%20=%20\mathbb{E}_\pi\left[\sum_{k=0}^{\infty}%20\gamma^k%20R_{t+k+1}%20\mid%20S_t%20=%20s,%20A_t%20=%20a\right])
+
+</div>
 
 #### Bellman Equations
 
@@ -197,26 +204,26 @@ These equations form the basis for many RL algorithms, including temporal differ
 
 #### Optimal Value Functions
 
-The **optimal state-value function** $\large V^_(s)$ is the maximum value achievable from state $\large s$: 
+The **optimal state-value function** $\large V^(s)$ is the maximum value achievable from state $\large s$: 
 
 $$\large 
-V^_(s) = \max_\pi V^\pi(s)
+V^(s) = \max_\pi V^\pi(s)
 $$
 
-The **optimal action-value function** $\large Q^_(s, a)$ is the maximum value achievable from state $\large s$ taking action $\large a$: 
+The **optimal action-value function** $\large Q^(s, a)$ is the maximum value achievable from state $\large s$ taking action $\large a$: 
 
 $$\large 
-Q^_(s, a) = \max_\pi Q^\pi(s, a)
+Q^(s, a) = \max_\pi Q^\pi(s, a)
 $$
 
 **Bellman Optimality Equations**: 
 
 $$\large 
-V^_(s) = \max_a \sum_{s', r} p(s', r \mid s, a)[r + \gamma V^_(s')]
+V^(s) = \max_a \sum_{s', r} p(s', r \mid s, a)[r + \gamma V^_(s')]
 $$ 
 
 $$\large 
-Q^_(s, a) = \sum_{s', r} p(s', r \mid s, a)\left[r + \gamma \max_{a'} Q^_(s', a')\right]
+Q^(s, a) = \sum_{s', r} p(s', r \mid s, a)\left[r + \gamma \max_{a'} Q^_(s', a')\right]
 $$
 
 ### Policy Gradient Methods: Direct Optimization
@@ -234,13 +241,15 @@ Policy gradient methods directly optimize the policy parameters $\theta$ to maxi
 
 The policy gradient theorem provides the foundation for policy gradient methods. It states that the gradient of the expected return with respect to policy parameters is:
 
-$$\large 
-\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}\left[\sum_{t=0}^{T-1} \nabla_\theta \log \pi_\theta(A_t \mid S_t) G_t\right]
-$$
+<div align="center">
+
+![pgt](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\nabla_\theta%20J(\theta)%20=%20\mathbb{E}_{\tau%20\sim%20\pi_\theta}\left[\sum_{t=0}^{T-1}%20\nabla_\theta%20\log%20\pi_\theta(A_t%20\mid%20S_t)%20G_t\right])
+
+</div>
 
 where:
 
--   $\large J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[R(\tau)]$ is the objective function
+-   ![objective](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20J(\theta)%20=%20\mathbb{E}_{\tau%20\sim%20\pi_\theta}[R(\tau)]) is the objective function
 -   $\large \tau$ is a trajectory sampled from policy $\large \pi_\theta$
 -   $\large G_t$ is the return from time step $\large t$
 
@@ -280,9 +289,11 @@ $$
     
 6.  **Convert back to expectation**: 
 
-$$\large 
-\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}\left[\sum_{t=0}^{T-1} \nabla_\theta \log \pi_\theta(A_t \mid S_t) R(\tau)\right]
-$$
+<div align="center">
+
+![expectation](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\nabla_\theta%20J(\theta)%20=%20\mathbb{E}_{\tau%20\sim%20\pi_\theta}\left[\sum_{t=0}^{T-1}%20\nabla_\theta%20\log%20\pi_\theta(A_t%20\mid%20S_t)%20R(\tau)\right])
+
+</div>
 
 ### Gradient Ascent in Policy Space
 
@@ -324,9 +335,11 @@ $$
 
 **Baseline Subtraction**: Subtract a state-dependent baseline $\large b(s)$ to reduce variance: 
 
-$$\large 
-\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}\left[\sum_{t=0}^{T-1} \nabla_\theta \log \pi_\theta(A_t \mid S_t) (G_t - b(S_t))\right]
-$$
+<div align="center">
+
+![baseline](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\nabla_\theta%20J(\theta)%20=%20\mathbb{E}_{\tau%20\sim%20\pi_\theta}\left[\sum_{t=0}^{T-1}%20\nabla_\theta%20\log%20\pi_\theta(A_t%20\mid%20S_t)%20(G_t%20-%20b(S_t))\right])
+
+</div>>
 
 Common baselines include:
 
@@ -335,6 +348,8 @@ Common baselines include:
 
 **Causality**: Only use future rewards for each action: 
 
-$$\large 
-\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}\left[\sum_{t=0}^{T-1} \nabla_\theta \log \pi_\theta(A_t \mid S_t) \sum_{k=t}^{T-1} \gamma^{k-t} R_{k+1}\right]
-$$
+<div align="center">
+
+![causality](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\nabla_\theta%20J(\theta)%20=%20\mathbb{E}_{\tau%20\sim%20\pi_\theta}\left[\sum_{t=0}^{T-1}%20\nabla_\theta%20\log%20\pi_\theta(A_t%20\mid%20S_t)%20\sum_{k=t}^{T-1}%20\gamma^{k-t}%20R_{k+1}\right])
+
+</div>
