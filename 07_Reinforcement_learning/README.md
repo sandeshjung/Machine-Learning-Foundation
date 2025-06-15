@@ -228,13 +228,17 @@ $$
 
 **Bellman Optimality Equations**: 
 
-$$\large 
-V^(s) = \max_a \sum_{s', r} p(s', r \mid s, a)[r + \gamma V^_(s')]
-$$ 
+<div align="center">
 
-$$\large 
-Q^(s, a) = \sum_{s', r} p(s', r \mid s, a)\left[r + \gamma \max_{a'} Q^_(s', a')\right]
-$$
+![bn1](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20V^(s)%20=%20\max_a%20\sum_{s%27,%20r}%20p(s%27,%20r%20\mid%20s,%20a)[r%20+%20\gamma%20V^(s%27)])
+
+</div>
+
+<div align="center">
+
+![bn2](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20Q^(s,%20a)%20=%20\sum_{s%27,%20r}%20p(s%27,%20r%20\mid%20s,%20a)\left[r%20+%20\gamma%20\max_{a%27}%20Q^(s%27,%20a%27)\right])
+
+</div>>
 
 ### Policy Gradient Methods: Direct Optimization
 
