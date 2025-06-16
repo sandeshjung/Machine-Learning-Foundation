@@ -367,3 +367,141 @@ Common baselines include:
 ![causality](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\nabla_\theta%20J(\theta)%20=%20\mathbb{E}_{\tau%20\sim%20\pi_\theta}\left[\sum_{t=0}^{T-1}%20\nabla_\theta%20\log%20\pi_\theta(A_t%20\mid%20S_t)%20\sum_{k=t}^{T-1}%20\gamma^{k-t}%20R_{k+1}\right])
 
 </div>
+
+## DQN & Actor-Critic Methods
+
+### REINFORCE Limitations Recap
+
+Basic policy gradients (REINFORCE) suffer from:
+
+-   **High variance**: Monte Carlo returns $\large G_t = \sum_{k=0}^{T-t-1} \gamma^k R_{t+k+1}$ create noisy gradients
+-   **Sample inefficiency**: On-policy learning discards old experiences
+-   **Poor credit assignment**: Full episode returns may not accurately reflect individual action quality
+
+### Deep Q-Networks (DQN)
+
+DQN is a **value-based**, **off-policy** algorithm that learns the optimal action-value function using neural networks.
+
+<div align="center">
+<img src="assets/dqn.png" width="650" height="300">
+<p>Fig. Deep Q-Learning </p>
+</div>
+
+#### Q-Learning Foundation
+
+The optimal action-value function $\large Q^*(s,a)$ satisfies the Bellman optimality equation:
+
+$$\large 
+Q^_(s,a) = \mathbb{E}_{s'}[R(s,a,s') + \gamma \max_{a'} Q^_(s', a')]
+$$
+
+Traditional Q-learning update: 
+
+$$\large 
+Q(s,a) \leftarrow Q(s,a) + \alpha \underbrace{[r + \gamma \max_{a'} Q(s', a') - Q(s,a)]}_{\text{TD error}}
+$$
+
+#### Neural Network Approximation
+
+DQN uses a neural network $\large Q(s,a;\theta)$ to approximate $\large Q^*(s,a)$:
+
+-   **Input**: State $\large s$
+-   **Output**: Q-values for all actions $\large [Q(s,a_1), Q(s,a_2), \ldots, Q(s,a_n)]$
+
+#### Key Components
+
+**Experience Replay Buffer**
+
+-   Stores transitions $\large (s_t, a_t, r_{t+1}, s_{t+1}, \text{done}_t)$
+-   Random sampling breaks temporal correlations and enables data reuse
+
+**Target Network**
+
+-   Separate network $\large Q_{\text{target}}$ updated periodically from main network
+-   Stabilizes training by providing fixed targets: 
+
+$$\large 
+y_j = \begin{cases} r_j & \text{if terminal} \ r_j + \gamma \max_{a'} Q_{\text{target}}(s'_j, a') & \text{otherwise} \end{cases}
+$$
+
+**$\large \epsilon$-Greedy Exploration** 
+
+$$\large 
+a_t = \begin{cases} \text{random action} & \text{with probability } \epsilon \ \arg\max_{a} Q(s_t, a; \theta) & \text{with probability } 1-\epsilon \end{cases}
+$$
+
+#### DQN Loss Function
+
+$$\large 
+\mathcal{L}(\theta) = \mathbb{E}_{(s,a,r,s') \sim \mathcal{D}} \left[ \left(y - Q(s,a;\theta)\right)^2 \right]
+$$
+
+where $\large \mathcal{D}$ is the replay buffer and $\large y$ is the target value.
+
+#### DQN Algorithm
+
+1.  Initialize $\large Q(s,a;\theta)$ and target network $\large Q_{\text{target}}$
+2.  Initialize replay buffer $\large \mathcal{D}$
+3.  **For each episode:**
+    -   Select actions using $\large \epsilon$-greedy policy
+    -   Store transitions in $\large \mathcal{D}$
+    -   Sample mini-batch from $\large \mathcal{D}$
+    -   Compute targets using $\large Q_{\text{target}}$
+    -   Update $\large Q$ via gradient descent on $\large \mathcal{L}(\theta)$
+    -   Periodically update $\large Q_{\text{target}} \leftarrow Q$
+
+### Actor-Critic Methods
+
+Actor-Critic combines policy-based and value-based approaches using two networks:
+
+-   **Actor** $\large \pi_\theta(a|s)$: Policy network (what to do)
+-   **Critic** $\large V_w(s)$: Value network (how good is the state)
+
+#### Advantage Function
+
+Instead of raw returns, Actor-Critic uses the **advantage function**: 
+
+$$\large 
+A^\pi(s,a) = Q^\pi(s,a) - V^\pi(s)
+$$
+
+Common approximation using TD error: 
+
+$$\large 
+A(s_t, a_t) \approx R_{t+1} + \gamma V_w(S_{t+1}) - V_w(S_t)
+$$
+
+The advantage reduces variance by centering the policy gradient around the state value.
+
+#### A2C (Advantage Actor-Critic)
+
+**Actor Update**: Maximize expected advantage-weighted log-probability 
+
+$$\large 
+\nabla_\theta J(\theta) = \mathbb{E}\left[\nabla_\theta \log \pi_\theta(a_t|s_t) \cdot A(s_t, a_t)\right]
+$$
+
+Actor loss: 
+
+$$\large 
+\mathcal{L}_{\text{actor}}(\theta) = -\sum_t \log \pi_\theta(a_t|s_t) \cdot A(s_t, a_t)
+$$
+
+**Critic Update**: Minimize value prediction error 
+
+$$\large 
+\mathcal{L}_{\text{critic}}(w) = \sum_t \left(V_{\text{target},t} - V_w(s_t)\right)^2
+$$
+
+where $\large V_{\text{target},t} = R_{t+1} + \gamma V_w(S_{t+1})$
+
+#### A2C Algorithm
+
+1.  Initialize Actor $\large \pi_\theta$ and Critic $\large V_w$
+2.  **For each episode:**
+    -   Collect trajectory using current policy $\large \pi_\theta$
+    -   **For each step $\large t$:**
+        -   Compute target: $\large V_{\text{target},t} = R_{t+1} + \gamma V_w(S_{t+1}) \cdot (1-\text{done}_{t+1})$
+        -   Compute advantage: $\large A_t = V_{\text{target},t} - V_w(S_t)$
+    -   Update Actor: $\large \theta \leftarrow \theta + \alpha_\theta \nabla_\theta \mathcal{L}_{\text{actor}}$
+    -   Update Critic: $\large w \leftarrow w - \alpha_w \nabla_w \mathcal{L}_{\text{critic}}$
