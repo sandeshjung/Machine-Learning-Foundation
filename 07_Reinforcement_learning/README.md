@@ -392,7 +392,7 @@ DQN is a **value-based**, **off-policy** algorithm that learns the optimal actio
 The optimal action-value function $\large Q^*(s,a)$ satisfies the Bellman optimality equation:
 
 $$\large 
-Q^_(s,a) = \mathbb{E}_{s'}[R(s,a,s') + \gamma \max_{a'} Q^_(s', a')]
+Q^*(s,a) = \mathbb{E}_{s'}[R(s,a,s') + \gamma \max_{a'} Q^*(s', a')]
 $$
 
 Traditional Q-learning update: 
@@ -457,6 +457,11 @@ Actor-Critic combines policy-based and value-based approaches using two networks
 -   **Actor** $\large \pi_\theta(a|s)$: Policy network (what to do)
 -   **Critic** $\large V_w(s)$: Value network (how good is the state)
 
+<div align="center">
+<img src="assets/actorcritic.png" width="650" height="500">
+<p>Fig. Actor-Critic reinforcement learning</p>
+</div>
+
 #### Advantage Function
 
 Instead of raw returns, Actor-Critic uses the **advantage function**: 
@@ -483,15 +488,19 @@ $$
 
 Actor loss: 
 
-$$\large 
-\mathcal{L}_{\text{actor}}(\theta) = -\sum_t \log \pi_\theta(a_t|s_t) \cdot A(s_t, a_t)
-$$
+<div align="center">
+
+![actorloss](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathcal{L}_{\text{actor}}(\theta)%20=%20-\sum_t%20\log%20\pi_\theta(a_t|s_t)%20\cdot%20A(s_t,%20a_t))
+
+</div>
 
 **Critic Update**: Minimize value prediction error 
 
-$$\large 
-\mathcal{L}_{\text{critic}}(w) = \sum_t \left(V_{\text{target},t} - V_w(s_t)\right)^2
-$$
+<div align="center">
+
+![criticupdate](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathcal{L}_{\text{critic}}(w)%20=%20\sum_t%20\left(V_{\text{target},t}%20-%20V_w(s_t)\right)^2)
+
+</div>
 
 where $\large V_{\text{target},t} = R_{t+1} + \gamma V_w(S_{t+1})$
 
