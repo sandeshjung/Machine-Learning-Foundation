@@ -391,9 +391,11 @@ DQN is a **value-based**, **off-policy** algorithm that learns the optimal actio
 
 The optimal action-value function $\large Q^*(s,a)$ satisfies the Bellman optimality equation:
 
-$$\large 
-Q^*(s,a) = \mathbb{E}_{s'}[R(s,a,s') + \gamma \max_{a'} Q^*(s', a')]
-$$
+<div align="center">
+
+![qlearning](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20Q^*(s,a)%20=%20\mathbb{E}_{s%27}[R(s,a,s%27)%20+%20\gamma%20\max_{a%27}%20Q^*(s%27,%20a%27)])
+
+</div>
 
 Traditional Q-learning update: 
 
