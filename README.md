@@ -16,59 +16,59 @@ I put this together mainly to document what I’ve studied and to make it easier
 
 ```
 Machine-Learning-Foundation
-├── 00\_Mathematical\_foundation
+├── 00_Mathematical_foundation
 │   ├── README.md
 │   ├── assets/
 │   ├── autograd(scalar).ipynb
 │   ├── autograd(tensor).ipynb
-│   ├── calculus\_optimization.ipynb
-│   ├── linear\_algebra.ipynb
-│   ├── optimization\_algorithms.ipynb
-│   └── probability\_statistics.ipynb
-├── 01\_Supervised\_Regression
+│   ├── calculus_optimization.ipynb
+│   ├── linear_algebra.ipynb
+│   ├── optimization_algorithms.ipynb
+│   └── probability_statistics.ipynb
+├── 01_Supervised_Regression
 │   ├── README.md
 │   ├── assets/
-│   ├── linear\_regression.ipynb
-│   ├── polynomial\_overfitting.ipynb
+│   ├── linear_regression.ipynb
+│   ├── polynomial_overfitting.ipynb
 │   └── regularization.ipynb
-├── 02\_Supervised\_classification
+├── 02_Supervised_classification
 │   ├── README.md
 │   ├── assets/
-│   ├── logistic\_regression.ipynb
-│   ├── naive\_bayes.ipynb
-│   └── svm\_kernels.ipynb
-├── 03\_Model\_evaluation\_selection
+│   ├── logistic_regression.ipynb
+│   ├── naive_bayes.ipynb
+│   └── svm_kernels.ipynb
+├── 03_Model_evaluation_selection
 │   ├── README.md
 │   ├── assets/
-│   ├── bias\_variance.ipynb
-│   ├── cross\_validation.ipynb
-│   └── hyperparameter\_tuning.ipynb
-├── 04\_Unsupervised\_learning
+│   ├── bias_variance.ipynb
+│   ├── cross_validation.ipynb
+│   └── hyperparameter_tuning.ipynb
+├── 04_Unsupervised_learning
 │   ├── README.md
 │   ├── assets/
-│   ├── kmeans\_hierarchical.ipynb
-│   └── pca\_tsne.ipynb
-├── 05\_Neural\_networks\_deep\_learning
+│   ├── kmeans_hierarchical.ipynb
+│   └── pca_tsne.ipynb
+├── 05_Neural_networks_deep_learning
 │   ├── README.md
 │   ├── assets/
 │   ├── cnn.ipynb
-│   ├── mlp\_backprop.ipynb
-│   ├── optimizers\_regularization.ipynb
+│   ├── mlp_backprop.ipynb
+│   ├── optimizers_regularization.ipynb
 │   ├── rnn.ipynb
 │   └── transformer.ipynb
-├── 06\_Generative\_models
+├── 06_Generative_models
 │   ├── README.md
 │   ├── assets/
 │   ├── gan.ipynb
 │   └── vae.ipynb
-├── 07\_Reinforcement\_learning
+├── 07_Reinforcement_learning
 │   ├── README.md
 │   ├── assets/
-│   ├── dqn\_and\_actor\_critic.ipynb
-│   └── rl\_basics.ipynb
-├── 08\_Other\_topics
+│   ├── dqn_and_actor_critic.ipynb
+│   └── rl_basics.ipynb
+├── 08_Other_topics
 │   ├── README.md
-│   └── fairness\_interpretability.ipynb
+│   └── fairness_interpretability.ipynb
 └── README.md
 ```
 

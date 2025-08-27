@@ -9,7 +9,7 @@ The examples are primarily shown using [NumPy](https://numpy.org/) and [PyTorch]
 ### 1. Core Concepts
 
 - **Scalars**
-    - A scalar is a single numerical value. 
+    - A scalar is a single number, often used to represent magnitude, measurement, or a parameter.
     - Representation: 
         - Python: Standard Numbers (e.g., `5`, `3.14`, etc.).
         - NumPy: 0-dimensional `ndarray` (e.g., `np.array(5)`).
@@ -17,11 +17,11 @@ The examples are primarily shown using [NumPy](https://numpy.org/) and [PyTorch]
     - ML Relevance: Learning rates, regularization parameters, individual feature values, loss values.
 
 - **Vectors**
-    - A 2-dimensional array (grid) of numbers, arranged in rows and columns.
+    - An ordered list of numbers (1-dimensional array) representing magnitude and direction.
     - Representation:
-        - NumPy: 2-dimensional `ndarray` (e.g., `np.array([[1,2],[3,4]])`).
-        - PyTorch: 2-dimensional `torch.Tensor` (e.g., `torch.tensor([[1.,2.],[3.,4.]])`).
-    - ML Relevance: Datasets (samples x features), weight matrices in neural networks, covariance matrices, transformation matrices.
+        - NumPy: 1-dimensional `ndarray` (e.g., `np.array([1,2,3]`).
+        - PyTorch: 1-dimensional `torch.Tensor` (e.g., `torch.tensor([1.,2.,3.])`).
+    - ML Relevance: Feature vectors, weight vectors in models, embeddings in NLP/vision.
 
 - **Matrices**
     - A 2-dimensional array (grid) of numbers, arranged in rows and columns.
@@ -29,6 +29,19 @@ The examples are primarily shown using [NumPy](https://numpy.org/) and [PyTorch]
         - NumPy: 2-dimensional `ndarray` (e.g., `np.array([[1,2],[3,4]])`).
         - PyTorch: 2-dimensional `torch.Tensor` (e.g., `torch.tensor([[1.,2.],[3.,4.]])`).
     - ML Relevance: Datasets (samples × features), weight matrices in neural networks, covariance matrices, transformation matrices.
+
+#### Beyond Matrices: Tensors
+
+* **Definition:** A generalization of scalars (0D), vectors (1D), and matrices (2D) to higher dimensions.
+* **Representation:**
+
+  * NumPy: `np.random.randn(3,4,5)` → a 3D tensor.
+  * PyTorch: `torch.randn(3,4,5)`
+* **ML Relevance:**
+
+  * **Deep Learning data:** Images (3D tensors: height × width × channels).
+  * **Video data:** 4D tensors (frames × height × width × channels).
+  * **Batches:** Extra dimension to store multiple samples.
 
 ### 2. Vector Operations
 
