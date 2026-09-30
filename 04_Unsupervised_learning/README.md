@@ -1,5 +1,7 @@
 # Unsupervised Learning
 
+> **Quick reference:** the key equations, hyperparameters and pitfalls for this module are on one page in [CHEATSHEET.md](CHEATSHEET.md).
+
 **Unsupervised learning** is a branch of machine learning where algorithms learn patterns from data that has not been labeled, classified, or categorized. Unlike supervised learning, there are no explicit target outputs provided during training. The goal is to infer the natural structure present within the data.
 
 ## Clustering (K-Means & Hierarchical)
@@ -28,19 +30,15 @@ K-Means is an iterative algorithm:
     *   Using a more sophisticated method like K-Means++ (aims for better initial placement).
 2.  **Assignment Step:** Assign each data point $\large \mathbf{x}_i$ to the cluster whose centroid $\large \mathbf{\mu}_k$ is closest (e.g., using Euclidean distance).
 
-    <div align="center">
-    
-    ![Assignment step](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20J_{Ridge}(\mathbf{\theta})%20=%20\frac{1}{2m}%20\sum_{i=1}^{m}%20(h_{\mathbf{\theta}}(\mathbf{x}%27^{(i)})%20-%20y^{(i)})^2%20+%20\alpha%20\sum_{j=1}^{n}%20\theta_j^2)
-
-    </div>
+    ```math
+    \large c_i = \arg\min_{k \in \{1, \ldots, K\}} \|\mathbf{x}_i - \mathbf{\mu}_k\|^2
+    ```
 
 3.  **Update Step:** Recalculate the centroid of each cluster as the mean of all data points assigned to it in the previous step.
     
-    <div align="center">
-
-    ![Update step](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbf{\mu}_k%20=%20\frac{1}{|C_k|}%20\sum_{\mathbf{x}_i%20\in%20C_k}%20\mathbf{x}_i)
-
-    </div>
+    ```math
+    \large \mathbf{\mu}_k = \frac{1}{|C_k|} \sum_{\mathbf{x}_i \in C_k} \mathbf{x}_i
+    ```
 
     Where $\large |C_k|$ is the number of points in cluster $\large C_k$.
 4.  **Convergence:** Repeat steps 2 and 3 until the cluster assignments no longer change, the centroids no longer change significantly (below a tolerance), or a maximum number of iterations is reached.
@@ -172,7 +170,9 @@ $$
 3.  **Select Principal Components:** The columns of $\large \mathbf{V}$ (or rows of $\large \mathbf{V}^T$) are the principal components (directions). Select the first $\large k$ columns of $\large \mathbf{V}$ (denoted $\large \mathbf{V}_k$) corresponding to the $\large k$ largest singular values.
 4.  **Project Data:** Transform the centered data onto the new $\large k$-dimensional subspace:
 
-![Transform](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbf{X}_{pca}%20=%20\mathbf{X}_{centered}%20\mathbf{V}_k)
+```math
+\large \mathbf{X}_{pca} = \mathbf{X}_{centered} \mathbf{V}_k
+```
 
 The resulting $\large \mathbf{X}_{pca}$ is the data reduced to $\large k$ dimensions.
 
@@ -207,7 +207,7 @@ t-SNE is a non-linear dimensionality reduction technique primarily used for **vi
 #### High-Level Intuition
 1.  **High-Dimensional Similarities:** t-SNE models pairwise similarities between high-dimensional data points as conditional probabilities. Specifically, it calculates the probability $\large p_{j|i}$ that point $\large \mathbf{x}_i$ would pick point $\large \mathbf{x}_j$ as its neighbor if neighbors were chosen in proportion to their probability density under a Gaussian centered at $\large \mathbf{x}_i$. The variance of this Gaussian is determined based on a user-defined parameter called **perplexity**.
 2.  **Low-Dimensional Similarities:** It then models pairwise similarities between the corresponding low-dimensional embedding points $\large \mathbf{y}_i$ and $\large \mathbf{y}_j$ using a Student's t-distribution (with one degree of freedom, which is a Cauchy distribution). The t-distribution has heavier tails than a Gaussian, which helps to alleviate the "crowding problem" (where points tend to clump together in the center of the low-D map) and allows dissimilar points to be placed further apart.
-3.  **Minimizing Divergence:** t-SNE then optimizes the positions of the low-dimensional points ![yi](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbf{y}i) by minimizing the Kullback-Leibler (KL) divergence between the joint probability distribution derived from high-D similarities (![similarities](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20P_{ij}%20=%20(p_{j|i}%20+%20p_{i|j})%20/%202N)) and the joint probability distribution derived from low-D similarities ($\large Q_{ij}$).
+3.  **Minimizing Divergence:** t-SNE then optimizes the positions of the low-dimensional points $`\large \mathbf{y}_i`$ by minimizing the Kullback-Leibler (KL) divergence between the joint probability distribution derived from high-D similarities ($`\large P_{ij} = \frac{p_{j|i} + p_{i|j}}{2N}`$) and the joint probability distribution derived from low-D similarities ($\large Q_{ij}$).
 
 #### Key Characteristics and Interpretation
 *   **Preserves Local Structure Well:** Excellent at revealing clusters and local groupings present in the high-dimensional data.
@@ -216,9 +216,9 @@ t-SNE is a non-linear dimensionality reduction technique primarily used for **vi
 *   **Stochastic:** It's an iterative optimization process, and different runs (even with the same hyperparameters) can produce slightly different embeddings. It's good practice to run it multiple times.
 *   **Computationally Intensive:** Can be slow for very large datasets.
 
-#### Important Hyperparameters (`perplexity`, `n_iter`, etc.)
+#### Important Hyperparameters (`perplexity`, `max_iter`, etc.)
 *   **`perplexity`:** Loosely related to the number of nearest neighbors that are considered for each point. Typical values are between 5 and 50. It influences the balance between local and global aspects of the data. Different perplexity values can reveal different structures.
-*   **`n_iter`:** Number of optimization iterations. t-SNE needs to run for enough iterations to converge to a good solution (e.g., at least 250, often 1000 or more).
+*   **`max_iter`:** Number of optimization iterations (called `n_iter` before scikit-learn 1.5). t-SNE needs to run for enough iterations to converge to a good solution (e.g., at least 250, often 1000 or more).
 *   **`learning_rate`:** Controls the step size in the optimization. (In `sklearn.manifold.TSNE`, `learning_rate='auto'` is available from version 1.1).
 *   **`init`:** Initialization method for the low-dimensional embedding (e.g., `'random'` or `'pca'`). PCA initialization can sometimes lead to more stable and globally consistent results.
 

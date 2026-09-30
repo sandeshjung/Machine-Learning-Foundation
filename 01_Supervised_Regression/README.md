@@ -1,5 +1,7 @@
 # Supervised Learning
 
+> **Quick reference:** the key equations, hyperparameters and pitfalls for this module are on one page in [CHEATSHEET.md](CHEATSHEET.md).
+
 ## Linear Regression
 
 ### Hypothesis Function
@@ -359,11 +361,9 @@ $$
 
 Or in vectorized form (using MSE = $\large \frac{1}{m}$ for simplicity in the MSE part):
 
-<div align="center">
-
-![Ridge Cost Function](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20J_{Ridge}(\mathbf{\theta})%20=%20\frac{1}{2m}%20\sum_{i=1}^{m}%20(h_{\mathbf{\theta}}(\mathbf{x}%27^{(i)})%20-%20y^{(i)})^2%20+%20\alpha%20\sum_{j=1}^{n}%20\theta_j^2)
-
-</div>
+```math
+\large J_{Ridge}(\mathbf{\theta}) = \frac{1}{2m} \sum_{i=1}^{m} (h_{\mathbf{\theta}}(\mathbf{x}'^{(i)}) - y^{(i)})^2 + \alpha \sum_{j=1}^{n} \theta_j^2
+```
 
 Where:
 *   $\large J_{MSE}(\mathbf{\theta})$ is the original Mean Squared Error term.
@@ -457,13 +457,11 @@ $$
 
 Or in vectorized form (using MSE = $\large \frac{1}{m}$):
 
-<div align="center">
+```math
+\large J_{Lasso}(\mathbf{\theta}) = \frac{1}{m} \|\mathbf{X}\mathbf{\theta} - \mathbf{y}\|_2^2 + \alpha \|\mathbf{\theta}_{1:n}\|_1
+```
 
-![Lasso](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20J_{Lasso}(\mathbf{\theta})%20=%20\frac{1}{m}%20|\mathbf{X}\mathbf{\theta}%20-%20\mathbf{y}|2^2%20+%20\alpha%20|\mathbf{\theta}{1:n}|_1)
-
-</div>
-
-Where $\large \alpha \ge 0$ is the regularization parameter and ![penalty2](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\|\mathbf{\theta}_{1:n}\|_1%20=%20\sum_{j=1}^{n}%20|\theta_j|) is the L1 penalty. The bias term $\large \theta_0$ is typically not regularized.
+Where $\large \alpha \ge 0$ is the regularization parameter and $`\large \|\mathbf{\theta}_{1:n}\|_1 = \sum_{j=1}^{n} |\theta_j|`$ is the L1 penalty. The bias term $\large \theta_0$ is typically not regularized.
 
 #### Gradient Update (Subgradient)
 The L1 penalty term $\large |\theta_j|$ is not differentiable at $\large \theta_j = 0$. We use a concept called the **subgradient**.
@@ -598,17 +596,15 @@ For regularized models, effective degrees of freedom must be calculated differen
 
 **Ridge (L2):** 
 
-<div align="center">
-
-![L2](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\min_\theta%20\frac{1}{2m}%20|X\theta%20-%20y|_2^2%20\text{%20subject%20to%20}%20\sum_{j=1}^{n}%20\theta_j^2%20\leq%20t)
-</div>
+```math
+\large \min_\theta \frac{1}{2m} \|X\theta - y\|_2^2 \text{ subject to } \sum_{j=1}^{n} \theta_j^2 \leq t
+```
 
 **Lasso (L1):** 
 
-<div align="center">
-
-![L1](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\min_\theta%20\frac{1}{2m}%20|X\theta%20-%20y|_2^2%20\text{%20subject%20to%20}%20\sum_{j=1}^{n}%20|\theta_j|%20\leq%20t)
-</div>
+```math
+\large \min_\theta \frac{1}{2m} \|X\theta - y\|_2^2 \text{ subject to } \sum_{j=1}^{n} |\theta_j| \leq t
+```
 
 #### Geometric Interpretation
 
@@ -666,11 +662,9 @@ $$
 
 **Adaptive Lasso:** Uses different penalties for different coefficients: 
 
-<div align="center">
-
-![Adaptive Lasso](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20J_{\text{AdaLasso}}(\theta)%20=%20\frac{1}{2m}%20|X\theta%20-%20y|_2^2%20+%20\alpha%20\sum_{j=1}^{n}%20w_j%20|\theta_j|)
-
-</div>
+```math
+\large J_{\text{AdaLasso}}(\theta) = \frac{1}{2m} \|X\theta - y\|_2^2 + \alpha \sum_{j=1}^{n} w_j |\theta_j|
+```
 
 Where $\large w_j = \frac{1}{|\hat{\theta}_j^{OLS}|^\gamma}$ are adaptive weights.
 
@@ -684,11 +678,9 @@ Where $\large w_j = \frac{1}{|\hat{\theta}_j^{OLS}|^\gamma}$ are adaptive weight
 
 **Group Lasso:** For grouped features (e.g., categorical variables with multiple dummy variables): 
 
-<div align="center">
-
-![Group lasso](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20J_{\text{GroupLasso}}(\theta)%20=%20\frac{1}{2m}%20|X\theta%20-%20y|_2^2%20+%20\alpha%20\sum_{g=1}^{G}%20\sqrt{|g|}%20|\theta_g|_2)
-
-</div>
+```math
+\large J_{\text{GroupLasso}}(\theta) = \frac{1}{2m} \|X\theta - y\|_2^2 + \alpha \sum_{g=1}^{G} \sqrt{|g|} \|\theta_g\|_2
+```
 
 **Benefits:**
 
