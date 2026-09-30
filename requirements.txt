@@ -1,0 +1,30 @@
+# Core numerics & plotting
+numpy>=1.24
+scipy>=1.10
+pandas>=2.0
+matplotlib>=3.7
+seaborn>=0.13
+
+# Machine learning
+scikit-learn>=1.5       # TSNE uses `max_iter` (renamed from `n_iter` in 1.5)
+torch>=2.1
+torchvision>=0.16
+
+# Module-specific
+graphviz>=0.20      # 00: autograd graph visualisation (also needs the Graphviz `dot` binary)
+gymnasium>=0.29     # 07: reinforcement learning environments
+shap>=0.44          # 08: interpretability
+lime>=0.2.0.1       # 08: interpretability
+fairlearn>=0.14     # 08: fairness metrics (reference implementation)
+tqdm>=4.65
+
+# Interactive widgets & notebook tooling
+ipywidgets>=8.0
+jupytext>=1.16        # pairs each .ipynb with a .py twin (see jupytext.toml)
+
+# Notebook runtime
+jupyter
+ipykernel
+
+# Shared helpers used by the notebooks (mlf_utils/), installed in editable mode
+-e .

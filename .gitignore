@@ -1,2 +1,19 @@
+# Datasets (downloaded automatically by the notebooks)
 data/
-pycache/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/

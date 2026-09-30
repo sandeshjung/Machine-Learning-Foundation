@@ -1,0 +1,4 @@
+# Pair every notebook with a plain-Python twin (percent format) for readable diffs and reviews.
+# With jupytext installed, Jupyter keeps both files in sync on save.
+# After editing a notebook elsewhere (e.g. Colab), run: jupytext --sync */*.ipynb
+formats = "ipynb,py:percent"
