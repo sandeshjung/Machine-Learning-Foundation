@@ -1,5 +1,7 @@
 # Neural Networks & Deep Learning
 
+> **Quick reference:** the key equations, hyperparameters and pitfalls for this module are on one page in [CHEATSHEET.md](CHEATSHEET.md).
+
 ## Multi-Layer Perceptrons (MLPs)
 A Multi-Layer Perceptron (MLP) is a fundamental type of **feedforward artificial neural network**. It is characterized by having one or more **hidden layers** of neurons between its input and output layers, allowing it to learn non-linear relationships in data.
 
@@ -478,39 +480,31 @@ $$\large
 \mathbf{X}_0 \in \mathbb{R}^{N \times 3 \times 32 \times 32}
 $$ 
 
-<div align="center">
-
-![conv1 block](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbf{X}1%20=%20\text{Conv2d}{3%20\rightarrow%2016}(\mathbf{X}_0)%20\in%20\mathbb{R}^{N%20\times%2016%20\times%2032%20\times%2032})
-
-</div>
+```math
+\large \mathbf{X}_1 = \text{Conv2d}_{3 \rightarrow 16}(\mathbf{X}_0) \in \mathbb{R}^{N \times 16 \times 32 \times 32}
+```
 
 $$\large 
 \mathbf{X}_2 = \text{ReLU}(\mathbf{X}_1) \in \mathbb{R}^{N \times 16 \times 32 \times 32}
 $$
 
-<div align="center">
-
-![conv1](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbf{X}3%20=%20\text{MaxPool}{2%20\times%202}(\mathbf{X}_2)%20\in%20\mathbb{R}^{N%20\times%2016%20\times%2016%20\times%2016})
-
-</div>
+```math
+\large \mathbf{X}_3 = \text{MaxPool}_{2 \times 2}(\mathbf{X}_2) \in \mathbb{R}^{N \times 16 \times 16 \times 16}
+```
 
 **Convolutional Block 2:** 
 
-<div align="center">
-
-![conv2 block](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbf{X}4%20=%20\text{Conv2d}{16%20\rightarrow%2032}(\mathbf{X}_3)%20\in%20\mathbb{R}^{N%20\times%2032%20\times%2016%20\times%2016})
-
-</div>
+```math
+\large \mathbf{X}_4 = \text{Conv2d}_{16 \rightarrow 32}(\mathbf{X}_3) \in \mathbb{R}^{N \times 32 \times 16 \times 16}
+```
 
 $$\large 
 \mathbf{X}_5 = \text{ReLU}(\mathbf{X}_4) \in \mathbb{R}^{N \times 32 \times 16 \times 16}
 $$ 
 
-<div align="center">
-
-![conv2](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbf{X}6%20=%20\text{MaxPool}{2%20\times%202}(\mathbf{X}_5)%20\in%20\mathbb{R}^{N%20\times%2032%20\times%208%20\times%208})
-
-</div>
+```math
+\large \mathbf{X}_6 = \text{MaxPool}_{2 \times 2}(\mathbf{X}_5) \in \mathbb{R}^{N \times 32 \times 8 \times 8}
+```
 
 **Classification Head:** 
 
@@ -518,11 +512,9 @@ $$\large
 \mathbf{X}_7 = \text{Flatten}(\mathbf{X}_6) \in \mathbb{R}^{N \times 2048}
 $$ 
 
-<div align="center">
-
-![classification head](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbf{X}_8%20=%20\text{Linear}_{2048%20\rightarrow%20128}(\mathbf{X}_7)%20\in%20\mathbb{R}^{N%20\times%20128})
-
-</div>
+```math
+\large \mathbf{X}_8 = \text{Linear}_{2048 \rightarrow 128}(\mathbf{X}_7) \in \mathbb{R}^{N \times 128}
+```
 
 $$\large 
 \mathbf{X}_9 = \text{ReLU}(\mathbf{X}_8) \in \mathbb{R}^{N \times 128}
@@ -596,21 +588,17 @@ $$
 
 For classification with $\large C$ classes, given true label $\large y$ and predicted probabilities $\large \hat{\mathbf{p}}$:
 
-<div align="center">
-
-![cross entropy](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathcal{L}{CE}%20=%20-\sum{i=1}^{C}%20y_i%20\log(\hat{p}_i)%20=%20-\log(\hat{p}_y))
-
-</div>
+```math
+\large \mathcal{L}_{CE} = -\sum_{i=1}^{C} y_i \log(\hat{p}_i) = -\log(\hat{p}_y)
+```
 
 Where $\large y_i = 1$ if $\large i$ is the true class, 0 otherwise.
 
 **Softmax Activation:** 
 
-<div align="center">
-
-![softmax](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\hat{p}i%20=%20\frac{\exp(z_i)}{\sum{j=1}^{C}%20\exp(z_j)})
-
-</div>
+```math
+\large \hat{p}_i = \frac{\exp(z_i)}{\sum_{j=1}^{C} \exp(z_j)}
+```
 
 #### Backpropagation in CNNs
 
@@ -640,11 +628,9 @@ $$\large
 \sigma^2_{\mathcal{B}} = \frac{1}{m} \sum_{i=1}^{m} (x_i - \mu_{\mathcal{B}})^2
 $$
 
-<div align="center">
-
-![batch norm](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\hat{x}i%20=%20\frac{x_i%20-%20\mu{\mathcal{B}}}{\sqrt{\sigma^2_{\mathcal{B}}%20+%20\epsilon}})
-
-</div>
+```math
+\large \hat{x}_i = \frac{x_i - \mu_{\mathcal{B}}}{\sqrt{\sigma^2_{\mathcal{B}} + \epsilon}}
+```
 
 $$\large 
 BN(x_i) = \gamma \hat{x}_i + \beta
@@ -720,14 +706,14 @@ $$
 #### Matrix Dimensions
 
 For a batch of sequences:
-- Input: $\large x_t \in \mathbb{R}^{\text{batch\_size} \times \text{input\_size}}$
-- Hidden: $\large h_t \in \mathbb{R}^{\text{batch\_size} \times \text{hidden\_size}}$
-- Output: $\large y_t \in \mathbb{R}^{\text{batch\_size} \times \text{output\_size}}$
+- Input: $\large x_t \in \mathbb{R}^{\text{batch size} \times \text{input size}}$
+- Hidden: $\large h_t \in \mathbb{R}^{\text{batch size} \times \text{hidden size}}$
+- Output: $\large y_t \in \mathbb{R}^{\text{batch size} \times \text{output size}}$
 
 Weight matrices:
-- $\large W_{xh} \in \mathbb{R}^{\text{input\_size} \times \text{hidden\_size}}$
-- $\large W_{hh} \in \mathbb{R}^{\text{hidden\_size} \times \text{hidden\_size}}$
-- $\large W_{hy} \in \mathbb{R}^{\text{hidden\_size} \times \text{output\_size}}$
+- $\large W_{xh} \in \mathbb{R}^{\text{input size} \times \text{hidden size}}$
+- $\large W_{hh} \in \mathbb{R}^{\text{hidden size} \times \text{hidden size}}$
+- $\large W_{hy} \in \mathbb{R}^{\text{hidden size} \times \text{output size}}$
 
 #### Unrolled RNN Computation
 
@@ -1262,11 +1248,9 @@ The transformer architecture's success demonstrates the power of attention as a 
 **Technical Foundation:**
 SGD approximates the true gradient using mini-batches, leading to the update rule:
 
-<div align="center">
-
-![techfound](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\boldsymbol{\theta}_{t+1}%20=%20\boldsymbol{\theta}_t%20-%20\eta%20\nabla_{\boldsymbol{\theta}}%20\mathcal{L}(\boldsymbol{\theta}_t))
-
-</div>
+```math
+\large \boldsymbol{\theta}_{t+1} = \boldsymbol{\theta}_t - \eta \nabla_{\boldsymbol{\theta}} \mathcal{L}(\boldsymbol{\theta}_t)
+```
 
 Where:
 - $\large \boldsymbol{\theta}$ represents the model parameters (weights and biases)
@@ -1275,7 +1259,7 @@ Where:
 
 **Mathematical Properties:**
 - **Convergence:** Under convex assumptions and decreasing learning rate $\large \left(\sum_{t=1}^{\infty} \eta_t = \infty, \sum_{t=1}^{\infty} \eta_t^2 < \infty\right)$, SGD converges to global minimum
-- **Noise:** Mini-batch gradients are unbiased estimators of true gradient: ![Noise](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbb{E}[\nabla%20\mathcal{L}_{\text{batch}}]%20=%20\nabla%20\mathcal{L}_{\text{true}})
+- **Noise:** Mini-batch gradients are unbiased estimators of true gradient: $`\large \mathbb{E}[\nabla \mathcal{L}_{\text{batch}}] = \nabla \mathcal{L}_{\text{true}}`$
 - **Variance:** $\large \text{Var}(\nabla \mathcal{L}_{\text{batch}}) = \frac{\sigma^2}{B}$ where $\large \sigma^2$ is gradient variance and $\large B$ is batch size
 
 **Technical Challenges:**
@@ -1294,11 +1278,9 @@ Where:
 
 **Technical Formulation:**
 
-<div align="center">
-
-![SGDWM](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbf{v}_t%20=%20\gamma%20\mathbf{v}_{t-1}%20+%20\eta%20\nabla_{\boldsymbol{\theta}}%20\mathcal{L}(\boldsymbol{\theta}_t))
-
-</div>
+```math
+\large \mathbf{v}_t = \gamma \mathbf{v}_{t-1} + \eta \nabla_{\boldsymbol{\theta}} \mathcal{L}(\boldsymbol{\theta}_t)
+```
 
 $$\large 
 \boldsymbol{\theta}_{t+1} = \boldsymbol{\theta}_t - \mathbf{v}_t
@@ -1317,11 +1299,9 @@ $$
 **Nesterov Accelerated Gradient (NAG):**
 More sophisticated momentum variant that "looks ahead":
 
-<div align="center">
-
-![Nesterov](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbf{v}_t%20=%20\gamma%20\mathbf{v}_{t-1}%20+%20\eta%20\nabla_{\boldsymbol{\theta}}%20\mathcal{L}(\boldsymbol{\theta}_t%20-%20\gamma%20\mathbf{v}_{t-1}))
-
-</div>
+```math
+\large \mathbf{v}_t = \gamma \mathbf{v}_{t-1} + \eta \nabla_{\boldsymbol{\theta}} \mathcal{L}(\boldsymbol{\theta}_t - \gamma \mathbf{v}_{t-1})
+```
 
 #### Adaptive Learning Rate Methods
 
@@ -1334,11 +1314,9 @@ More sophisticated momentum variant that "looks ahead":
 
 **Technical Formulation:**
 
-<div align="center">
-
-![adagrad](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbf{G}_t%20=%20\mathbf{G}_{t-1}%20+%20\mathbf{g}_t%20\odot%20\mathbf{g}_t)
-
-</div>
+```math
+\large \mathbf{G}_t = \mathbf{G}_{t-1} + \mathbf{g}_t \odot \mathbf{g}_t
+```
 
 $$\large 
 \boldsymbol{\theta}_{t+1} = \boldsymbol{\theta}_t - \frac{\eta}{\sqrt{\mathbf{G}_t + \epsilon}} \odot \mathbf{g}_t
@@ -1359,11 +1337,9 @@ Where $\large \mathbf{G}_t$ accumulates squared gradients element-wise, and $\la
 
 **Technical Innovation:** Solves AdaGrad's diminishing learning rate problem using exponential moving average:
 
-<div align="center">
-
-![RMSProp](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbf{v}_t%20=%20\rho%20\mathbf{v}_{t-1}%20+%20(1-\rho)%20\mathbf{g}_t^2)
-
-</div>
+```math
+\large \mathbf{v}_t = \rho \mathbf{v}_{t-1} + (1-\rho) \mathbf{g}_t^2
+```
 
 $$\large 
 \boldsymbol{\theta}_{t+1} = \boldsymbol{\theta}_t - \frac{\eta}{\sqrt{\mathbf{v}_t + \epsilon}} \mathbf{g}_t
@@ -1381,17 +1357,13 @@ $$
 **Technical Formulation:**
 Adam combines momentum with adaptive learning rates using bias-corrected exponential moving averages:
 
-<div align="center">
+```math
+\large \mathbf{m}_t = \beta_1 \mathbf{m}_{t-1} + (1-\beta_1) \mathbf{g}_t \quad \text{(momentum estimate)}
+```
 
-![adam1](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbf{m}_t%20=%20\beta_1%20\mathbf{m}_{t-1}%20+%20(1-\beta_1)%20\mathbf{g}_t%20\quad%20\text{(momentum%20estimate)})
-
-</div>
-
-<div align="center">
-
-![adam2](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbf{v}_t%20=%20\beta_2%20\mathbf{v}_{t-1}%20+%20(1-\beta_2)%20\mathbf{g}_t^2%20\quad%20\text{(second%20moment%20estimate)})
-
-</div>
+```math
+\large \mathbf{v}_t = \beta_2 \mathbf{v}_{t-1} + (1-\beta_2) \mathbf{g}_t^2 \quad \text{(second moment estimate)}
+```
 
 **Bias Correction:**
 
@@ -1531,39 +1503,31 @@ $$
 <p>Fig. Regularization</p>
 </div>
 
-**Mathematical Perspective:** Overfitting represents poor generalization from empirical risk ![maths](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathcal{R}_{\text{emp}}$%20to%20true%20risk%20$\large%20\mathcal{R}_{\text{true}}):
+**Mathematical Perspective:** Overfitting represents poor generalization from empirical risk $`\large \mathcal{R}_{\text{emp}}`$ to true risk $`\large \mathcal{R}_{\text{true}}`$:
 
-<div align="center">
+```math
+\large \mathcal{R}_{\text{true}}(\boldsymbol{\theta}) = \mathbb{E}_{(x,y)\sim P}[\mathcal{L}(f_{\boldsymbol{\theta}}(x), y)]
+```
 
-![over1](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathcal{R}_{\text{true}}(\boldsymbol{\theta})%20=%20\mathbb{E}_{(x,y)\sim%20P}[\mathcal{L}(f_{\boldsymbol{\theta}}(x),%20y)])
-
-</div>
-
-<div align="center">
-
-![over2](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathcal{R}_{\text{emp}}(\boldsymbol{\theta})%20=%20\frac{1}{n}\sum_{i=1}^n%20\mathcal{L}(f_{\boldsymbol{\theta}}(x_i),%20y_i))
-
-</div>
+```math
+\large \mathcal{R}_{\text{emp}}(\boldsymbol{\theta}) = \frac{1}{n}\sum_{i=1}^n \mathcal{L}(f_{\boldsymbol{\theta}}(x_i), y_i)
+```
 
 #### L2 Regularization (Weight Decay)
 
 **Technical Formulation:**
 
-<div align="center">
-
-![l2](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathcal{L}_{\text{total}}%20=%20\mathcal{L}_{\text{original}}%20+%20\frac{\lambda}{2}%20\|\boldsymbol{\theta}\|_2^2%20=%20\mathcal{L}_{\text{original}}%20+%20\frac{\lambda}{2}%20\sum_{i}%20\theta_i^2)
-
-</div>
+```math
+\large \mathcal{L}_{\text{total}} = \mathcal{L}_{\text{original}} + \frac{\lambda}{2} \|\boldsymbol{\theta}\|_2^2 = \mathcal{L}_{\text{original}} + \frac{\lambda}{2} \sum_{i} \theta_i^2
+```
 
 **Mathematical Analysis:**
 
 **Gradient Update with L2:**
 
-<div align="center">
-
-![gradl2](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\frac{\partial%20\mathcal{L}_{\text{total}}}{\partial%20\boldsymbol{\theta}}%20=%20\frac{\partial%20\mathcal{L}_{\text{original}}}{\partial%20\boldsymbol{\theta}}%20+%20\lambda%20\boldsymbol{\theta})
-
-</div>
+```math
+\large \frac{\partial \mathcal{L}_{\text{total}}}{\partial \boldsymbol{\theta}} = \frac{\partial \mathcal{L}_{\text{original}}}{\partial \boldsymbol{\theta}} + \lambda \boldsymbol{\theta}
+```
 
 **Weight Decay Interpretation:**
 
@@ -1635,11 +1599,9 @@ $$\large
 \sigma_{\mathcal{B}}^2 = \frac{1}{m}\sum_{i=1}^m (x_i - \mu_{\mathcal{B}})^2
 $$
 
-<div align="center">
-
-![batch](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\hat{x}_i%20=%20\frac{x_i%20-%20\mu_{\mathcal{B}}}{\sqrt{\sigma_{\mathcal{B}}^2%20+%20\epsilon}})
-
-</div>
+```math
+\large \hat{x}_i = \frac{x_i - \mu_{\mathcal{B}}}{\sqrt{\sigma_{\mathcal{B}}^2 + \epsilon}}
+```
 
 $$\large 
 y_i = \gamma \hat{x}_i + \beta

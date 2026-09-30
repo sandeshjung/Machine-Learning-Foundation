@@ -1,5 +1,7 @@
 # Supervised Classification
 
+> **Quick reference:** the key equations, hyperparameters and pitfalls for this module are on one page in [CHEATSHEET.md](CHEATSHEET.md).
+
 ## Logistic Regression
 
 ### Introduction
@@ -646,7 +648,7 @@ Where $\large \alpha_i \geq 0$ are Lagrange multipliers.
 
 **KKT conditions**:
 
-1.  ![nabla_](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\nabla_{\mathbf{w}}%20L%20=%20\mathbf{w}%20-%20\sum_{i=1}^{m}%20\alpha_i%20y_i%20\mathbf{x}_i%20=%200%20\Rightarrow%20\mathbf{w}%20=%20\sum_{i=1}^{m}%20\alpha_i%20y_i%20\mathbf{x}_i)
+1.  $`\large \nabla_{\mathbf{w}} L = \mathbf{w} - \sum_{i=1}^{m} \alpha_i y_i \mathbf{x}_i = 0 \Rightarrow \mathbf{w} = \sum_{i=1}^{m} \alpha_i y_i \mathbf{x}_i`$
 2.  $\large \frac{\partial L}{\partial b} = -\sum_{i=1}^{m} \alpha_i y_i = 0 \Rightarrow \sum_{i=1}^{m} \alpha_i y_i = 0$
 3.  $\large \alpha_i \geq 0$
 4.  $\large y_i(\mathbf{w}^T\mathbf{x}_i + b) - 1 \geq 0$
@@ -660,7 +662,9 @@ $$\large
 \max_{\boldsymbol{\alpha}} W(\boldsymbol{\alpha}) = \sum_{i=1}^{m} \alpha_i - \frac{1}{2} \sum_{i=1}^{m} \sum_{j=1}^{m} \alpha_i \alpha_j y_i y_j \mathbf{x}_i^T \mathbf{x}_j
 $$
 
-![subject to](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\text{subject%20to:%20}%20\sum_{i=1}^{m}%20\alpha_i%20y_i%20=%200,%20\quad%20\alpha_i%20\geq%200)
+```math
+\large \text{subject to: } \sum_{i=1}^{m} \alpha_i y_i = 0, \quad \alpha_i \geq 0
+```
 
 </div>
 
@@ -803,21 +807,17 @@ While not as efficient as SMO for traditional SVMs, gradient descent is useful f
 
 **Subgradient descent update**: 
 
-<div align="center">
-
-![Subgradient descent update](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbf{w}_{t+1}%20=%20\mathbf{w}_t%20-%20\eta_t%20\left(%20\lambda%20\mathbf{w}_t%20+%20\frac{1}{m}%20\sum_{i=1}^{m}%20\mathbf{g}_i%20\right))
-
-</div>
+```math
+\large \mathbf{w}_{t+1} = \mathbf{w}_t - \eta_t \left( \lambda \mathbf{w}_t + \frac{1}{m} \sum_{i=1}^{m} \mathbf{g}_i \right)
+```
 
 Where $\large \mathbf{g}_i$ is the subgradient of the hinge loss for sample $\large i$.
 
 **Stochastic subgradient descent**: 
 
-<div align="center">
-
-![Stochastic subgradient descent](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbf{w}_{t+1}%20=%20\mathbf{w}_t%20-%20\eta_t%20(\lambda%20\mathbf{w}_t%20+%20\mathbf{g}_{i_t}))
-
-</div>
+```math
+\large \mathbf{w}_{t+1} = \mathbf{w}_t - \eta_t (\lambda \mathbf{w}_t + \mathbf{g}_{i_t})
+```
 
 For randomly selected sample $\large i_t$.
 
@@ -855,7 +855,7 @@ $$
 A function $\large K: \mathcal{X} \times \mathcal{X} \rightarrow \mathbb{R}$ is a **valid kernel** (positive definite kernel) if:
 
 1.  **Symmetry**: $\large K(\mathbf{x}, \mathbf{x}') = K(\mathbf{x}', \mathbf{x})$
-2.  **Positive semi-definiteness**: For any $\large {\mathbf{x}_1, \ldots, \mathbf{x}_m}$, the Gram matrix $\large \mathbf{K}$ with ![Large K](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20K_{ij}%20=%20K(\mathbf{x}_i,%20\mathbf{x}_j)) is positive semi-definite
+2.  **Positive semi-definiteness**: For any $\large {\mathbf{x}_1, \ldots, \mathbf{x}_m}$, the Gram matrix $\large \mathbf{K}$ with $`\large K_{ij} = K(\mathbf{x}_i, \mathbf{x}_j)`$ is positive semi-definite
 
 **Mercer's theorem**: A continuous function $\large K$ is a valid kernel if and only if it can be expressed as:
 
@@ -1079,17 +1079,23 @@ For each class $\large C_k$ and feature $\large j$, we estimate:
 
 **Sample Mean:** 
 
-![Sample Mean](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\hat{\mu}{kj}%20=%20\frac{1}{N_k}%20\sum{i:%20y_i%20=%20k}%20x_{ij})
+```math
+\large \hat{\mu}_{kj} = \frac{1}{N_k} \sum_{i: y_i = k} x_{ij}
+```
 
 **Sample Variance:** 
 
-![sample variance](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\hat{\sigma}{kj}^2%20=%20\frac{1}{N_k}%20\sum{i:%20y_i%20=%20k}%20(x_{ij}%20-%20\hat{\mu}_{kj})^2)
+```math
+\large \hat{\sigma}_{kj}^2 = \frac{1}{N_k} \sum_{i: y_i = k} (x_{ij} - \hat{\mu}_{kj})^2
+```
 
 Where $\large N_k$ is the number of training samples in class $\large k$.
 
 **Variance smoothing:** To prevent division by zero when $\large \hat{\sigma}_{kj}^2 = 0$, add a small epsilon: 
 
-![Sample smoothing](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\hat{\sigma}{kj}^2%20=%20\hat{\sigma}{kj}^2%20+%20\epsilon)
+```math
+\large \hat{\sigma}_{kj}^2 \leftarrow \hat{\sigma}_{kj}^2 + \epsilon
+```
 
 Typical values: $\large \epsilon = 10^{-9}$ to $\large 10^{-6}$
 
@@ -1330,3 +1336,124 @@ Output: Predicted class and class probabilities
 *   **Zero-frequency problem** for discrete data if not handled by smoothing (like Laplace smoothing).
 *   For continuous features, Gaussian Naive Bayes assumes a normal distribution, which might not be true for all features. If the distribution is far from Gaussian, GNB might perform poorly. (Feature transformation can sometimes help).
 *   The predicted probabilities from Naive Bayes are often not well-calibrated (i.e., a predicted probability of 0.8 doesn't necessarily mean there's an 80% chance of that class). However, the rank ordering of probabilities is usually good enough for classification.
+## k-Nearest Neighbours (k-NN)
+
+### Introduction
+k-NN is a **non-parametric, instance-based** method: it stores the training set and defers all computation to prediction time (a *lazy* learner). To classify a query point $\large \mathbf{x}$, it finds the $\large k$ training points closest to it, $\large \mathcal{N}_k(\mathbf{x})$, and lets them vote.
+
+$$\large
+\hat{y}(\mathbf{x}) = \arg\max_{c} \sum_{i \in \mathcal{N}_k(\mathbf{x})} w_i \, \mathbb{1}[y_i = c]
+$$
+
+With **uniform** weights $\large w_i = 1$; with **distance** weights $\large w_i = 1 / d(\mathbf{x}, \mathbf{x}_i)$, so closer neighbours count more. For regression, the prediction is the (weighted) mean of the neighbours' targets. The class-vote fractions double as probability estimates.
+
+### Distance Metrics
+*   **Euclidean** (default): $\large d(\mathbf{x}, \mathbf{z}) = \sqrt{\sum_j (x_j - z_j)^2}$
+*   **Manhattan**: $\large \sum_j |x_j - z_j|$, less sensitive to a single large coordinate difference
+*   **Minkowski**: $\large \left(\sum_j |x_j - z_j|^p\right)^{1/p}$, generalising both ($\large p=1, 2$)
+*   **Cosine** distance for text or embeddings, where direction matters more than magnitude
+
+Because every feature contributes to the distance, **features must be on comparable scales**. Standardise them first, or the feature with the largest units dominates.
+
+### Choosing k: Bias vs Variance
+*   $\large k = 1$: the decision boundary passes around every training point (zero training error, high variance, overfits noise).
+*   Large $\large k$: the boundary becomes smooth (high bias). At $\large k = n$ the model always predicts the majority class.
+*   Choose $\large k$ by cross-validation. Use odd $\large k$ for binary problems to avoid ties.
+
+### The Curse of Dimensionality
+In high dimensions, distances concentrate: for random data, the ratio between the nearest and farthest neighbour distance tends to 1, so "nearest" carries little information. Neighbourhoods also need exponentially more data to stay populated. k-NN therefore works best in low to moderate dimensions, or after dimensionality reduction (e.g. PCA).
+
+### Computational Cost
+Training is $\large O(1)$. A brute-force prediction costs $\large O(n d)$ per query. **KD-trees** and **ball trees** reduce this to roughly $\large O(\log n)$ in low dimensions, and **approximate nearest-neighbour** indexes (e.g. FAISS, HNSW) scale to millions of high-dimensional vectors.
+
+## Decision Trees
+
+### Introduction
+A decision tree recursively partitions the feature space with **axis-aligned** splits of the form $\large x_j \le t$. Each internal node tests one feature, and each leaf stores a prediction: the majority class (classification) or the mean target (regression). Prediction is a walk from the root to a leaf, so it costs $\large O(\text{depth})$.
+
+### Impurity Measures
+For a node with class proportions $\large p_1, \dots, p_K$:
+
+$$\large
+\text{Gini}(p) = 1 - \sum_{k=1}^{K} p_k^2 \qquad \text{Entropy}(p) = -\sum_{k=1}^{K} p_k \log_2 p_k
+$$
+
+Both are zero for a pure node and maximal for a uniform mix. Gini is slightly cheaper to compute, and the two usually produce very similar trees. For **regression** the impurity is the variance (MSE) of the node's targets.
+
+### Choosing a Split
+Greedy training picks, at every node, the feature $\large j$ and threshold $\large t$ that maximise the **impurity decrease** (information gain when using entropy):
+
+$$\large
+\Delta I = I(\text{parent}) - \frac{n_L}{n} I(\text{left}) - \frac{n_R}{n} I(\text{right})
+$$
+
+Sorting each feature once and sweeping thresholds with **cumulative class counts** evaluates every candidate split in $\large O(n \log n)$ per feature. Thresholds are placed midway between consecutive distinct values.
+
+### Stopping and Pruning
+Without limits a tree grows until every leaf is pure and memorises the training set. Complexity is controlled by:
+*   **Pre-pruning (early stopping):** `max_depth`, `min_samples_split`, `min_samples_leaf`, `max_leaf_nodes`, `min_impurity_decrease`.
+*   **Post-pruning (cost-complexity pruning):** grow a full tree, then remove the branches that least reduce the penalised objective
+    $$\large R_\alpha(T) = R(T) + \alpha \, |\tilde{T}|$$
+    where $\large R(T)$ is the total leaf impurity and $\large |\tilde{T}|$ the number of leaves. Increasing $\large \alpha$ yields a nested sequence of smaller trees, and $\large \alpha$ is chosen by cross-validation (`ccp_alpha` in scikit-learn).
+
+### Feature Importance
+The impurity-based importance of feature $\large j$ is the total impurity decrease of all splits on $\large j$, weighted by the fraction of samples reaching each split, normalised to sum to 1. It's cheap but biased towards high-cardinality features. **Permutation importance** on validation data is more reliable.
+
+### Strengths and Weaknesses
+**Strengths:** interpretable when small, no feature scaling needed, handles numeric and categorical features and non-linear interactions, fast predictions.
+**Weaknesses:** **high variance** (small data changes can produce a completely different tree), axis-aligned boundaries approximate diagonal ones with staircases, greedy splits are not globally optimal, and unconstrained trees overfit. Averaging many trees fixes most of this.
+
+## Ensemble Methods
+
+### Why Ensembles Work
+Averaging $\large B$ models, each with variance $\large \sigma^2$ and pairwise correlation $\large \rho$, gives
+
+$$\large
+\text{Var}\left(\frac{1}{B}\sum_{b=1}^{B} f_b(\mathbf{x})\right) = \rho \sigma^2 + \frac{1-\rho}{B}\sigma^2
+$$
+
+Adding models removes the second term, and **decorrelating** the models shrinks the first. Ensembles of high-variance, low-bias learners (deep trees) therefore benefit most from averaging. Ensembles of high-bias learners (stumps) instead benefit from **boosting**, which reduces bias.
+
+### Bagging
+**Bootstrap aggregating** trains each model on a bootstrap sample (drawing $\large n$ points with replacement) and averages the predictions (or predicted probabilities). Each bootstrap sample omits about $\large (1 - 1/n)^n \approx e^{-1} \approx 36.8\%$ of the data, the **out-of-bag (OOB)** samples. Predicting each training point with only the trees that didn't see it gives a nearly free estimate of generalisation error.
+
+### Random Forests
+A random forest is bagging with **random feature subsampling at every split**: only `max_features` randomly chosen features (typically $\large \sqrt{d}$ for classification) are considered. This decorrelates the trees (lower $\large \rho$), so the average generalises better. Random forests are robust, need little tuning, rarely overfit as more trees are added, and are strong default models for tabular data.
+
+### AdaBoost
+AdaBoost trains weak learners **sequentially**, reweighting the training samples so each new learner focuses on the previous mistakes. For $\large K$ classes (SAMME), starting from uniform weights $\large w_i = 1/n$:
+
+$$\large
+\varepsilon_m = \frac{\sum_i w_i \mathbb{1}[h_m(\mathbf{x}_i) \ne y_i]}{\sum_i w_i}, \qquad \alpha_m = \eta\left(\log\frac{1 - \varepsilon_m}{\varepsilon_m} + \log(K - 1)\right), \qquad w_i \leftarrow w_i \, e^{\alpha_m \mathbb{1}[h_m(\mathbf{x}_i) \ne y_i]}
+$$
+
+The final prediction is a weighted vote, $\large \hat{y} = \arg\max_k \sum_m \alpha_m \mathbb{1}[h_m(\mathbf{x}) = k]$. For binary labels AdaBoost is equivalent to forward stagewise additive modelling with the **exponential loss** $\large e^{-y F(\mathbf{x})}$, which also explains its sensitivity to label noise and outliers.
+
+### Gradient Boosting
+Gradient boosting fits an additive model $\large F_M(\mathbf{x}) = F_0 + \eta \sum_{m=1}^{M} h_m(\mathbf{x})$ by **gradient descent in function space**. At each round, a regression tree $\large h_m$ is fit to the pseudo-residuals, the negative gradient of the loss at the current predictions:
+
+$$\large
+r_i^{(m)} = -\left.\frac{\partial L(y_i, F(\mathbf{x}_i))}{\partial F(\mathbf{x}_i)}\right|_{F = F_{m-1}}
+$$
+
+*   **Squared error** $\large \frac{1}{2}(y - F)^2$: the pseudo-residual is the ordinary residual $\large y - F$.
+*   **Log-loss** (binary classification, $\large F$ = log-odds): the pseudo-residual is $\large y - \sigma(F)$.
+*   **Absolute error / Huber:** robust alternatives for regression with outliers.
+
+The **learning rate** $\large \eta$ (shrinkage) trades the number of trees against generalisation: smaller $\large \eta$ needs more rounds but usually gives a better model. Unlike random forests, boosting **does overfit** as rounds are added, so choose `n_estimators` by early stopping on validation data. Row subsampling (`subsample < 1`, *stochastic gradient boosting*) adds regularisation.
+
+### Modern Implementations
+**XGBoost**, **LightGBM**, **CatBoost** and scikit-learn's **`HistGradientBoosting`** add:
+*   **Second-order (Newton) steps** using the Hessian of the loss, with leaf values $\large w^* = -\frac{\sum g_i}{\sum h_i + \lambda}$
+*   **Explicit regularisation** of leaf values (L1/L2) and a minimum split gain
+*   **Histogram-based** split finding on binned features (orders of magnitude faster)
+*   **Native handling** of missing values and categorical features, plus leaf-wise tree growth (LightGBM)
+
+### Bagging vs Boosting
+| | Bagging / Random Forest | Boosting |
+|---|---|---|
+| Training | Parallel, independent models | Sequential, each model corrects the ensemble |
+| Base learners | Deep trees (low bias, high variance) | Shallow trees (high bias, low variance) |
+| Reduces | Variance | Bias (and variance through shrinkage) |
+| More estimators | Never hurts, it plateaus | Eventually overfits, so use early stopping |
+| Tuning effort | Low | Moderate (`learning_rate`, `n_estimators`, depth) |

@@ -1,5 +1,7 @@
 # Generative Models
 
+> **Quick reference:** the key equations, hyperparameters and pitfalls for this module are on one page in [CHEATSHEET.md](CHEATSHEET.md).
+
 Generative models constitute a fundamental class of machine learning algorithms that aim to learn and model the underlying probability distribution $\large p(\mathbf{x})$ of observed data $\large \mathbf{x}$. The primary objective is to capture the statistical structure of the data such that we can:
 
 -   **Generate new samples**: Draw new data points $\large \mathbf{x}_{new} \sim p(\mathbf{x})$ that are statistically similar to the training data
@@ -33,7 +35,7 @@ A standard autoencoder consists of:
 -   **Encoder**: $\large f_{\phi}: \mathbb{R}^D \rightarrow \mathbb{R}^d$ mapping input $\large \mathbf{x}$ to latent code $\large \mathbf{h} = f_{\phi}(\mathbf{x})$
 -   **Decoder**: $\large g_{\theta}: \mathbb{R}^d \rightarrow \mathbb{R}^D$ reconstructing $\large \hat{\mathbf{x}} = g_{\theta}(\mathbf{h})$
 
-**Objective**: Minimize reconstruction error ![objective](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathcal{L}_{AE}%20=%20|\mathbf{x}%20-%20g_{\theta}(f_{\phi}(\mathbf{x}))|^2)
+**Objective**: Minimize reconstruction error $`\large \mathcal{L}_{AE} = \|\mathbf{x} - g_{\theta}(f_{\phi}(\mathbf{x}))\|^2`$
 
 **Limitations**:
 
@@ -114,11 +116,9 @@ $$
 
 The encoder network parameterizes the variational posterior. For computational tractability, we typically assume a factorized Gaussian form:
 
-<div align="center">
-
-![encoder](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20q_{\phi}(\mathbf{z}|\mathbf{x})%20=%20\mathcal{N}(\mathbf{z};%20\boldsymbol{\mu}_{\phi}(\mathbf{x}),%20\text{diag}(\boldsymbol{\sigma}^2_{\phi}(\mathbf{x}))))
-
-</div>
+```math
+\large q_{\phi}(\mathbf{z}|\mathbf{x}) = \mathcal{N}(\mathbf{z}; \boldsymbol{\mu}_{\phi}(\mathbf{x}), \text{diag}(\boldsymbol{\sigma}^2_{\phi}(\mathbf{x})))
+```
 
 Where:
 
@@ -145,11 +145,9 @@ The decoder network parameterizes the conditional likelihood of data given laten
 
 **For Continuous Data** (e.g., real-valued images): 
 
-<div align="center">
-
-![continuous](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20p_{\theta}(\mathbf{x}|\mathbf{z})%20=%20\mathcal{N}(\mathbf{x};%20\boldsymbol{\mu}_{\theta}(\mathbf{z}),%20\sigma^2_{dec}\mathbf{I}))
-
-</div>
+```math
+\large p_{\theta}(\mathbf{x}|\mathbf{z}) = \mathcal{N}(\mathbf{x}; \boldsymbol{\mu}_{\theta}(\mathbf{z}), \sigma^2_{dec}\mathbf{I})
+```
 
 Where $\large \sigma^2_{dec}$ can be fixed or learned.
 
@@ -189,25 +187,21 @@ This choice provides several advantages:
 
 **For Gaussian Distributions**: 
 
-<div align="center">
-
-![gaussian](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbf{z}%20=%20\boldsymbol{\mu}_{\phi}(\mathbf{x})%20+%20\boldsymbol{\sigma}_{\phi}(\mathbf{x})%20\odot%20\boldsymbol{\epsilon})
-
-</div>
+```math
+\large \mathbf{z} = \boldsymbol{\mu}_{\phi}(\mathbf{x}) + \boldsymbol{\sigma}_{\phi}(\mathbf{x}) \odot \boldsymbol{\epsilon}
+```
 
 Where:
 
 -   $\large \boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$ is auxiliary noise
 -   $\large \odot$ denotes element-wise multiplication
--   ![phi](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\boldsymbol{\sigma}_{\phi}(\mathbf{x})%20=%20\exp(0.5%20\cdot%20\log%20\boldsymbol{\sigma}^2_{\phi}(\mathbf{x})))
+-   $`\large \boldsymbol{\sigma}_{\phi}(\mathbf{x}) = \exp(0.5 \cdot \log \boldsymbol{\sigma}^2_{\phi}(\mathbf{x}))`$
 
 **Gradient Flow**: 
 
-<div align="center">
-
-![gradient](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\frac{\partial}{\partial%20\phi}%20\mathbb{E}_{q_{\phi}(\mathbf{z}|\mathbf{x})}[f(\mathbf{z})]%20=%20\mathbb{E}_{p(\boldsymbol{\epsilon})}\left[\frac{\partial%20f(\mathbf{z})}{\partial%20\mathbf{z}}%20\frac{\partial%20\mathbf{z}}{\partial%20\phi}\right])
-
-</div>
+```math
+\large \frac{\partial}{\partial \phi} \mathbb{E}_{q_{\phi}(\mathbf{z}|\mathbf{x})}[f(\mathbf{z})] = \mathbb{E}_{p(\boldsymbol{\epsilon})}\left[\frac{\partial f(\mathbf{z})}{\partial \mathbf{z}} \frac{\partial \mathbf{z}}{\partial \phi}\right]
+```
 
 <div align="center">
 <img src="assets/reparam.png" width="1000" height="550" style="background-color: white;">
@@ -225,11 +219,9 @@ Where:
 
 **Goal**: Maximize the marginal log-likelihood of observed data: 
 
-<div align="center">
-
-![goal](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathcal{L}_{ML}%20=%20\sum_{i=1}^{N}%20\log%20p_{\theta}(\mathbf{x}^{(i)}))
-
-</div>
+```math
+\large \mathcal{L}_{ML} = \sum_{i=1}^{N} \log p_{\theta}(\mathbf{x}^{(i)})
+```
 
 **Challenge**: $\large \log p_{\theta}(\mathbf{x}) = \log \int p_{\theta}(\mathbf{x}|\mathbf{z})p(\mathbf{z}),d\mathbf{z}$ is intractable.
 
@@ -237,44 +229,36 @@ Where:
 
 For any variational distribution $\large q_{\phi}(\mathbf{z}|\mathbf{x})$, we can write:
 
-<div align="center">
+```math
+\large \log p_{\theta}(\mathbf{x}) = \mathbb{E}_{q_{\phi}(\mathbf{z}|\mathbf{x})}[\log p_{\theta}(\mathbf{x})] = \mathbb{E}_{q_{\phi}(\mathbf{z}|\mathbf{x})}\left[\log \frac{p_{\theta}(\mathbf{x},\mathbf{z})}{p_{\theta}(\mathbf{z}|\mathbf{x})}\right]
+```
 
-![vlb1](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\log%20p_{\theta}(\mathbf{x})%20=%20\mathbb{E}_{q_{\phi}(\mathbf{z}|\mathbf{x})}[\log%20p_{\theta}(\mathbf{x})]%20=%20\mathbb{E}_{q_{\phi}(\mathbf{z}|\mathbf{x})}\left[\log%20\frac{p_{\theta}(\mathbf{x},\mathbf{z})}{p_{\theta}(\mathbf{z}|\mathbf{x})}\right])
+```math
+\large = \mathbb{E}_{q_{\phi}(\mathbf{z}|\mathbf{x})}\left[\log \frac{p_{\theta}(\mathbf{x},\mathbf{z})q_{\phi}(\mathbf{z}|\mathbf{x})}{p_{\theta}(\mathbf{z}|\mathbf{x})q_{\phi}(\mathbf{z}|\mathbf{x})}\right]
+```
 
-</div>
-
-<div align="center">
-
-![vlb2](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20=%20\mathbb{E}_{q_{\phi}(\mathbf{z}|\mathbf{x})}\left[\log%20\frac{p_{\theta}(\mathbf{x},\mathbf{z})q_{\phi}(\mathbf{z}|\mathbf{x})}{p_{\theta}(\mathbf{z}|\mathbf{x})q_{\phi}(\mathbf{z}|\mathbf{x})}\right])
-
-</div>
-
-<div align="center">
-
-![vlb3](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20=%20\underbrace{\mathbb{E}_{q_{\phi}(\mathbf{z}|\mathbf{x})}\left[\log%20\frac{p_{\theta}(\mathbf{x},\mathbf{z})}{q_{\phi}(\mathbf{z}|\mathbf{x})}\right]}_{\text{ELBO}}%20+%20\underbrace{D_{KL}(q_{\phi}(\mathbf{z}|\mathbf{x})%20|%20p_{\theta}(\mathbf{z}|\mathbf{x}))}_{\geq%200})
-
-</div>
+```math
+\large = \underbrace{\mathbb{E}_{q_{\phi}(\mathbf{z}|\mathbf{x})}\left[\log \frac{p_{\theta}(\mathbf{x},\mathbf{z})}{q_{\phi}(\mathbf{z}|\mathbf{x})}\right]}_{\text{ELBO}} + \underbrace{D_{KL}(q_{\phi}(\mathbf{z}|\mathbf{x}) \,\|\, p_{\theta}(\mathbf{z}|\mathbf{x}))}_{\geq 0}
+```
 
 #### ELBO Decomposition
 
 The Evidence Lower Bound (ELBO) can be expressed as:
 
-<div align="center">
-
-![elbo](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathcal{L}_{ELBO}(\theta,%20\phi;%20\mathbf{x})%20=%20\mathbb{E}_{q_{\phi}(\mathbf{z}|\mathbf{x})}[\log%20p_{\theta}(\mathbf{x}|\mathbf{z})]%20-%20D_{KL}(q_{\phi}(\mathbf{z}|\mathbf{x})%20|%20p(\mathbf{z})))
-
-</div>
+```math
+\large \mathcal{L}_{ELBO}(\theta, \phi; \mathbf{x}) = \mathbb{E}_{q_{\phi}(\mathbf{z}|\mathbf{x})}[\log p_{\theta}(\mathbf{x}|\mathbf{z})] - D_{KL}(q_{\phi}(\mathbf{z}|\mathbf{x}) \,\|\, p(\mathbf{z}))
+```
 
 **Two Interpretations**:
 
 1.  **Reconstruction + Regularization**:
     
-    -   **Reconstruction Term**: ![reconstruction](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbb{E}_{q_{\phi}(\mathbf{z}|\mathbf{x})}[\log%20p_{\theta}(\mathbf{x}|\mathbf{z})])
+    -   **Reconstruction Term**: $`\large \mathbb{E}_{q_{\phi}(\mathbf{z}|\mathbf{x})}[\log p_{\theta}(\mathbf{x}|\mathbf{z})]`$
     -   **Regularization Term**: $\large -D_{KL}(q_{\phi}(\mathbf{z}|\mathbf{x}) | p(\mathbf{z}))$
 2.  **Rate-Distortion**:
     
     -   **Rate**: $\large D_{KL}(q_{\phi}(\mathbf{z}|\mathbf{x}) | p(\mathbf{z}))$ (information cost)
-    -   **Distortion**: ![distortion](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20-\mathbb{E}_{q_{\phi}(\mathbf{z}|\mathbf{x})}[\log%20p_{\theta}(\mathbf{x}|\mathbf{z})]) (reconstruction error)
+    -   **Distortion**: $`\large -\mathbb{E}_{q_{\phi}(\mathbf{z}|\mathbf{x})}[\log p_{\theta}(\mathbf{x}|\mathbf{z})]`$ (reconstruction error)
 
 ### Implementation Details
 
@@ -312,44 +296,38 @@ Linear(512, D) + Sigmoid (for binary data)
 
 **Total Loss (Negative ELBO)**: 
 
-![negelbo](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathcal{L}_{VAE}%20=%20\mathcal{L}_{recon}%20+%20\beta%20\cdot%20\mathcal{L}_{KL})
+```math
+\large \mathcal{L}_{VAE} = \mathcal{L}_{recon} + \beta \cdot \mathcal{L}_{KL}
+```
 
 **Reconstruction Loss**:
 
 -   **Binary Cross-Entropy** (for binary/normalized data): 
 
-<div align="center">
-
-![bce](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathcal{L}_{recon}%20=%20-\sum_{i=1}^{D}%20x_i%20\log%20\hat{x}_i%20+%20(1-x_i)\log(1-\hat{x}_i))
-
-</div>
+```math
+\large \mathcal{L}_{recon} = -\sum_{i=1}^{D} x_i \log \hat{x}_i + (1-x_i)\log(1-\hat{x}_i)
+```
     
 -   **Mean Squared Error** (for continuous data): 
 
-<div align="center">
-
-![mse](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathcal{L}_{recon}%20=%20\frac{1}{D}\sum_{i=1}^{D}%20(x_i%20-%20\hat{x}_i)^2)
-
-</div>
+```math
+\large \mathcal{L}_{recon} = \frac{1}{D}\sum_{i=1}^{D} (x_i - \hat{x}_i)^2
+```
     
 
 **KL Divergence Loss**: 
 
-<div align="center">
-
-![kl](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathcal{L}_{KL}%20=%20\frac{1}{2}\sum_{j=1}^{d}\left(\mu_j^2%20+%20\sigma_j^2%20-%201%20-%20\log%20\sigma_j^2\right))
-
-</div>
+```math
+\large \mathcal{L}_{KL} = \frac{1}{2}\sum_{j=1}^{d}\left(\mu_j^2 + \sigma_j^2 - 1 - \log \sigma_j^2\right)
+```
 
 #### β-VAE Extension
 
 The β-VAE introduces a hyperparameter β to control the trade-off: 
 
-<div align="center">
-
-![bvae](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathcal{L}_{\beta-VAE}%20=%20\mathbb{E}_{q_{\phi}(\mathbf{z}|\mathbf{x})}[\log%20p_{\theta}(\mathbf{x}|\mathbf{z})]%20-%20\beta%20\cdot%20D_{KL}(q_{\phi}(\mathbf{z}|\mathbf{x})%20|%20p(\mathbf{z})))
-
-</div>
+```math
+\large \mathcal{L}_{\beta-VAE} = \mathbb{E}_{q_{\phi}(\mathbf{z}|\mathbf{x})}[\log p_{\theta}(\mathbf{x}|\mathbf{z})] - \beta \cdot D_{KL}(q_{\phi}(\mathbf{z}|\mathbf{x}) \,\|\, p(\mathbf{z}))
+```
 
 **Effects of β**:
 
@@ -409,29 +387,23 @@ where $\large p_g(\mathbf{x})$ is the generator's induced distribution. This opt
 
 The GAN training objective is formulated as a minimax game:
 
-<div align="center">
-
-![minimax](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\min_G%20\max_D%20V(D,%20G)%20=%20\mathbb{E}_{\mathbf{x}%20\sim%20p_{data}(\mathbf{x})}[\log%20D(\mathbf{x})]%20+%20\mathbb{E}_{\mathbf{z}%20\sim%20p_z(\mathbf{z})}[\log(1%20-%20D(G(\mathbf{z})))])
-
-</div>
+```math
+\large \min_G \max_D V(D, G) = \mathbb{E}_{\mathbf{x} \sim p_{data}(\mathbf{x})}[\log D(\mathbf{x})] + \mathbb{E}_{\mathbf{z} \sim p_z(\mathbf{z})}[\log(1 - D(G(\mathbf{z})))]
+```
 
 Let's decompose this objective:
 
 **Expected Value for Real Data:** 
 
-<div align="center">
-
-![real](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbb{E}_{\mathbf{x}%20\sim%20p_{data}(\mathbf{x})}[\log%20D(\mathbf{x})]%20=%20\int_{\mathcal{X}}%20p_{data}(\mathbf{x})%20\log%20D(\mathbf{x})%20d\mathbf{x})
-
-</div>
+```math
+\large \mathbb{E}_{\mathbf{x} \sim p_{data}(\mathbf{x})}[\log D(\mathbf{x})] = \int_{\mathcal{X}} p_{data}(\mathbf{x}) \log D(\mathbf{x}) d\mathbf{x}
+```
 
 **Expected Value for Generated Data:** 
 
-<div align="center">
-
-![generated](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbb{E}_{\mathbf{z}%20\sim%20p_z(\mathbf{z})}[\log(1%20-%20D(G(\mathbf{z})))]%20=%20\int_{\mathcal{Z}}%20p_z(\mathbf{z})%20\log(1%20-%20D(G(\mathbf{z})))%20d\mathbf{z})
-
-</div>
+```math
+\large \mathbb{E}_{\mathbf{z} \sim p_z(\mathbf{z})}[\log(1 - D(G(\mathbf{z})))] = \int_{\mathcal{Z}} p_z(\mathbf{z}) \log(1 - D(G(\mathbf{z}))) d\mathbf{z}
+```
 
 Using the change of variables $\large \mathbf{x} = G(\mathbf{z})$: 
 
@@ -465,11 +437,9 @@ $$
 
 Substituting $\large D^*$ back into the value function:
 
-<div align="center">
-
-![global](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20V(D^*,%20G)%20=%20\mathbb{E}_{\mathbf{x}%20\sim%20p_{data}}%20\left[\log%20\frac{p_{data}(\mathbf{x})}{p_{data}(\mathbf{x})%20+%20p_g(\mathbf{x})}\right]%20+%20\mathbb{E}_{\mathbf{x}%20\sim%20p_g}%20\left[\log%20\frac{p_g(\mathbf{x})}{p_{data}(\mathbf{x})%20+%20p_g(\mathbf{x})}\right])
-
-</div>
+```math
+\large V(D^*, G) = \mathbb{E}_{\mathbf{x} \sim p_{data}} \left[\log \frac{p_{data}(\mathbf{x})}{p_{data}(\mathbf{x}) + p_g(\mathbf{x})}\right] + \mathbb{E}_{\mathbf{x} \sim p_g} \left[\log \frac{p_g(\mathbf{x})}{p_{data}(\mathbf{x}) + p_g(\mathbf{x})}\right]
+```
 
 This can be rewritten in terms of the Jensen-Shannon (JS) divergence:
 
@@ -503,11 +473,9 @@ $$
 
 **Wasserstein GAN:** 
 
-<div align="center">
-
-![wasserstein](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\min_G%20\max_{D%20\in%20\mathcal{D}}%20\mathbb{E}_{\mathbf{x}%20\sim%20p_{data}}[D(\mathbf{x})]%20-%20\mathbb{E}_{\mathbf{z}%20\sim%20p_z}[D(G(\mathbf{z}))])
-
-</div>
+```math
+\large \min_G \max_{D \in \mathcal{D}} \mathbb{E}_{\mathbf{x} \sim p_{data}}[D(\mathbf{x})] - \mathbb{E}_{\mathbf{z} \sim p_z}[D(G(\mathbf{z}))]
+```
 
 ### Game Theory Perspective
 
@@ -610,13 +578,11 @@ $$
 
 **Synthesis Network:** Uses adaptive instance normalization (AdaIN): 
 
-<div align="center">
+```math
+\large \text{AdaIN}(\mathbf{x}_i, \mathbf{y}) = \mathbf{y}_{s,i} \frac{\mathbf{x}_i - \mu(\mathbf{x}_i)}{\sigma(\mathbf{x}_i)} + \mathbf{y}_{b,i}
+```
 
-![synthesis](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\text{AdaIN}(\mathbf{x}_i,%20\mathbf{y})%20=%20\mathbf{y}_{s,i}%20\frac{\mathbf{x}_i%20-%20\mu(\mathbf{x}_i)}{\sigma(\mathbf{x}_i)}%20+%20\mathbf{y}_{b,i})
-
-</div>
-
-where ![style](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathbf{y}%20=%20(\mathbf{y}_{s,i},%20\mathbf{y}_{b,i})) are style parameters derived from $\large \mathbf{w}$.
+where $`\large \mathbf{y} = (\mathbf{y}_{s,i}, \mathbf{y}_{b,i})`$ are style parameters derived from $\large \mathbf{w}$.
 
 ### Loss Functions and Optimization
 
@@ -626,11 +592,9 @@ The standard GAN loss uses binary cross-entropy:
 
 **Discriminator Loss:** 
 
-<div align="center">
-
-![discriminator](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20L_D%20=%20-\mathbb{E}_{\mathbf{x}%20\sim%20p_{data}}[\log%20D(\mathbf{x})]%20-%20\mathbb{E}_{\mathbf{z}%20\sim%20p_z}[\log(1%20-%20D(G(\mathbf{z})))])
-
-</div>
+```math
+\large L_D = -\mathbb{E}_{\mathbf{x} \sim p_{data}}[\log D(\mathbf{x})] - \mathbb{E}_{\mathbf{z} \sim p_z}[\log(1 - D(G(\mathbf{z})))]
+```
 
 **Generator Loss:** 
 
@@ -648,21 +612,17 @@ $$
 
 Using the Kantorovich-Rubinstein duality: 
 
-<div align="center">
-
-![kantorovich](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20W_1(p_{data},%20p_g)%20=%20\sup_{|f|_L%20\leq%201}%20\mathbb{E}_{\mathbf{x}%20\sim%20p_{data}}[f(\mathbf{x})]%20-%20\mathbb{E}_{\mathbf{x}%20\sim%20p_g}[f(\mathbf{x})])
-
-</div>
+```math
+\large W_1(p_{data}, p_g) = \sup_{\|f\|_L \leq 1} \mathbb{E}_{\mathbf{x} \sim p_{data}}[f(\mathbf{x})] - \mathbb{E}_{\mathbf{x} \sim p_g}[f(\mathbf{x})]
+```
 
 #### Gradient Penalty
 
 WGAN-GP adds a gradient penalty term: 
 
-<div align="center">
-
-![wgan](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathcal{L}%20=%20\mathbb{E}_{\tilde{\mathbf{x}}%20\sim%20p_g}[D(\tilde{\mathbf{x}})]%20-%20\mathbb{E}_{\mathbf{x}%20\sim%20p_{data}}[D(\mathbf{x})]%20+%20\lambda%20\mathbb{E}_{\hat{\mathbf{x}}%20\sim%20p_{\hat{\mathbf{x}}}}[(|\nabla_{\hat{\mathbf{x}}}%20D(\hat{\mathbf{x}})|%20-%201)^2])
-
-</div>
+```math
+\large \mathcal{L} = \mathbb{E}_{\tilde{\mathbf{x}} \sim p_g}[D(\tilde{\mathbf{x}})] - \mathbb{E}_{\mathbf{x} \sim p_{data}}[D(\mathbf{x})] + \lambda \mathbb{E}_{\hat{\mathbf{x}} \sim p_{\hat{\mathbf{x}}}}[(\|\nabla_{\hat{\mathbf{x}}} D(\hat{\mathbf{x}})\|_2 - 1)^2]
+```
 
 where $\large \hat{\mathbf{x}} = \epsilon \mathbf{x} + (1-\epsilon)\tilde{\mathbf{x}}$ with $\large \epsilon \sim \text{Uniform}[0,1]$.
 

@@ -1,5 +1,7 @@
 # Reinforcement Learning
 
+> **Quick reference:** the key equations, hyperparameters and pitfalls for this module are on one page in [CHEATSHEET.md](CHEATSHEET.md).
+
 ## Fundamentals & Policy Gradients
 
 ### Introduction to Reinforcement Learning
@@ -51,11 +53,9 @@ The central problem in RL can be formally stated as:
 
 Mathematically, this translates to:
 
-<div align="center">
-
-![mdp](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\pi^*%20=%20\arg\max_{\pi}%20\mathbb{E}_{\tau%20\sim%20\pi}\left[\sum_{t=0}^{T}%20\gamma^t%20R_{t+1}%20\mid%20S_0\right])
-
-</div>
+```math
+\large \pi^* = \arg\max_{\pi} \mathbb{E}_{\tau \sim \pi}\left[\sum_{t=0}^{T} \gamma^t R_{t+1} \mid S_0\right]
+```
 
 where:
 
@@ -174,41 +174,33 @@ Given a policy $\large \pi$, we can evaluate its performance through its value f
 
 The **state-value function** $\large V^\pi(s)$ gives the expected return when starting in state $\large s$ and following policy $\large \pi$:
 
-<div align="center">
-
-![state](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20V^\pi(s)%20=%20\mathbb{E}_\pi[G_t%20\mid%20S_t%20=%20s]%20=%20\mathbb{E}_\pi\left[\sum_{k=0}^{\infty}%20\gamma^k%20R_{t+k+1}%20\mid%20S_t%20=%20s\right])
-
-</div>
+```math
+\large V^\pi(s) = \mathbb{E}_\pi[G_t \mid S_t = s] = \mathbb{E}_\pi\left[\sum_{k=0}^{\infty} \gamma^k R_{t+k+1} \mid S_t = s\right]
+```
 
 #### Action-Value Functions
 
 The **action-value function** $\large Q^\pi(s, a)$ gives the expected return when starting in state $\large s$, taking action $\large a$, and then following policy $\large \pi$:
 
-<div align="center">
-
-![action](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20Q^\pi(s,%20a)%20=%20\mathbb{E}_\pi[G_t%20\mid%20S_t%20=%20s,%20A_t%20=%20a]%20=%20\mathbb{E}_\pi\left[\sum_{k=0}^{\infty}%20\gamma^k%20R_{t+k+1}%20\mid%20S_t%20=%20s,%20A_t%20=%20a\right])
-
-</div>
+```math
+\large Q^\pi(s, a) = \mathbb{E}_\pi[G_t \mid S_t = s, A_t = a] = \mathbb{E}_\pi\left[\sum_{k=0}^{\infty} \gamma^k R_{t+k+1} \mid S_t = s, A_t = a\right]
+```
 
 #### Bellman Equations
 
 The Bellman equations express the recursive relationship between value functions:
 
-**Bellman Expectation Equation for** ![asd](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20V^\pi): 
+**Bellman Expectation Equation for** $`\large V^\pi`$: 
 
-<div align="center">
+```math
+\large V^\pi(s) = \sum_{a} \pi(a \mid s) \sum_{s', r} p(s', r \mid s, a)[r + \gamma V^\pi(s')]
+```
 
-![bellman](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20V^\pi(s)%20=%20\sum_{a}%20\pi(a%20\mid%20s)%20\sum_{s%27,%20r}%20p(s%27,%20r%20\mid%20s,%20a)[r%20+%20\gamma%20V^\pi(s%27)])
+**Bellman Expectation Equation for** $`\large Q^\pi`$: 
 
-</div>
-
-**Bellman Expectation Equation for** ![qpi](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20Q^\pi$): 
-
-<div align="center">
-
-![bell](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20Q^\pi(s,%20a)%20=%20\sum_{s%27,%20r}%20p(s%27,%20r%20\mid%20s,%20a)\left[r%20+%20\gamma%20\sum_{a%27}%20\pi(a%27%20\mid%20s%27)%20Q^\pi(s%27,%20a%27)\right])
-
-</div>
+```math
+\large Q^\pi(s, a) = \sum_{s', r} p(s', r \mid s, a)\left[r + \gamma \sum_{a'} \pi(a' \mid s') Q^\pi(s', a')\right]
+```
 
 These equations form the basis for many RL algorithms, including temporal difference learning and Q-learning.
 
@@ -228,15 +220,15 @@ $$
 
 **Bellman Optimality Equations**: 
 
-<div align="center">
-
-![bn1](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20V^(s)%20=%20\max_a%20\sum_{s%27,%20r}%20p(s%27,%20r%20\mid%20s,%20a)[r%20+%20\gamma%20V^(s%27)])
-
-</div>
+```math
+\large V^*(s) = \max_a \sum_{s', r} p(s', r \mid s, a)[r + \gamma V^*(s')]
+```
 
 <div align="center">
 
-![bn2](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20Q^(s,%20a)%20=%20\sum_{s%27,%20r}%20p(s%27,%20r%20\mid%20s,%20a)\left[r%20+%20\gamma%20\max_{a%27}%20Q^(s%27,%20a%27)\right])
+```math
+\large Q^*(s, a) = \sum_{s', r} p(s', r \mid s, a)\left[r + \gamma \max_{a'} Q^*(s', a')\right]
+```
 
 </div>>
 
@@ -255,15 +247,13 @@ Policy gradient methods directly optimize the policy parameters $\theta$ to maxi
 
 The policy gradient theorem provides the foundation for policy gradient methods. It states that the gradient of the expected return with respect to policy parameters is:
 
-<div align="center">
-
-![pgt](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\nabla_\theta%20J(\theta)%20=%20\mathbb{E}_{\tau%20\sim%20\pi_\theta}\left[\sum_{t=0}^{T-1}%20\nabla_\theta%20\log%20\pi_\theta(A_t%20\mid%20S_t)%20G_t\right])
-
-</div>
+```math
+\large \nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}\left[\sum_{t=0}^{T-1} \nabla_\theta \log \pi_\theta(A_t \mid S_t) G_t\right]
+```
 
 where:
 
--   ![objective](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20J(\theta)%20=%20\mathbb{E}_{\tau%20\sim%20\pi_\theta}[R(\tau)]) is the objective function
+-   $`\large J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[R(\tau)]`$ is the objective function
 -   $\large \tau$ is a trajectory sampled from policy $\large \pi_\theta$
 -   $\large G_t$ is the return from time step $\large t$
 
@@ -303,11 +293,9 @@ $$
     
 6.  **Convert back to expectation**: 
 
-<div align="center">
-
-![expectation](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\nabla_\theta%20J(\theta)%20=%20\mathbb{E}_{\tau%20\sim%20\pi_\theta}\left[\sum_{t=0}^{T-1}%20\nabla_\theta%20\log%20\pi_\theta(A_t%20\mid%20S_t)%20R(\tau)\right])
-
-</div>
+```math
+\large \nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}\left[\sum_{t=0}^{T-1} \nabla_\theta \log \pi_\theta(A_t \mid S_t) R(\tau)\right]
+```
 
 ### Gradient Ascent in Policy Space
 
@@ -349,11 +337,9 @@ $$
 
 **Baseline Subtraction**: Subtract a state-dependent baseline $\large b(s)$ to reduce variance: 
 
-<div align="center">
-
-![baseline](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\nabla_\theta%20J(\theta)%20=%20\mathbb{E}_{\tau%20\sim%20\pi_\theta}\left[\sum_{t=0}^{T-1}%20\nabla_\theta%20\log%20\pi_\theta(A_t%20\mid%20S_t)%20(G_t%20-%20b(S_t))\right])
-
-</div>
+```math
+\large \nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}\left[\sum_{t=0}^{T-1} \nabla_\theta \log \pi_\theta(A_t \mid S_t) (G_t - b(S_t))\right]
+```
 
 Common baselines include:
 
@@ -362,11 +348,9 @@ Common baselines include:
 
 **Causality**: Only use future rewards for each action: 
 
-<div align="center">
-
-![causality](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\nabla_\theta%20J(\theta)%20=%20\mathbb{E}_{\tau%20\sim%20\pi_\theta}\left[\sum_{t=0}^{T-1}%20\nabla_\theta%20\log%20\pi_\theta(A_t%20\mid%20S_t)%20\sum_{k=t}^{T-1}%20\gamma^{k-t}%20R_{k+1}\right])
-
-</div>
+```math
+\large \nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}\left[\sum_{t=0}^{T-1} \nabla_\theta \log \pi_\theta(A_t \mid S_t) \sum_{k=t}^{T-1} \gamma^{k-t} R_{k+1}\right]
+```
 
 ## DQN & Actor-Critic Methods
 
@@ -391,11 +375,9 @@ DQN is a **value-based**, **off-policy** algorithm that learns the optimal actio
 
 The optimal action-value function $\large Q^*(s,a)$ satisfies the Bellman optimality equation:
 
-<div align="center">
-
-![qlearning](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20Q^*(s,a)%20=%20\mathbb{E}_{s%27}[R(s,a,s%27)%20+%20\gamma%20\max_{a%27}%20Q^*(s%27,%20a%27)])
-
-</div>
+```math
+\large Q^*(s,a) = \mathbb{E}_{s'}[R(s,a,s') + \gamma \max_{a'} Q^*(s', a')]
+```
 
 Traditional Q-learning update: 
 
@@ -490,19 +472,15 @@ $$
 
 Actor loss: 
 
-<div align="center">
-
-![actorloss](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathcal{L}_{\text{actor}}(\theta)%20=%20-\sum_t%20\log%20\pi_\theta(a_t|s_t)%20\cdot%20A(s_t,%20a_t))
-
-</div>
+```math
+\large \mathcal{L}_{\text{actor}}(\theta) = -\sum_t \log \pi_\theta(a_t|s_t) \cdot A(s_t, a_t)
+```
 
 **Critic Update**: Minimize value prediction error 
 
-<div align="center">
-
-![criticupdate](https://math.vercel.app/?color=white&bgcolor=auto&from=\large%20\mathcal{L}_{\text{critic}}(w)%20=%20\sum_t%20\left(V_{\text{target},t}%20-%20V_w(s_t)\right)^2)
-
-</div>
+```math
+\large \mathcal{L}_{\text{critic}}(w) = \sum_t \left(V_{\text{target},t} - V_w(s_t)\right)^2
+```
 
 where $\large V_{\text{target},t} = R_{t+1} + \gamma V_w(S_{t+1})$
 

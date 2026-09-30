@@ -1,5 +1,7 @@
 # Mathematical Foundation
 
+> **Quick reference:** the key equations, hyperparameters and pitfalls for this module are on one page in [CHEATSHEET.md](CHEATSHEET.md).
+
 ## Linear Algebra Fundamentals for Machine Learning
 
 This provides a practical demonstration of key Linear Algebra concepts crucial for understanding and implementing Machine Learning algorithms. For Linear Algebra, scalars, vectors, matrices, along with essential operations and decompositions like Eigen-decomposition and Singular Value Decomposition (SVD) are explored.

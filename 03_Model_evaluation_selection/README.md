@@ -1,5 +1,7 @@
 # Model Evaluation & Selection
 
+> **Quick reference:** the key equations, hyperparameters and pitfalls for this module are on one page in [CHEATSHEET.md](CHEATSHEET.md).
+
 ## Bias-Variance Tradeoff
 
 ### Understanding the Core Problem
@@ -245,3 +247,113 @@ The process typically involves:
 5.  Finally, evaluate this retrained model on a completely separate, **held-out test set** (which was not used at all during the CV and hyperparameter tuning process) to get an unbiased estimate of the final model's performance.
 
 This ensures that the hyperparameter selection is not biased by a single, potentially lucky or unlucky, validation split.
+
+## Classification Metrics
+
+### The Confusion Matrix
+Every threshold metric is built from the four counts of the confusion matrix:
+
+| | Predicted negative | Predicted positive |
+|---|---|---|
+| **Actual negative** | True negative (TN) | False positive (FP), type I error |
+| **Actual positive** | False negative (FN), type II error | True positive (TP) |
+
+$$\large
+\text{Precision} = \frac{TP}{TP+FP} \qquad \text{Recall (TPR, sensitivity)} = \frac{TP}{TP+FN} \qquad \text{Specificity (TNR)} = \frac{TN}{TN+FP} \qquad \text{FPR} = 1 - \text{TNR}
+$$
+
+$$\large
+F_\beta = (1+\beta^2) \frac{\text{Precision} \cdot \text{Recall}}{\beta^2 \, \text{Precision} + \text{Recall}}, \qquad F_1 = \frac{2PR}{P+R}
+$$
+
+$\large \beta > 1$ weights recall more (missing positives is worse), and $\large \beta < 1$ weights precision more.
+
+### The Accuracy Paradox and Imbalance-Robust Metrics
+With 95% negatives, a classifier that always predicts "negative" has 95% accuracy and is useless. Under imbalance prefer:
+*   **Balanced accuracy** $\large = \frac{1}{2}(\text{TPR} + \text{TNR})$, the mean per-class recall
+*   **Matthews correlation coefficient**, a correlation between predictions and truth in $\large [-1, 1]$:
+$$\large
+\text{MCC} = \frac{TP \cdot TN - FP \cdot FN}{\sqrt{(TP+FP)(TP+FN)(TN+FP)(TN+FN)}}
+$$
+*   Precision, recall and $\large F_1$ **of the minority class**, together with the confusion matrix itself.
+
+### ROC Curves and AUC
+Sweeping the decision threshold from high to low traces the **ROC curve** (TPR against FPR). The **area under it (AUC)** is threshold-independent and equals the probability that a randomly chosen positive is scored above a randomly chosen negative:
+
+$$\large
+\text{AUC} = P(s^+ > s^-) + \tfrac{1}{2} P(s^+ = s^-) = \frac{\sum_{i \in \text{pos}} \text{rank}(s_i) - \frac{n_+(n_+ + 1)}{2}}{n_+ n_-}
+$$
+
+The right-hand side is the normalised **Mann-Whitney U** statistic, so AUC is purely a measure of **ranking**. A random classifier scores 0.5 and a perfect one scores 1.
+
+### Precision-Recall Curves and Average Precision
+Under heavy imbalance the ROC curve can look optimistic, because FPR divides by the large number of negatives. The **precision-recall curve** ignores true negatives and focuses on the positive class. Its summary, **average precision**, is the precision averaged over recall increments:
+
+$$\large
+\text{AP} = \sum_{k} (R_k - R_{k-1}) \, P_k
+$$
+
+A random classifier's AP equals the **positive rate**, not 0.5, so always compare AP against that baseline.
+
+### Choosing the Decision Threshold
+The default 0.5 is only optimal when the two error types cost the same and the probabilities are calibrated. If a false negative costs $\large c_{FN}$ and a false positive $\large c_{FP}$, the expected cost is minimised by predicting positive when
+
+$$\large
+P(y = 1 \mid \mathbf{x}) > t^* = \frac{c_{FP}}{c_{FP} + c_{FN}}
+$$
+
+Alternatively, pick the threshold maximising $\large F_\beta$ on validation data. **Never tune the threshold on the test set.**
+
+### Handling Class Imbalance
+*   **Threshold moving:** keep the model, lower the threshold. The scores (and therefore ROC-AUC/AP) are unchanged, and only the decisions move.
+*   **Class weights:** weight each class's loss by $\large w_c = \frac{n}{K \, n_c}$ (`class_weight="balanced"`).
+*   **Resampling (training set only):** random oversampling of the minority, undersampling of the majority, or synthetic oversampling (SMOTE).
+
+Re-weighting and resampling change the fitted model and **distort its probabilities** (they're pushed towards the minority class), so re-calibrate or re-tune the threshold afterwards.
+
+### Calibration
+A classifier is **calibrated** if $\large P(y = 1 \mid \hat{p}(\mathbf{x}) = p) = p$: among samples scored 0.8, about 80% are positive. Tools to check and fix it:
+*   **Reliability diagram:** bin the predicted probabilities and plot the observed positive rate per bin against the mean prediction. The diagonal is perfect calibration.
+*   **Brier score** $\large \frac{1}{n}\sum_i (\hat{p}_i - y_i)^2$ and **log-loss**, both proper scoring rules (lower is better).
+*   **Recalibration** (`CalibratedClassifierCV`): Platt scaling fits a sigmoid to the scores, and isotonic regression fits a monotone step function (more flexible, needs more data). Both are fitted on held-out folds.
+
+Logistic regression is usually well calibrated. Naive Bayes, SVMs, boosted trees and re-weighted models often aren't.
+
+### Multi-class Averaging
+Per-class precision, recall and $\large F_1$ are combined by **macro** averaging (unweighted mean, where every class counts equally), **weighted** averaging (by class support), or **micro** averaging (pool all TP, FP and FN, which equals accuracy for single-label problems).
+
+## Data Preprocessing & Pipelines
+
+### Missing Values
+The right treatment depends on **why** data is missing:
+*   **MCAR** (missing completely at random): unrelated to any variable. Dropping rows or simple imputation is unbiased, but dropping wastes data.
+*   **MAR** (missing at random): depends only on *observed* variables (e.g. older records lack a field). Imputation conditioned on other features, or simple imputation plus a **missing indicator**, works well.
+*   **MNAR** (missing not at random): depends on the unobserved value itself (e.g. high earners skip income questions). The missingness is informative, so add indicators and model it explicitly.
+
+Common imputers: **mean** (sensitive to outliers), **median** (robust), **most frequent** (categoricals), **KNN** or **iterative/model-based** imputation (uses correlations between features). Tree ensembles such as `HistGradientBoosting` handle NaN natively.
+
+### Encoding Categorical Features
+*   **One-hot encoding** for nominal categories: one binary column per level. Use `handle_unknown="ignore"` so unseen categories become all-zeros.
+*   **Ordinal encoding** for ordered categories, with the order given **explicitly** (alphabetical order is meaningless).
+*   **Target encoding** for high-cardinality categories: replace a level by a smoothed mean of the target,
+    $$\large \text{enc}(c) = \frac{n_c \, \bar{y}_c + m \, \bar{y}}{n_c + m}$$
+    which shrinks rare levels towards the global mean $\large \bar{y}$. It **must be cross-fitted** (each row encoded using statistics from other folds). Otherwise each row's own target leaks into its feature.
+
+### Scaling and Transforming Numeric Features
+*   **Standardisation** $\large z = (x - \mu)/\sigma$: required by distance-based methods (k-NN, SVM, k-means), regularised linear models and neural networks.
+*   **Min-max scaling** to $\large [0, 1]$: bounded range, but sensitive to outliers.
+*   **Robust scaling** $\large (x - \text{median}) / \text{IQR}$: resistant to outliers.
+*   **Log / Box-Cox / Yeo-Johnson transforms** for skewed features and targets. They turn multiplicative relationships into additive ones.
+*   Tree-based models are invariant to monotone transformations, so they don't need scaling.
+
+### Feature Engineering
+Encode domain knowledge as features: ratios (price per square foot), differences (age from build year), date and time parts (month, weekday, hour, holidays), aggregates over groups, text statistics, interactions and polynomial terms. Good features often improve a model more than switching algorithms.
+
+### Pipelines and Data Leakage
+**Data leakage** is any path by which information from the validation or test data (or from the future) reaches the model during training. The result is inflated, unreproducible scores. Typical causes:
+*   fitting scalers, imputers, encoders or feature selectors on the full dataset before splitting
+*   target encoding without cross-fitting
+*   random splits of time-series data, or duplicate and grouped samples on both sides of a split
+*   features that are only available *after* the event being predicted
+
+A scikit-learn **`Pipeline`**, with a **`ColumnTransformer`** routing each column group to its own preprocessing, bundles every fitted step with the model. Cross-validating the pipeline refits all preprocessing inside each training fold, so the validation fold stays unseen. Fit once, apply everywhere: the same object is used for training, validation and production predictions.
