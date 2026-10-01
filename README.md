@@ -1,5 +1,7 @@
 # Machine Learning Foundation
 
+**🖱️ Try the interactive explorables in your browser: [sandeshjung.github.io/Machine-Learning-Foundation](https://sandeshjung.github.io/Machine-Learning-Foundation/)**
+
 A hands-on tour of machine learning, from the underlying maths to Transformers, generative models and reinforcement learning.
 
 Every algorithm is **built from scratch** in NumPy/PyTorch, **checked against a library** (scikit-learn, PyTorch, SciPy, fairlearn), and explained with the theory behind it.
@@ -174,6 +176,8 @@ Responsible ML: is the model fair, and why does it decide what it does? [Theory]
 
 ## Interactive explorables
 
+**Live site: [sandeshjung.github.io/Machine-Learning-Foundation](https://sandeshjung.github.io/Machine-Learning-Foundation/)**
+
 Small visualisations that run in your browser, with nothing to install. Every chart updates as you drag or slide, so you can *see* an idea instead of just reading about it.
 
 | Explorable | What you can do | Module |
@@ -185,7 +189,7 @@ Small visualisations that run in your browser, with nothing to install. Every ch
 | [Spread and averages](https://sandeshjung.github.io/Machine-Learning-Foundation/normal-distribution.html) | Move μ and σ, draw samples, check the 68–95–99.7 rule and watch the central limit theorem | 00 |
 
 > [!NOTE]
-> The links use GitHub Pages. To run the explorables offline, open [`docs/index.html`](docs/index.html) in any browser.
+> The site is served by GitHub Pages from the [`docs/`](docs/) folder. To run it offline, open [`docs/index.html`](docs/index.html) in any browser.
 >
 > They are plain HTML/JavaScript with no libraries. The maths in [`docs/assets/mlmath.js`](docs/assets/mlmath.js) is checked against NumPy, scikit-learn, SciPy and PyTorch by `node docs/tests/mlmath.test.js`.
 
