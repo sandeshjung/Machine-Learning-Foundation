@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ridge vs Lasso</title>
+<meta name="description" content="See why Lasso sets coefficients exactly to zero and Ridge only shrinks them, by dragging the least-squares solution.">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="wrap">
+  <nav class="topbar">
+    <a href="index.html">← All explorables</a>
+    <span class="tag">Module 01 · Regularisation</span>
+    <span class="spacer"></span>
+    <button class="theme-btn" id="theme-btn" type="button">◐ Auto</button>
+  </nav>
+
+  <h1>Ridge vs Lasso: why L1 gives exact zeros</h1>
+  <p class="lede">A model with two weights, w₁ and w₂. The unregularised (least-squares) solution is the grey point. Regularisation pulls the solution towards zero. Watch <i>where</i> it lands.</p>
+
+  <div class="panels">
+    <figure class="panel">
+      <figcaption>Weight space (w₁, w₂)</figcaption>
+      <canvas id="geo" class="square" role="img" aria-label="Error contours, the penalty region and the regularised solution in weight space"></canvas>
+      <div class="legend">
+        <span><i class="dot" style="background:var(--c-ghost)"></i>least squares ŵ</span>
+        <span><i class="dot" style="background:var(--c-fit)"></i>regularised solution</span>
+        <span><i style="background:var(--s3);opacity:.6"></i>penalty region</span>
+        <span><i style="background:var(--s4)"></i>path as α grows</span>
+      </div>
+      <p class="hint">Click or drag anywhere to move the least-squares solution ŵ. Rings = error contours.</p>
+    </figure>
+    <figure class="panel">
+      <figcaption>Coefficients as α grows (regularisation path)</figcaption>
+      <canvas id="path" class="square" role="img" aria-label="Coefficient values w1 and w2 against the regularisation strength alpha"></canvas>
+      <div class="legend">
+        <span><i style="background:var(--s1)"></i>w₁</span>
+        <span><i style="background:var(--s2)"></i>w₂</span>
+        <span><i class="dash" style="color:var(--c-ghost)"></i>current α</span>
+      </div>
+      <p class="hint">Click or drag on this chart to choose α.</p>
+    </figure>
+  </div>
+
+  <div class="readouts">
+    <div class="readout"><span class="k">w₁</span><span class="v" id="ro-w1">—</span></div>
+    <div class="readout"><span class="k">w₂</span><span class="v" id="ro-w2">—</span></div>
+    <div class="readout"><span class="k">Penalty Ω(w)</span><span class="v" id="ro-pen">—</span></div>
+    <div class="readout" id="ro-zero-box"><span class="k">Weights exactly 0</span><span class="v" id="ro-zero">—</span></div>
+    <div class="readout"><span class="k">Extra error from shrinking</span><span class="v" id="ro-loss">—</span></div>
+  </div>
+
+  <div class="controls">
+    <div class="group">
+      <h3>Penalty</h3>
+      <div class="seg" role="radiogroup" aria-label="Penalty">
+        <label><input type="radio" name="kind" value="lasso" checked><span>Lasso (L1): α·(|w₁| + |w₂|)</span></label>
+        <label><input type="radio" name="kind" value="ridge"><span>Ridge (L2): α·(w₁² + w₂²)</span></label>
+      </div>
+      <label class="ctl"><span class="row">Strength α <output for="alpha"></output></span><input type="range" id="alpha" min="-3" max="1" step="0.01" value="-0.6"></label>
+    </div>
+    <div class="group">
+      <h3>The features</h3>
+      <label class="ctl"><span class="row">Correlation between x₁ and x₂ <output for="rho"></output></span><input type="range" id="rho" min="-0.9" max="0.9" step="0.01" value="0.4"></label>
+      <div class="buttons"><button class="btn" id="reset" type="button">Reset ŵ</button></div>
+      <p class="hint">Correlated features tilt and stretch the error ellipses.</p>
+    </div>
+  </div>
+
+  <section class="notes">
+    <h2>What to try</h2>
+    <ol>
+      <li><b>Lasso, slowly raise α.</b> The blue solution slides from ŵ towards the origin. At some point it <b>hits an axis</b>: one weight becomes exactly 0. Raise α further and the other one reaches 0 too. That is <b>feature selection</b>.</li>
+      <li><b>Switch to Ridge.</b> The same α only <b>shrinks</b> both weights. The solution curves smoothly towards zero but never lands exactly on an axis.</li>
+      <li><b>Drag ŵ around</b> with Lasso on. For a wide range of positions the solution snaps to a <b>corner</b> of the diamond, because the corners stick out towards the error contours.</li>
+      <li><b>Correlated features.</b> Set the correlation to 0.8. Lasso tends to keep one of the two features and drop the other. Ridge shares the weight between them.</li>
+    </ol>
+
+    <h2>What's going on</h2>
+    <p>For two standardised features with correlation ρ, the mean squared error around the least-squares solution ŵ is (up to a constant) a quadratic bowl:</p>
+    <div class="formula">J(w) = ½ (w − ŵ)ᵀ H (w − ŵ) + α·Ω(w), &nbsp;&nbsp; H = [[1, ρ], [ρ, 1]]</div>
+    <p>The rings are the contours of the first term. The solution of the penalised problem sits where an error contour just <b>touches</b> the penalty region of the same size (the shaded circle or diamond):</p>
+    <ul>
+      <li>The <b>L2 circle</b> is smooth, so the touching point is almost never exactly on an axis. Ridge shrinks, but keeps every feature.</li>
+      <li>The <b>L1 diamond</b> has <b>corners on the axes</b>, and an ellipse usually reaches a corner first. At a corner one weight is exactly zero, so Lasso selects features.</li>
+    </ul>
+    <div class="callout">Libraries scale α differently. This page uses α·Ω(w) added to ½(w − ŵ)ᵀH(w − ŵ). That is the same as scikit-learn's <code>Lasso(alpha=α)</code>, and the same as its <code>Ridge</code> with alpha = 2·m·α for m samples.</div>
+  </section>
+
+  <footer class="links">
+    Theory: <a href="https://github.com/sandeshjung/Machine-Learning-Foundation/blob/main/01_Supervised_Regression/README.md#5-regularisation-ridge-and-lasso">Module 01 README</a> ·
+    Code: <a href="https://github.com/sandeshjung/Machine-Learning-Foundation/blob/main/01_Supervised_Regression/regularization.ipynb">regularization notebook</a>
+  </footer>
+</div>
+
+<script src="assets/mlmath.js"></script>
+<script src="assets/plot.js"></script>
+<script>
+(function () {
+  "use strict";
+  const M = MLMath, U = PlotUI, $ = (id) => document.getElementById(id);
+  const LIM = 2.5, A_MIN = -3, A_MAX = 1;
+  const DEFAULT_W = [1.7, 0.6];
+
+  const S = { what: DEFAULT_W.slice() };
+  const geo = new Plot($("geo"), { xmin: -LIM, xmax: LIM, ymin: -LIM, ymax: LIM, xlabel: "w₁", ylabel: "w₂" });
+  const pathPlot = new Plot($("path"), { xmin: A_MIN, xmax: A_MAX, ymin: -LIM, ymax: LIM, xlog: true, xlabel: "α (log scale)", ylabel: "coefficient value" });
+
+  const alpha = U.bindRange("alpha", { log: true, format: (v) => U.fmt(v, 3), onInput: draw });
+  const rho = U.bindRange("rho", { format: (v) => v.toFixed(2), onInput: draw });
+  document.querySelectorAll('input[name="kind"]').forEach((el) => el.addEventListener("change", draw));
+  $("reset").addEventListener("click", () => { S.what = DEFAULT_W.slice(); draw(); });
+  const kind = () => document.querySelector('input[name="kind"]:checked').value;
+  const H = () => [[1, rho.get()], [rho.get(), 1]];
+
+  function solveAt(a, w0) { return M.penalisedQuadratic(H(), S.what, a, kind(), w0); }
+  function quad(w) {
+    const h = H(), d = [w[0] - S.what[0], w[1] - S.what[1]];
+    return 0.5 * (h[0][0] * d[0] * d[0] + 2 * h[0][1] * d[0] * d[1] + h[1][1] * d[1] * d[1]);
+  }
+
+  /** Points on the error contour {w : ½ (w − ŵ)ᵀ H (w − ŵ) = level}. */
+  function ellipse(level) {
+    const e = M.eig2sym(H()), pts = [];
+    const a1 = Math.sqrt((2 * level) / e.values[0]), a2 = Math.sqrt((2 * level) / e.values[1]);
+    for (let i = 0; i <= 120; i++) {
+      const t = (2 * Math.PI * i) / 120, c = Math.cos(t) * a1, s = Math.sin(t) * a2;
+      pts.push([S.what[0] + c * e.vectors[0][0] + s * e.vectors[1][0], S.what[1] + c * e.vectors[0][1] + s * e.vectors[1][1]]);
+    }
+    return pts;
+  }
+
+  function computePath() {
+    const alphas = M.linspace(A_MIN, A_MAX, 160).map((v) => 10 ** v);
+    let w = null;
+    return alphas.map((a) => { w = solveAt(a, w); return [a, w[0], w[1]]; });
+  }
+
+  // interaction
+  const moveW = (px, py) => {
+    S.what = [Math.max(-LIM, Math.min(LIM, geo.invX(px))), Math.max(-LIM, Math.min(LIM, geo.invY(py)))];
+    draw();
+  };
+  U.draggable($("geo"), {
+    pick: (px, py) => (geo.inside(px, py) ? "w" : null),
+    onDown: (h, px, py) => { if (h) moveW(px, py); return h; },
+    onMove: (h, px, py) => moveW(px, py),
+  });
+  const pickAlpha = (px) => { alpha.set(Math.max(10 ** A_MIN, Math.min(10 ** A_MAX, pathPlot.invX(px)))); draw(); };
+  U.draggable($("path"), {
+    pick: (px, py) => (pathPlot.inside(px, py) ? "a" : null),
+    onDown: (h, px) => { if (h) pickAlpha(px); return h; },
+    onMove: (h, px) => pickAlpha(px),
+  });
+
+  function draw() {
+    const css = U.cssVar, k = kind(), a = alpha.get();
+    const w = solveAt(a);
+    const path = computePath();
+    const zeroTol = 1e-9;
+    const pen = k === "lasso" ? Math.abs(w[0]) + Math.abs(w[1]) : w[0] * w[0] + w[1] * w[1];
+
+    // geometry panel
+    const P = geo;
+    P.clear();
+    P.heatmap((x, y) => quad([x, y]), { key: `${S.what}|${rho.get()}`, transform: Math.sqrt, bands: 14, strength: 0.5 });
+    P.axes({ grid: false, zeroLines: true });
+    P.clipped(() => {
+      const acc = css("--s3");
+      if (k === "lasso") {
+        const t = Math.abs(w[0]) + Math.abs(w[1]);
+        if (t > 1e-6) P.polygon([[t, 0], [0, t], [-t, 0], [0, -t]], { fill: acc, alpha: 0.22 }), P.polygon([[t, 0], [0, t], [-t, 0], [0, -t]], { color: acc, width: 2 });
+      } else {
+        const r = Math.hypot(w[0], w[1]);
+        if (r > 1e-6) {
+          const circ = M.linspace(0, 2 * Math.PI, 120).map((t) => [r * Math.cos(t), r * Math.sin(t)]);
+          P.polygon(circ, { fill: acc, alpha: 0.22 }); P.polygon(circ, { color: acc, width: 2 });
+        }
+      }
+      const level = quad(w);
+      if (level > 1e-9) P.polygon(ellipse(level), { color: css("--c-data"), width: 1.6, alpha: 0.85 });
+      P.line(path.map((p) => p[1]), path.map((p) => p[2]), { color: css("--s4"), width: 2.2 });
+      P.dots([S.what[0]], [S.what[1]], { color: css("--c-ghost"), r: 7, stroke: css("--surface") });
+      P.text("ŵ", S.what[0], S.what[1], { dx: 10, dy: -10, halo: true, font: "600 13px system-ui" });
+      P.dots([w[0]], [w[1]], { color: css("--c-fit"), r: 7, stroke: "#fff" });
+    });
+
+    // path panel
+    const Q = pathPlot;
+    Q.clear(); Q.axes({ zeroLines: true });
+    Q.clipped(() => {
+      Q.line(path.map((p) => p[0]), path.map((p) => p[1]), { color: css("--s1"), width: 2.6 });
+      Q.line(path.map((p) => p[0]), path.map((p) => p[2]), { color: css("--s2"), width: 2.6 });
+      Q.line([a, a], [-LIM, LIM], { color: css("--c-ghost"), dash: [6, 5], width: 1.6 });
+      Q.dots([a, a], [w[0], w[1]], { color: css("--text"), r: 4.5, stroke: css("--surface") });
+    });
+
+    const zeros = w.filter((v) => Math.abs(v) < zeroTol).length;
+    U.setText("ro-w1", Math.abs(w[0]) < zeroTol ? "0 (exact)" : w[0].toFixed(3));
+    U.setText("ro-w2", Math.abs(w[1]) < zeroTol ? "0 (exact)" : w[1].toFixed(3));
+    U.setText("ro-pen", U.fmt(pen));
+    U.setText("ro-zero", `${zeros} of 2`);
+    U.setText("ro-loss", U.fmt(quad(w)));
+    $("ro-zero-box").className = "readout" + (zeros ? " good" : "");
+  }
+
+  U.autoRedraw([geo, pathPlot], draw);
+  draw();
+})();
+</script>
+</body>
+</html>

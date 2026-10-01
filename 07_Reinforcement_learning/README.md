@@ -1,496 +1,337 @@
-# Reinforcement Learning
+# 07 · Reinforcement Learning
 
-> **Quick reference:** the key equations, hyperparameters and pitfalls for this module are on one page in [CHEATSHEET.md](CHEATSHEET.md).
+In reinforcement learning (RL), nobody gives the model the right answers. An **agent** learns by **trial and error**: it acts, sees what happens, and is rewarded or penalised. Over time it learns a strategy that collects as much reward as possible.
 
-## Fundamentals & Policy Gradients
+> **Notebooks:** [rl_basics](rl_basics.ipynb) (MDPs, value iteration on a grid world, REINFORCE) · [dqn_and_actor_critic](dqn_and_actor_critic.ipynb) (DQN and A2C on CartPole)
+>
+> **Quick revision:** [CHEATSHEET.md](CHEATSHEET.md)
 
-### Introduction to Reinforcement Learning
+## Contents
 
-#### The Agent-Environment Paradigm
+1. [The RL setting](#1-the-rl-setting)
+2. [Markov decision processes](#2-markov-decision-processes)
+3. [Policies and value functions](#3-policies-and-value-functions)
+4. [Value iteration: planning with a known model](#4-value-iteration-planning-with-a-known-model)
+5. [Policy gradients: REINFORCE](#5-policy-gradients-reinforce)
+6. [Q-learning and deep Q-networks (DQN)](#6-q-learning-and-deep-q-networks-dqn)
+7. [Actor–critic (A2C)](#7-actorcritic-a2c)
+8. [Comparing the methods](#8-comparing-the-methods)
 
-Reinforcement Learning represents a computational approach to understanding and automating goal-directed learning and decision-making. Unlike supervised learning, where the correct action is provided, or unsupervised learning, where the goal is to find hidden structure, RL focuses on learning through interaction with an environment to maximize cumulative reward.
+---
 
-The fundamental interaction occurs through the **agent-environment loop**:
+## 1. The RL setting
 
-```
-State(t) → Agent → Action(t) → Environment → Reward(t+1), State(t+1)
+### 1.1 The agent–environment loop
 
-```
+At every time step $t$:
 
-This cyclical process continues until either:
+1. the agent observes the **state** $S_t$
+2. it chooses an **action** $A_t$
+3. the environment responds with a **reward** $R_{t+1}$ and a new state $S_{t+1}$
 
--   A terminal state is reached (episodic tasks)
--   A maximum number of steps is executed
--   The learning process is manually terminated
+<p align="center">
+  <img src="assets/rl.png" alt="Agent-environment loop" width="560">
+  <br>
+  <em>The agent acts; the environment returns the next state and a reward.</em>
+</p>
 
-<div align="center">
-<img src="assets/rl.png" width="1100" height="600">
-<p>Fig. Reinforcement Learning</p>
-</div>
+The loop repeats until the episode ends: the goal is reached, the agent fails, or a step limit runs out.
 
+### 1.2 Vocabulary
 
-#### Key Components and Terminology
+| Term | Meaning | CartPole example |
+|---|---|---|
+| **Agent** | The learner and decision-maker | The controller |
+| **Environment** | Everything the agent interacts with | The cart, the pole and the physics |
+| **State** $s$ | What the agent observes | Cart position and velocity, pole angle and angular velocity |
+| **Action** $a$ | A choice the agent makes | Push left or push right |
+| **Reward** $r$ | Immediate feedback, a single number | +1 for every step the pole stays up |
+| **Policy** $\pi$ | The agent's strategy: state → action | The network we train |
+| **Value** $V$, $Q$ | Expected *future* reward | How many more steps the pole will likely stay up |
 
-**Agent ($\large \mathcal{A}$)**: The learner and decision-maker that perceives the environment and selects actions.
+### 1.3 The goal
 
-**Environment ($\large \mathcal{E}$)**: The external system with which the agent interacts. It encompasses everything outside the agent's direct control.
-
-**State ($\large s \in \mathcal{S}$)**: A complete description of the world's current configuration that contains all information necessary for decision-making. The state space $\large \mathcal{S}$ contains all possible states.
-
-**Action ($\large a \in \mathcal{A}$)**: A choice made by the agent that affects the environment. The action space $\large \mathcal{A}$ may be discrete (finite set) or continuous.
-
-**Reward ($\large r \in \mathcal{R} \subseteq \mathbb{R}$)**: A scalar signal that indicates the immediate desirability of the agent's action. Rewards provide the only feedback mechanism for learning.
-
-**Policy ($\large \pi$)**: The agent's strategy for selecting actions. It defines the mapping from states to actions or action probabilities.
-
-**Value Function**: A function that estimates the expected long-term reward from states or state-action pairs under a given policy.
-
-#### The RL Problem Statement
-
-The central problem in RL can be formally stated as:
-
-> **Given an environment modeled as an MDP, find a policy $\large \pi^*$ that maximizes the expected cumulative discounted reward.**
-
-Mathematically, this translates to:
+Find the policy that maximises the expected **return**, the total discounted reward:
 
 ```math
-\large \pi^* = \arg\max_{\pi} \mathbb{E}_{\tau \sim \pi}\left[\sum_{t=0}^{T} \gamma^t R_{t+1} \mid S_0\right]
+\pi^* = \arg\max_\pi \; \mathbb{E}_\pi\left[\sum_{t=0}^{T} \gamma^t R_{t+1}\right]
 ```
 
-where:
+---
 
--   $\large \tau$ represents a trajectory (sequence of states, actions, and rewards)
--   $\large T$ is the time horizon (finite for episodic tasks, infinite for continuing tasks)
--   $\large \gamma \in [0,1]$ is the discount factor
+## 2. Markov decision processes
 
+### 2.1 Definition
 
-### Mathematical Foundations: Markov Decision Processes
+An RL problem is formalised as a **Markov decision process (MDP)**, $\mathcal{M} = (\mathcal{S}, \mathcal{A}, P, R, \gamma)$:
 
-#### Formal MDP Definition
+| Symbol | Name | Meaning |
+|---|---|---|
+| $\mathcal{S}$ | State space | All possible states (finite, or continuous like CartPole) |
+| $\mathcal{A}$ | Action space | All possible actions (discrete or continuous) |
+| $P(s' \mid s, a)$ | Transition dynamics | The probability of landing in $s'$ after taking $a$ in $s$ |
+| $R(s, a)$ | Reward function | The expected immediate reward $\mathbb{E}[R_{t+1} \mid s, a]$ |
+| $\gamma \in [0, 1]$ | Discount factor | How much future rewards count |
 
-A Markov Decision Process provides the mathematical framework for modeling sequential decision-making problems. An MDP is formally defined by the tuple:
+### 2.2 The Markov property
 
-$$\large 
-\mathcal{M} = (\mathcal{S}, \mathcal{A}, \mathcal{P}, \mathcal{R}, \gamma)
-$$
-
-where:
-
-**State Space ($\large \mathcal{S}$)**: The set of all possible states. This can be:
-
--   Finite: $\large \mathcal{S} = {s_1, s_2, \ldots, s_n}$
--   Countably infinite: $\large \mathcal{S} = {s_1, s_2, s_3, \ldots}$
--   Continuous: $\large \mathcal{S} \subseteq \mathbb{R}^n$
-
-**Action Space ($\large \mathcal{A}$)**: The set of all possible actions. Can be state-dependent $\large \mathcal{A}(s)$ or global $\large \mathcal{A}$.
-
-**Transition Dynamics ($\large \mathcal{P}$)**: The probability distribution over next states given current state and action: 
-
-$$\large 
-\mathcal{P}(s' \mid s, a) = \Pr(S_{t+1} = s' \mid S_t = s, A_t = a)
-$$
-
-**Reward Function ($\large \mathcal{R}$)**: The expected immediate reward: 
-
-$$\large 
-\mathcal{R}(s, a) = \mathbb{E}[R_{t+1} \mid S_t = s, A_t = a]
-$$
-
-**Discount Factor ($\large \gamma$)**: A value in $\large [0, 1]$ that determines the present value of future rewards.
-
-#### The Markov Property
-
-The Markov property is the cornerstone assumption that makes RL mathematically tractable:
-
-$$\large 
-\Pr(S_{t+1} = s', R_{t+1} = r \mid S_0, A_0, R_1, \ldots, S_t, A_t) = \Pr(S_{t+1} = s', R_{t+1} = r \mid S_t, A_t)
-$$
-
-This states that the future depends only on the present state and action, not on the entire history. This assumption allows us to make optimal decisions based solely on current information.
-
-#### Return and Discount Factor
-
-The **return** $\large G_t$ represents the cumulative discounted reward from time $\large t$ onwards:
-
-$$\large 
-G_t = \sum_{k=0}^{\infty} \gamma^k R_{t+k+1}
-$$
-
-The discount factor $\large \gamma$ serves multiple purposes:
-
-1.  **Mathematical Convenience**: Ensures convergence of infinite sums when $\large \gamma < 1$
-2.  **Temporal Preference**: Models preference for immediate rewards over delayed ones
-3.  **Uncertainty Modeling**: Accounts for uncertainty about the future
-
-**Special Cases**:
-
--   $\large \gamma = 0$: Myopic agent (only immediate rewards matter)
--   $\large \gamma = 1$: Far-sighted agent (all future rewards equally important)
--   $\large \gamma \to 1$: Approaches undiscounted case
-
-### Policies: The Heart of Decision Making
-
-#### Deterministic vs. Stochastic Policies
-
-**Deterministic Policy**: $\large \pi: \mathcal{S} \to \mathcal{A}$ 
-
-$$\large 
-a = \pi(s)
-$$
-
-**Stochastic Policy**: $\large \pi: \mathcal{S} \times \mathcal{A} \to [0, 1]$ 
-
-$$\large 
-\pi(a \mid s) = \Pr(A_t = a \mid S_t = s)
-$$
-
-with the constraint: $\large \sum_{a \in \mathcal{A}} \pi(a \mid s) = 1$ for all $\large s \in \mathcal{S}$.
-
-#### Policy Representation
-
-**Tabular Representation**: For small, discrete state and action spaces 
-
-$$\large 
-\pi(a \mid s) = \begin{cases} 0.7 & \text{if } a = a_1 \ 0.3 & \text{if } a = a_2 \ 0 & \text{otherwise} \end{cases}
-$$
-
-**Parametric Representation**: For large or continuous spaces 
-
-$$\large 
-\pi_\theta(a \mid s) = \frac{\exp(\phi(s, a)^T \theta)}{\sum_{a'} \exp(\phi(s, a')^T \theta)}
-$$ 
-
-(Softmax policy)
-
-where $\large \phi(s, a)$ are feature vectors and $\large \theta$ are learnable parameters.
-
-#### Policy Evaluation
-
-Given a policy $\large \pi$, we can evaluate its performance through its value functions, which we'll explore in the next section.
-
-### Value Functions: Quantifying Goodness
-
-#### State-Value Functions
-
-The **state-value function** $\large V^\pi(s)$ gives the expected return when starting in state $\large s$ and following policy $\large \pi$:
+> **The future depends only on the present state, not on how you got there.**
 
 ```math
-\large V^\pi(s) = \mathbb{E}_\pi[G_t \mid S_t = s] = \mathbb{E}_\pi\left[\sum_{k=0}^{\infty} \gamma^k R_{t+k+1} \mid S_t = s\right]
+P(S_{t+1}, R_{t+1} \mid S_0, A_0, \dots, S_t, A_t) = P(S_{t+1}, R_{t+1} \mid S_t, A_t)
 ```
 
-#### Action-Value Functions
+This is what lets the agent decide using only the current state.
 
-The **action-value function** $\large Q^\pi(s, a)$ gives the expected return when starting in state $\large s$, taking action $\large a$, and then following policy $\large \pi$:
+### 2.3 Return and discounting
+
+The **return** from time $t$ adds up all future rewards, each discounted by how far away it is:
 
 ```math
-\large Q^\pi(s, a) = \mathbb{E}_\pi[G_t \mid S_t = s, A_t = a] = \mathbb{E}_\pi\left[\sum_{k=0}^{\infty} \gamma^k R_{t+k+1} \mid S_t = s, A_t = a\right]
+G_t = R_{t+1} + \gamma R_{t+2} + \gamma^2 R_{t+3} + \dots = \sum_{k=0}^{\infty} \gamma^k R_{t+k+1}
 ```
 
-#### Bellman Equations
+Discounting does three things:
 
-The Bellman equations express the recursive relationship between value functions:
+- it keeps infinite sums finite (when $\gamma < 1$)
+- it prefers sooner rewards
+- it reflects uncertainty about the future
 
-**Bellman Expectation Equation for** $`\large V^\pi`$: 
+| $\gamma$ | Behaviour |
+|---|---|
+| 0 | Short-sighted: only the next reward matters |
+| 0.9 | Looks about $\frac{1}{1 - \gamma} = 10$ steps ahead |
+| 0.99 | Looks about 100 steps ahead, a common default |
+| 1 | All future rewards count equally (only safe for episodes that are guaranteed to end) |
+
+---
+
+## 3. Policies and value functions
+
+### 3.1 Policies
+
+- **Deterministic:** $a = \pi(s)$, always the same action in a given state.
+- **Stochastic:** $\pi(a \mid s)$, a probability for each action.
+
+Stochastic policies explore naturally, and policy-gradient methods need them.
+
+For large or continuous state spaces, the policy is a **neural network** $\pi_\theta(a \mid s)$, usually ending in a softmax over the actions.
+
+### 3.2 Value functions
+
+**State value:** how good is it to be in state $s$ and then follow $\pi$?
 
 ```math
-\large V^\pi(s) = \sum_{a} \pi(a \mid s) \sum_{s', r} p(s', r \mid s, a)[r + \gamma V^\pi(s')]
+V^\pi(s) = \mathbb{E}_\pi\left[G_t \mid S_t = s\right]
 ```
 
-**Bellman Expectation Equation for** $`\large Q^\pi`$: 
+**Action value:** how good is it to take action $a$ in state $s$, and then follow $\pi$?
 
 ```math
-\large Q^\pi(s, a) = \sum_{s', r} p(s', r \mid s, a)\left[r + \gamma \sum_{a'} \pi(a' \mid s') Q^\pi(s', a')\right]
+Q^\pi(s, a) = \mathbb{E}_\pi\left[G_t \mid S_t = s,\; A_t = a\right]
 ```
 
-These equations form the basis for many RL algorithms, including temporal difference learning and Q-learning.
-
-#### Optimal Value Functions
-
-The **optimal state-value function** $\large V^(s)$ is the maximum value achievable from state $\large s$: 
-
-$$\large 
-V^(s) = \max_\pi V^\pi(s)
-$$
-
-The **optimal action-value function** $\large Q^(s, a)$ is the maximum value achievable from state $\large s$ taking action $\large a$: 
-
-$$\large 
-Q^(s, a) = \max_\pi Q^\pi(s, a)
-$$
-
-**Bellman Optimality Equations**: 
+**Advantage:** how much better is $a$ than the policy's average action in $s$?
 
 ```math
-\large V^*(s) = \max_a \sum_{s', r} p(s', r \mid s, a)[r + \gamma V^*(s')]
+A^\pi(s, a) = Q^\pi(s, a) - V^\pi(s)
 ```
 
-<div align="center">
+### 3.3 Bellman equations
+
+The value of a state equals the **immediate reward** plus the **discounted value of where you end up**. This recursive relationship is the foundation of almost every RL algorithm.
+
+**Expectation equation** (for a given policy $\pi$):
 
 ```math
-\large Q^*(s, a) = \sum_{s', r} p(s', r \mid s, a)\left[r + \gamma \max_{a'} Q^*(s', a')\right]
+V^\pi(s) = \sum_a \pi(a \mid s) \sum_{s'} P(s' \mid s, a) \big[ R + \gamma V^\pi(s') \big]
 ```
 
-</div>>
-
-### Policy Gradient Methods: Direct Optimization
-
-#### Motivation and Advantages
-
-Policy gradient methods directly optimize the policy parameters $\theta$ to maximize expected return, offering several advantages:
-
-1.  **Direct Optimization**: No need to compute value functions explicitly
-2.  **Continuous Actions**: Natural handling of continuous action spaces
-3.  **Stochastic Policies**: Can learn inherently stochastic optimal policies
-4.  **Convergence Guarantees**: Under certain conditions, guaranteed to converge to local optima
-
-#### Policy Gradient Theorem
-
-The policy gradient theorem provides the foundation for policy gradient methods. It states that the gradient of the expected return with respect to policy parameters is:
+**Optimality equations** (for the best policy):
 
 ```math
-\large \nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}\left[\sum_{t=0}^{T-1} \nabla_\theta \log \pi_\theta(A_t \mid S_t) G_t\right]
+V^*(s) = \max_a \sum_{s'} P(s' \mid s, a) \big[ R + \gamma V^*(s') \big]
 ```
-
-where:
-
--   $`\large J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[R(\tau)]`$ is the objective function
--   $\large \tau$ is a trajectory sampled from policy $\large \pi_\theta$
--   $\large G_t$ is the return from time step $\large t$
-
-#### Proof Sketch of Policy Gradient Theorem
-
-The proof involves several key steps:
-
-1.  **Express the objective function**: 
-
-$$\large 
-J(\theta) = \sum_\tau P(\tau \mid \theta) R(\tau)
-$$
-    
-2.  **Take the gradient**: 
-
-$$\large 
-\nabla_\theta J(\theta) = \sum_\tau \nabla_\theta P(\tau \mid \theta) R(\tau)
-$$
-    
-3.  **Use the log-derivative trick**: 
-
-$$\large 
-\nabla_\theta P(\tau \mid \theta) = P(\tau \mid \theta) \nabla_\theta \log P(\tau \mid \theta)
-$$
-    
-4.  **Express trajectory probability**: 
-
-$$\large 
-P(\tau \mid \theta) = \rho_0(s_0) \prod_{t=0}^{T-1} \pi_\theta(a_t \mid s_t) p(s_{t+1} \mid s_t, a_t)
-$$
-    
-5.  **Simplify the gradient**: 
-
-$$\large 
-\nabla_\theta \log P(\tau \mid \theta) = \sum_{t=0}^{T-1} \nabla_\theta \log \pi_\theta(a_t \mid s_t)
-$$
-    
-6.  **Convert back to expectation**: 
 
 ```math
-\large \nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}\left[\sum_{t=0}^{T-1} \nabla_\theta \log \pi_\theta(A_t \mid S_t) R(\tau)\right]
+Q^*(s, a) = \mathbb{E}_{s'}\Big[ R + \gamma \max_{a'} Q^*(s', a') \Big]
 ```
 
-### Gradient Ascent in Policy Space
+Once you know $Q^*$, acting optimally is easy: in every state, pick $\arg\max_a Q^*(s, a)$.
 
-With the policy gradient theorem, we can perform gradient ascent:
+---
 
-$$\large 
-\theta_{t+1} = \theta_t + \alpha \nabla_\theta J(\theta_t)
-$$
+## 4. Value iteration: planning with a known model
 
-where $\large \alpha$ is the learning rate.
+If you **know** the transition probabilities $P$, you can compute $V^*$ directly. Just apply the Bellman optimality equation over and over:
 
-### REINFORCE Algorithm: Monte Carlo Policy Gradient
-
-#### Algorithm Derivation
-
-REINFORCE (REward Increment = Nonnegative Factor × Offset Reinforcement × Characteristic Eligibility) is the simplest policy gradient algorithm. It uses the policy gradient theorem directly with Monte Carlo sampling.
-
-The key insight is to replace the return $\large R(\tau)$ in the policy gradient theorem with the actual return $\large G_t$ from each time step:
-
-$$\large 
-\nabla_\theta J(\theta) \approx \frac{1}{N} \sum_{i=1}^{N} \sum_{t=0}^{T_i-1} \nabla_\theta \log \pi_\theta(A_t^{(i)} \mid S_t^{(i)}) G_t^{(i)}
-$$
-
-#### Implementation Details
-
-**Loss Function**: Since most optimizers perform gradient descent (minimization), we define: 
-
-$$\large 
-L(\theta) = -\frac{1}{N} \sum_{i=1}^{N} \sum_{t=0}^{T_i-1} \log \pi_\theta(A_t^{(i)} \mid S_t^{(i)}) G_t^{(i)}
-$$
-
-**Return Calculation**: For each time step $t$ in episode $\large i$: 
-
-$$\large 
-G_t^{(i)} = \sum_{k=t}^{T_i-1} \gamma^{k-t} R_{k+1}^{(i)}
-$$
-
-#### Variance Reduction Techniques
-
-**Baseline Subtraction**: Subtract a state-dependent baseline $\large b(s)$ to reduce variance: 
+1. Start with $V(s) = 0$ for every state.
+2. For every state, update:
 
 ```math
-\large \nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}\left[\sum_{t=0}^{T-1} \nabla_\theta \log \pi_\theta(A_t \mid S_t) (G_t - b(S_t))\right]
+V(s) \leftarrow \max_a \sum_{s'} P(s' \mid s, a) \big[ R + \gamma V(s') \big]
 ```
 
-Common baselines include:
+3. Repeat until the largest change is smaller than a tolerance $\epsilon$.
+4. **Extract the policy** by acting greedily: $\pi^*(s) = \arg\max_a \sum_{s'} P(s' \mid s, a) [R + \gamma V(s')]$.
 
--   Moving average of returns
--   State-value function $\large V^\pi(s)$ (leading to Actor-Critic methods)
+The [rl_basics](rl_basics.ipynb) notebook runs this on a **4 × 4 grid world**. It shows the value of every cell, with arrows for the optimal policy, and has a slider for $\gamma$.
 
-**Causality**: Only use future rewards for each action: 
+> [!NOTE]
+> Value iteration is *planning*, not learning, because it needs the model $P$. All the methods below learn from **experience** alone.
+
+---
+
+## 5. Policy gradients: REINFORCE
+
+<p align="center">
+  <img src="assets/dqn.png" alt="A deep RL agent: a neural network maps states to a policy" width="560">
+  <br>
+  <em>In deep RL a neural network turns the observed state into a policy π<sub>θ</sub>(a | s).</em>
+</p>
+
+### 5.1 The idea
+
+Instead of learning values, **learn the policy directly**. Make actions that led to high returns more likely, and actions that led to low returns less likely.
+
+### 5.2 The policy gradient
+
+The objective is the expected return, $J(\theta) = \mathbb{E}_{\pi_\theta}[G_0]$. The **policy gradient theorem** gives its gradient as:
 
 ```math
-\large \nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}\left[\sum_{t=0}^{T-1} \nabla_\theta \log \pi_\theta(A_t \mid S_t) \sum_{k=t}^{T-1} \gamma^{k-t} R_{k+1}\right]
+\nabla_\theta J(\theta) = \mathbb{E}_{\pi_\theta}\left[ \sum_t \nabla_\theta \log \pi_\theta(a_t \mid s_t) \cdot G_t \right]
 ```
 
-## DQN & Actor-Critic Methods
+Read it as: "push up the log-probability of each action, in proportion to the return that followed it."
 
-### REINFORCE Limitations Recap
+### 5.3 The REINFORCE algorithm
 
-Basic policy gradients (REINFORCE) suffer from:
+1. Play one full episode with the current policy. Record each $\log \pi_\theta(a_t \mid s_t)$ and reward.
+2. Compute the return $G_t$ for every step, working backwards: $G_t = r_{t+1} + \gamma G_{t+1}$.
+3. Minimise the loss $\mathcal{L} = -\sum_t \log \pi_\theta(a_t \mid s_t)\, G_t$ with one gradient step.
+4. Repeat.
 
--   **High variance**: Monte Carlo returns $\large G_t = \sum_{k=0}^{T-t-1} \gamma^k R_{t+k+1}$ create noisy gradients
--   **Sample inefficiency**: On-policy learning discards old experiences
--   **Poor credit assignment**: Full episode returns may not accurately reflect individual action quality
+### 5.4 Reducing the variance
 
-### Deep Q-Networks (DQN)
+REINFORCE is **unbiased but very noisy**. A single lucky episode can push the policy far off course. Some standard fixes:
 
-DQN is a **value-based**, **off-policy** algorithm that learns the optimal action-value function using neural networks.
+- **Normalise the returns** within each episode (subtract the mean, divide by the standard deviation).
+- **Subtract a baseline** $b(s)$, usually $V(s)$: use $G_t - b(s_t)$ instead of $G_t$. This leaves the gradient unbiased but much less noisy. It leads directly to **actor–critic** (section 7).
+- Add an **entropy bonus** so the policy keeps exploring.
 
-<div align="center">
-<img src="assets/dqn.png" width="650" height="300">
-<p>Fig. Deep Q-Learning </p>
-</div>
+---
 
-#### Q-Learning Foundation
+## 6. Q-learning and deep Q-networks (DQN)
 
-The optimal action-value function $\large Q^*(s,a)$ satisfies the Bellman optimality equation:
+### 6.1 Tabular Q-learning
+
+Learn $Q^*$ from experience, without a model. After each transition $(s, a, r, s')$, nudge $Q(s, a)$ towards the Bellman target:
 
 ```math
-\large Q^*(s,a) = \mathbb{E}_{s'}[R(s,a,s') + \gamma \max_{a'} Q^*(s', a')]
+Q(s, a) \leftarrow Q(s, a) + \alpha \Big[ \underbrace{r + \gamma \max_{a'} Q(s', a')}_{\text{TD target}} - Q(s, a) \Big]
 ```
 
-Traditional Q-learning update: 
+The bracketed difference is the **temporal-difference (TD) error**. Q-learning is **off-policy**: it learns about the greedy policy while behaving more exploratively.
 
-$$\large 
-Q(s,a) \leftarrow Q(s,a) + \alpha \underbrace{[r + \gamma \max_{a'} Q(s', a') - Q(s,a)]}_{\text{TD error}}
-$$
+### 6.2 From a table to a network
 
-#### Neural Network Approximation
+CartPole's states are continuous, so a table won't work. A **DQN** uses a neural network $Q_\theta(s, \cdot)$:
 
-DQN uses a neural network $\large Q(s,a;\theta)$ to approximate $\large Q^*(s,a)$:
+- **input:** the state (4 numbers for CartPole)
+- **output:** one Q-value per action (2 for CartPole)
 
--   **Input**: State $\large s$
--   **Output**: Q-values for all actions $\large [Q(s,a_1), Q(s,a_2), \ldots, Q(s,a_n)]$
+Naively training a network on Bellman targets is **unstable**, for two reasons. Consecutive samples are highly correlated, and the target moves every time the network updates. DQN adds three ingredients to fix this.
 
-#### Key Components
+### 6.3 The three ingredients of DQN
 
-**Experience Replay Buffer**
+| Ingredient | What it does | Why it helps |
+|---|---|---|
+| **Experience replay** | Store transitions $(s, a, r, s', \text{done})$ in a buffer, then train on **random** mini-batches | Breaks the correlation between samples, and reuses data |
+| **Target network** $Q_{\theta^-}$ | A slowly updated copy of the network, used only to compute targets | Keeps the targets stable. Updated by hard copy, or softly: $\theta^- \leftarrow \tau\theta + (1 - \tau)\theta^-$ with $\tau = 0.005$ in the notebook |
+| **ε-greedy exploration** | Random action with probability ε, otherwise $\arg\max_a Q$. ε decays over time | Balances exploring with exploiting |
 
--   Stores transitions $\large (s_t, a_t, r_{t+1}, s_{t+1}, \text{done}_t)$
--   Random sampling breaks temporal correlations and enables data reuse
-
-**Target Network**
-
--   Separate network $\large Q_{\text{target}}$ updated periodically from main network
--   Stabilizes training by providing fixed targets: 
-
-$$\large 
-y_j = \begin{cases} r_j & \text{if terminal} \ r_j + \gamma \max_{a'} Q_{\text{target}}(s'_j, a') & \text{otherwise} \end{cases}
-$$
-
-**$\large \epsilon$-Greedy Exploration** 
-
-$$\large 
-a_t = \begin{cases} \text{random action} & \text{with probability } \epsilon \ \arg\max_{a} Q(s_t, a; \theta) & \text{with probability } 1-\epsilon \end{cases}
-$$
-
-#### DQN Loss Function
-
-$$\large 
-\mathcal{L}(\theta) = \mathbb{E}_{(s,a,r,s') \sim \mathcal{D}} \left[ \left(y - Q(s,a;\theta)\right)^2 \right]
-$$
-
-where $\large \mathcal{D}$ is the replay buffer and $\large y$ is the target value.
-
-#### DQN Algorithm
-
-1.  Initialize $\large Q(s,a;\theta)$ and target network $\large Q_{\text{target}}$
-2.  Initialize replay buffer $\large \mathcal{D}$
-3.  **For each episode:**
-    -   Select actions using $\large \epsilon$-greedy policy
-    -   Store transitions in $\large \mathcal{D}$
-    -   Sample mini-batch from $\large \mathcal{D}$
-    -   Compute targets using $\large Q_{\text{target}}$
-    -   Update $\large Q$ via gradient descent on $\large \mathcal{L}(\theta)$
-    -   Periodically update $\large Q_{\text{target}} \leftarrow Q$
-
-### Actor-Critic Methods
-
-Actor-Critic combines policy-based and value-based approaches using two networks:
-
--   **Actor** $\large \pi_\theta(a|s)$: Policy network (what to do)
--   **Critic** $\large V_w(s)$: Value network (how good is the state)
-
-<div align="center">
-<img src="assets/actorcritic.png" width="650" height="500">
-<p>Fig. Actor-Critic reinforcement learning</p>
-</div>
-
-#### Advantage Function
-
-Instead of raw returns, Actor-Critic uses the **advantage function**: 
-
-$$\large 
-A^\pi(s,a) = Q^\pi(s,a) - V^\pi(s)
-$$
-
-Common approximation using TD error: 
-
-$$\large 
-A(s_t, a_t) \approx R_{t+1} + \gamma V_w(S_{t+1}) - V_w(S_t)
-$$
-
-The advantage reduces variance by centering the policy gradient around the state value.
-
-#### A2C (Advantage Actor-Critic)
-
-**Actor Update**: Maximize expected advantage-weighted log-probability 
-
-$$\large 
-\nabla_\theta J(\theta) = \mathbb{E}\left[\nabla_\theta \log \pi_\theta(a_t|s_t) \cdot A(s_t, a_t)\right]
-$$
-
-Actor loss: 
+### 6.4 The DQN loss
 
 ```math
-\large \mathcal{L}_{\text{actor}}(\theta) = -\sum_t \log \pi_\theta(a_t|s_t) \cdot A(s_t, a_t)
+y = \begin{cases} r & \text{if } s' \text{ is terminal} \\ r + \gamma \max_{a'} Q_{\theta^-}(s', a') & \text{otherwise} \end{cases}
 ```
-
-**Critic Update**: Minimize value prediction error 
 
 ```math
-\large \mathcal{L}_{\text{critic}}(w) = \sum_t \left(V_{\text{target},t} - V_w(s_t)\right)^2
+\mathcal{L}(\theta) = \text{Huber}\big( Q_\theta(s, a),\; y \big)
 ```
 
-where $\large V_{\text{target},t} = R_{t+1} + \gamma V_w(S_{t+1})$
+The **Huber loss** acts like MSE for small errors and like MAE for large ones, so a few huge TD errors can't blow up the gradients.
 
-#### A2C Algorithm
+### 6.5 The DQN algorithm
 
-1.  Initialize Actor $\large \pi_\theta$ and Critic $\large V_w$
-2.  **For each episode:**
-    -   Collect trajectory using current policy $\large \pi_\theta$
-    -   **For each step $\large t$:**
-        -   Compute target: $\large V_{\text{target},t} = R_{t+1} + \gamma V_w(S_{t+1}) \cdot (1-\text{done}_{t+1})$
-        -   Compute advantage: $\large A_t = V_{\text{target},t} - V_w(S_t)$
-    -   Update Actor: $\large \theta \leftarrow \theta + \alpha_\theta \nabla_\theta \mathcal{L}_{\text{actor}}$
-    -   Update Critic: $\large w \leftarrow w - \alpha_w \nabla_w \mathcal{L}_{\text{critic}}$
+1. Initialise $Q_\theta$, the target network $Q_{\theta^-} \leftarrow Q_\theta$, and an empty replay buffer.
+2. Each step:
+   1. choose $a$ ε-greedily, act, and store the transition in the buffer
+   2. sample a random mini-batch and compute the targets $y$ with $Q_{\theta^-}$
+   3. take a gradient step on the Huber loss
+   4. update the target network
+3. Decay ε.
+
+> [!WARNING]
+> Only bootstrap when the episode **really** ended (`terminated`). If it was cut off by a **time limit** (`truncated`), the next state still has value, so keep the $\gamma \max Q$ term.
+
+---
+
+## 7. Actor–critic (A2C)
+
+### 7.1 Two networks, two jobs
+
+- The **actor** $\pi_\theta(a \mid s)$ decides what to do. It is a policy network, as in REINFORCE.
+- The **critic** $V_w(s)$ judges how good the current state is. It is a value network.
+
+<p align="center">
+  <img src="assets/actorcritic.png" alt="Actor and critic networks interacting with the environment" width="520">
+  <br>
+  <em>The critic's TD error tells the actor whether an action turned out better or worse than expected.</em>
+</p>
+
+### 7.2 The advantage
+
+The critic replaces REINFORCE's noisy return $G_t$ with an **advantage estimate**, based on the one-step TD error:
+
+```math
+A_t \approx \underbrace{r_{t+1} + \gamma V_w(s_{t+1})}_{\text{target}} - V_w(s_t)
+```
+
+- A positive $A_t$ means the action was **better than expected**, so make it more likely.
+- A negative $A_t$ means it was **worse than expected**, so make it less likely.
+
+### 7.3 The losses
+
+```math
+\mathcal{L}_{\text{actor}} = -\sum_t \log \pi_\theta(a_t \mid s_t) \cdot A_t \qquad\qquad \mathcal{L}_{\text{critic}} = \sum_t \big( \text{target}_t - V_w(s_t) \big)^2
+```
+
+The target is $r_{t+1} + \gamma V_w(s_{t+1}) \cdot (1 - \text{done})$.
+
+> [!IMPORTANT]
+> **Detach** the advantage (and the critic's target) in the actor loss. Otherwise the actor's gradient flows into the critic and corrupts it.
+
+### 7.4 The A2C algorithm
+
+1. Initialise the actor $\pi_\theta$ and the critic $V_w$.
+2. For each episode:
+   1. collect transitions with the current policy
+   2. compute the targets and advantages with the critic
+   3. take a gradient step on the actor loss and a gradient step on the critic loss
+
+Using $V(s)$ as a **baseline** is exactly why A2C learns more smoothly than plain REINFORCE.
+
+---
+
+## 8. Comparing the methods
+
+| Method | Learns | Needs a model? | On/off-policy | Actions | Notebook |
+|---|---|---|---|---|---|
+| Value iteration | $V^*$ | ✅ Yes | — | Discrete | rl_basics (grid world) |
+| **REINFORCE** | $\pi_\theta$ | ❌ No | On-policy | Discrete or continuous | rl_basics |
+| **DQN** | $Q_\theta$ | ❌ No | Off-policy (replay buffer) | Discrete only | dqn_and_actor_critic (CartPole) |
+| **A2C** | $\pi_\theta$ and $V_w$ | ❌ No | On-policy | Discrete or continuous | dqn_and_actor_critic (CartPole) |
+
+> [!TIP]
+> RL training curves are **very noisy**. Plot a moving average and try several random seeds before drawing conclusions. Even CartPole can take hundreds of episodes to solve.

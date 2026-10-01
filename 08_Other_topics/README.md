@@ -1,131 +1,215 @@
-# Other Topics
+# 08 · Fairness & Interpretability
 
-> **Quick reference:** the key equations, hyperparameters and pitfalls for this module are on one page in [CHEATSHEET.md](CHEATSHEET.md).
+When ML models make high-stakes decisions about loans, hiring or medical care, test accuracy is not enough. Two more questions matter:
 
-## Responsible AI: Fairness & Interpretability
+- **Fairness:** does the model treat groups differently, especially groups defined by **sensitive attributes** such as sex, race or age?
+- **Interpretability:** can we understand **why** the model made a particular prediction?
 
-As ML models are used in high-stakes decisions (loan approvals, hiring, medical diagnosis), accuracy on a test set is no longer enough. Two further questions matter:
+> **Notebook:** [fairness_interpretability](fairness_interpretability.ipynb)
+>
+> **Quick revision:** [CHEATSHEET.md](CHEATSHEET.md)
 
-*   **Fairness:** Does the model disproportionately harm or benefit certain groups, especially groups defined by **sensitive attributes** such as race, sex or age?
-*   **Interpretability / Explainability:** Can we understand *why* the model made a particular prediction? This builds trust, helps debugging, supports accountability, and can surface new insights about the data.
+## Contents
 
-The notebook [`fairness_interpretability.ipynb`](fairness_interpretability.ipynb) trains a small MLP on the **UCI Adult** dataset and explains its predictions with **LIME** and **SHAP**. It then **measures fairness**: per-group selection rates, TPR and FPR for `sex` and `race`, and the four group-fairness metrics below, computed from scratch and checked against [`fairlearn`](https://fairlearn.org). It also mitigates the equal-opportunity gap with group-specific decision thresholds.
+1. [The case study: UCI Adult](#1-the-case-study-uci-adult)
+2. [Where bias comes from](#2-where-bias-comes-from)
+3. [Group fairness metrics](#3-group-fairness-metrics)
+4. [Mitigating unfairness](#4-mitigating-unfairness)
+5. [Explaining predictions](#5-explaining-predictions)
+6. [LIME](#6-lime)
+7. [SHAP](#7-shap)
+8. [LIME vs SHAP](#8-lime-vs-shap)
 
-### Setup: The Adult (Census Income) Dataset
+---
 
-The task is binary classification: predict whether a person earns more than \$50K a year from census attributes (age, education, occupation, hours worked, etc.). The dataset contains sensitive attributes (`race`, `sex`), which makes it a standard benchmark for fairness research.
+## 1. The case study: UCI Adult
 
-Pipeline used in the notebook:
-1.  Download `adult.data` from the UCI repository into `./data/` (cached after the first run).
-2.  Drop `fnlwgt`, missing values and duplicates, and convert `income` to a binary label.
-3.  Preprocess with a `ColumnTransformer`: `StandardScaler` for numerical features and `OneHotEncoder` for categorical features (107 features after encoding).
-4.  Train a 2-layer MLP (`107 → 64 → 1`, ReLU) with `BCEWithLogitsLoss` and Adam for 20 epochs, reaching about **85% test accuracy**.
+**The task:** predict whether a person earns **more than \$50K a year** from census data (age, education, occupation, hours worked, …). The data includes `sex` and `race`, which makes it a standard fairness benchmark.
 
-## Fairness in Machine Learning
+**The notebook pipeline:**
 
-### Where Bias Comes From
-*   **Data:** Historical bias (the world the data reflects was unfair), representation bias (some groups are under-sampled), measurement bias (proxies such as "arrests" standing in for "crime").
-*   **Algorithm:** Objectives that optimise average accuracy can trade off minority-group performance for majority-group gains.
-*   **Human interpretation:** How predictions are thresholded, used and acted on.
+1. Download `adult.data` from UCI. It's cached in `./data/` after the first run.
+2. Drop `fnlwgt`, rows with missing values and duplicates. Make `income` a 0/1 label.
+3. Preprocess with a `ColumnTransformer`: `StandardScaler` for the numeric columns, `OneHotEncoder` for the categorical ones. That gives **107 features**.
+4. Train a small MLP (`107 → 64 → 1`, ReLU) with `BCEWithLogitsLoss` and Adam for 20 epochs. It reaches about **85 % test accuracy**.
 
-Simply dropping the sensitive attribute ("fairness through unawareness") rarely works, because other features (zip code, occupation, marital status) act as **proxies** for it.
+Then it:
 
-### Group Fairness Metrics
-Let $\large \hat{Y}$ be the prediction, $\large Y$ the true label and $\large A$ the sensitive attribute (e.g. $\large A \in \{a, b\}$).
+- **measures fairness**: selection rate, TPR and FPR per group, plus the metrics below. These are computed from scratch and checked against [fairlearn](https://fairlearn.org).
+- **mitigates** the gap with per-group thresholds
+- **explains** the predictions with LIME and SHAP
 
-**Demographic Parity:** Positive predictions are equally likely across groups.
+---
 
-$$\large
-P(\hat{Y} = 1 \mid A = a) = P(\hat{Y} = 1 \mid A = b)
-$$
+## 2. Where bias comes from
 
-**Equal Opportunity:** Qualified individuals are equally likely to be selected, i.e. equal **true positive rates**.
+| Source | Example |
+|---|---|
+| **Historical bias** | The data reflects a world that was already unfair (past hiring decisions) |
+| **Representation bias** | Some groups are under-sampled, so the model knows them less well |
+| **Measurement bias** | A proxy stands in for the real target ("arrests" for "crime") |
+| **The algorithm** | Optimising *average* accuracy can trade minority-group performance for majority-group gains |
+| **Deployment** | How predictions are thresholded and acted on, and the feedback loops this creates |
 
-$$\large
-P(\hat{Y} = 1 \mid Y = 1, A = a) = P(\hat{Y} = 1 \mid Y = 1, A = b)
-$$
+> [!WARNING]
+> **"Fairness through unawareness" rarely works.** Dropping the sensitive column doesn't remove the information, because **proxies** such as zip code, occupation or marital status still carry it.
 
-**Equalized Odds:** Equal true positive rates *and* equal false positive rates.
+---
 
-$$\large
-P(\hat{Y} = 1 \mid Y = y, A = a) = P(\hat{Y} = 1 \mid Y = y, A = b), \quad y \in \{0, 1\}
-$$
+## 3. Group fairness metrics
 
-These criteria generally **cannot all be satisfied at once** when base rates differ between groups, so choosing a fairness definition is a decision about the application, not a purely technical one.
+Notation: $\hat{Y}$ is the prediction, $Y$ the true label, and $A$ the sensitive attribute, with groups $a$ and $b$.
 
-In practice, these are reported as a gap or ratio between groups, for example the *disparate impact ratio* $\large P(\hat{Y}=1 \mid A=a) / P(\hat{Y}=1 \mid A=b)$, where values below 0.8 are a common red flag (the "80% rule").
+| Criterion | Requires equal… | Formula |
+|---|---|---|
+| **Demographic parity** | Selection rates | $P(\hat{Y} = 1 \mid A = a) = P(\hat{Y} = 1 \mid A = b)$ |
+| **Equal opportunity** | True positive rates: qualified people are found equally often | $P(\hat{Y} = 1 \mid Y = 1, A = a) = P(\hat{Y} = 1 \mid Y = 1, A = b)$ |
+| **Equalised odds** | True positive rates **and** false positive rates | $P(\hat{Y} = 1 \mid Y = y, A = a) = P(\hat{Y} = 1 \mid Y = y, A = b)$ for $y \in \{0, 1\}$ |
+
+In practice you report the **gap** (difference) or **ratio** between groups. The best-known ratio is the **disparate impact ratio**:
+
+```math
+\text{DI} = \frac{P(\hat{Y} = 1 \mid A = a)}{P(\hat{Y} = 1 \mid A = b)}
+```
+
+Values below **0.8** are a common red flag (the "80 % rule").
+
+> [!IMPORTANT]
+> When the groups have different base rates, these criteria **cannot all hold at once**. Choosing a definition of fairness is a decision about the application, not a purely technical one.
 
 ### What the notebook finds
-On the Adult test set (threshold 0.5), the model selects men for ">50K" about 3× as often as women (disparate impact ratio ≈ 0.31, partly reflecting different base rates in the data), and it finds qualified women less often (TPR ≈ 0.54 vs 0.67). Choosing a separate threshold per group closes the TPR gap almost entirely (0.13 → 0.00) at a negligible accuracy cost. That is **post-processing** in the table below.
 
-### Mitigation Strategies
+At the default threshold of 0.5:
+
+- **Selection rate:** men are predicted ">50K" about **3× as often** as women, a DI ratio of about **0.31**. This partly reflects different base rates in the data.
+- **Equal opportunity:** among people who really earn >50K, the model finds **54 %** of women but **67 %** of men.
+- **After per-group thresholds:** the TPR gap shrinks from **0.13 to about 0.00**, at a negligible cost in accuracy.
+
+---
+
+## 4. Mitigating unfairness
+
 | Stage | Idea | Examples |
 |---|---|---|
-| **Pre-processing** | Fix the data before training | Re-weighting or re-sampling groups, learning fair representations |
-| **In-processing** | Change the learning objective | Fairness constraints or penalties, adversarial debiasing |
-| **Post-processing** | Adjust predictions after training | Group-specific decision thresholds (e.g. to equalise TPRs) |
+| **Pre-processing** | Fix the data before training | Re-weight or re-sample groups, learn fair representations |
+| **In-processing** | Change the training objective | Fairness constraints or penalties, adversarial debiasing |
+| **Post-processing** | Adjust the decisions after training | **Group-specific thresholds**, as used in the notebook |
 
-## Interpretability & Explainability (XAI)
+The notebook includes sliders so you can move each group's threshold and watch the metrics change.
 
-Methods can be classified along two axes:
+---
 
-*   **Model-agnostic vs. model-specific:** Model-agnostic methods treat the model as a black box and only need its predictions (LIME, KernelSHAP). Model-specific methods use the model's internals (tree feature importance, gradient-based methods).
-*   **Local vs. global:** Local explanations justify a *single* prediction. Global explanations describe the model's overall behaviour (e.g. averaging local attributions over many samples).
+## 5. Explaining predictions
 
-### LIME (Local Interpretable Model-agnostic Explanations)
+Explanation methods differ along two axes:
 
-**Idea:** A complex model may be non-linear globally, but around a single point it can be approximated well by a simple model.
+| | **Local**: explains one prediction | **Global**: explains the whole model |
+|---|---|---|
+| **Model-agnostic** (only needs predictions) | LIME, KernelSHAP | Permutation importance, partial dependence |
+| **Model-specific** (uses the internals) | TreeSHAP, gradient methods | Tree feature importance, linear coefficients |
 
-For an instance $\large x$ to explain:
-1.  Generate perturbed samples $\large z$ in the neighbourhood of $\large x$.
-2.  Query the black-box model $\large f$ for predictions on each $\large z$.
-3.  Weight each sample by its proximity to $\large x$ using a kernel $\large \pi_x(z)$.
-4.  Fit an interpretable model $\large g$ (usually sparse linear) to these weighted predictions.
+Averaging many local explanations, as with SHAP, also gives a global picture.
 
-This amounts to solving:
+---
 
-$$\large
-\xi(x) = \arg\min_{g \in G} \; \mathcal{L}(f, g, \pi_x) + \Omega(g)
-$$
+## 6. LIME
 
-where $\large \mathcal{L}$ measures how poorly $\large g$ mimics $\large f$ near $\large x$, and $\large \Omega(g)$ penalises complexity (e.g. the number of non-zero weights). The coefficients of $\large g$ are the explanation.
+**LIME** stands for Local Interpretable Model-agnostic Explanations.
 
-In the notebook, `LimeTabularExplainer` explains a single test instance. It needs a `predict_fn` that returns probabilities for **both** classes, so the model's single sigmoid output is expanded to $\large [1 - p, \; p]$.
+### 6.1 The idea
 
-**Caveats:** Explanations depend on the perturbation scheme and kernel width, and can vary between runs. With one-hot features, perturbations may create unrealistic samples.
+A complex model may be very non-linear overall, but **zoomed in around one point** it looks roughly linear. So LIME fits a simple model **locally** and reads off its weights.
 
-### SHAP (SHapley Additive exPlanations)
+### 6.2 How it works
 
-**Idea:** Treat features as players in a cooperative game whose "payout" is the prediction, and share the payout fairly using **Shapley values** from game theory.
+To explain the prediction for an instance $x$:
 
-The Shapley value of feature $\large i$ is its average marginal contribution over all subsets $\large S$ of the other features $\large F \setminus \{i\}$:
+1. **Perturb:** generate many samples $z$ near $x$.
+2. **Query:** get the black-box predictions $f(z)$.
+3. **Weight:** give samples closer to $x$ more weight, using a kernel $\pi_x(z)$.
+4. **Fit** a simple model $g$, usually sparse linear, to these weighted predictions.
 
-$$\large
-\phi_i = \sum_{S \subseteq F \setminus \{i\}} \frac{|S|! \, (|F| - |S| - 1)!}{|F|!} \left[ f(S \cup \{i\}) - f(S) \right]
-$$
+Formally:
 
-SHAP explanations are **additive**: the attributions sum to the difference between the prediction and a base value (the expected model output over a background dataset):
+```math
+\xi(x) = \arg\min_{g \in G} \; \underbrace{\mathcal{L}(f, g, \pi_x)}_{\text{how badly } g \text{ mimics } f \text{ near } x} + \underbrace{\Omega(g)}_{\text{complexity of } g}
+```
 
-$$\large
-f(x) = \phi_0 + \sum_{i=1}^{|F|} \phi_i, \qquad \phi_0 = \mathbb{E}[f(X)]
-$$
+The coefficients of $g$ are the explanation.
 
-Shapley values are the unique attributions satisfying *local accuracy*, *missingness* and *consistency*, which is SHAP's main theoretical advantage over LIME.
+### 6.3 In the notebook
 
-Exact computation is exponential in the number of features, so practical explainers approximate it:
-*   **KernelExplainer:** Model-agnostic, sampling-based (slow).
-*   **TreeExplainer:** Exact and fast for tree ensembles.
-*   **DeepExplainer / GradientExplainer:** For neural networks. `GradientExplainer`, used in the notebook, is based on *expected gradients* (integrated gradients averaged over a background set).
+`LimeTabularExplainer` explains one test instance. LIME expects probabilities for **both** classes, so the model's single sigmoid output $p$ is expanded to $[1 - p,\; p]$.
 
-In the notebook, 100 random training samples form the background set, SHAP values are computed on the model's **logit** for 5 test instances, and the results are shown with `shap.summary_plot`.
+### 6.4 Caveats
 
-### LIME vs. SHAP
+- Results depend on how the samples are perturbed and on the kernel width.
+- Explanations can **change between runs**.
+- With one-hot features, the perturbed samples may be unrealistic, for example two categories "on" at once.
+
+---
+
+## 7. SHAP
+
+**SHAP** stands for SHapley Additive exPlanations.
+
+### 7.1 The idea
+
+Treat the features as **players in a team game** whose payout is the prediction. Then split the payout fairly using **Shapley values** from game theory.
+
+### 7.2 The Shapley value
+
+Feature $i$'s Shapley value is its **average extra contribution** when it joins every possible subset $S$ of the other features:
+
+```math
+\phi_i = \sum_{S \subseteq F \setminus \{i\}} \frac{|S|!\,(|F| - |S| - 1)!}{|F|!} \Big[ f(S \cup \{i\}) - f(S) \Big]
+```
+
+### 7.3 Additivity
+
+The attributions add up exactly to the prediction:
+
+```math
+f(x) = \phi_0 + \sum_{i=1}^{|F|} \phi_i, \qquad \phi_0 = \mathbb{E}[f(X)] \text{ (the base value)}
+```
+
+Shapley values are the **only** attributions that satisfy all three of these properties, which is SHAP's main advantage over LIME:
+
+- **local accuracy**: the attributions add up to the prediction
+- **missingness**: an absent feature gets zero attribution
+- **consistency**: if a feature matters more, its attribution doesn't go down
+
+### 7.4 Explainers
+
+The exact computation is exponential in the number of features, so the explainers approximate it:
+
+| Explainer | Works with | Notes |
+|---|---|---|
+| `KernelExplainer` | Any model | Sampling-based, slow |
+| `TreeExplainer` | Tree ensembles | Exact and fast |
+| `DeepExplainer` / **`GradientExplainer`** | Neural networks | `GradientExplainer` uses *expected gradients* |
+| `LinearExplainer` | Linear models | Exact |
+
+### 7.5 In the notebook
+
+- **Background set:** 100 random training samples.
+- **Explained output:** the model's **logit** for 5 test instances.
+- **Visualisation:** `shap.summary_plot`.
+
+---
+
+## 8. LIME vs SHAP
+
 | | LIME | SHAP |
 |---|---|---|
-| **Foundation** | Local surrogate model | Cooperative game theory (Shapley values) |
-| **Guarantees** | None; heuristic | Local accuracy, consistency, missingness |
-| **Stability** | Can vary between runs | More stable (deterministic for exact explainers) |
-| **Speed** | Fast | Depends on the explainer; KernelSHAP is slow |
-| **Global view** | Not directly | Aggregating local values gives global importance |
+| Foundation | A local surrogate model | Game theory (Shapley values) |
+| Guarantees | None, it's a heuristic | Local accuracy, missingness, consistency |
+| Stability | Can vary between runs | More stable (deterministic for exact explainers) |
+| Speed | Fast | Depends on the explainer. KernelSHAP is slow |
+| Global view | Not directly | Average the local values to get global importance |
 
-Explanations describe **the model**, not the world: a feature with a large attribution is important to the model's decision, which is not the same as being causally important. Interpretability tools are also a practical way to audit fairness. For example, a large attribution on `sex_Male` or `race_White` is a warning sign worth investigating.
+> [!WARNING]
+> Explanations describe **the model, not the world**. A feature with a large attribution matters to the *model's decision*, which doesn't make it causally important.
+
+> [!TIP]
+> Interpretability tools double as **fairness audits**. A large attribution on `sex_Male` or `race_White` is a warning sign worth investigating.

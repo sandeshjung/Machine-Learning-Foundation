@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bias and Variance</title>
+<meta name="description" content="Fit polynomials to many resampled datasets and watch the fits spread out as the degree grows.">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="wrap">
+  <nav class="topbar">
+    <a href="index.html">← All explorables</a>
+    <span class="tag">Modules 01 &amp; 03 · Overfitting</span>
+    <span class="spacer"></span>
+    <button class="theme-btn" id="theme-btn" type="button">◐ Auto</button>
+  </nav>
+
+  <h1>Bias and variance: how the fits spread</h1>
+  <p class="lede">Draw many training sets from the same process, fit the same polynomial to each, and look at how the fitted curves disagree. Simple models all make the same mistake (<b>bias</b>). Complex models make different mistakes every time (<b>variance</b>).</p>
+
+  <div class="panels">
+    <figure class="panel">
+      <figcaption>Polynomial fits on <span id="cap-k">20</span> resampled training sets</figcaption>
+      <canvas id="fits" role="img" aria-label="True sine curve, one training set and the polynomial fits from many resampled training sets"></canvas>
+      <div class="legend">
+        <span><i class="dash" style="color:var(--c-true)"></i>true function</span>
+        <span><i style="background:var(--c-fit)"></i>fit on the shown data</span>
+        <span><i style="background:var(--s1);opacity:.35"></i>fits on other samples</span>
+        <span><i style="background:var(--s4)"></i>average fit</span>
+      </div>
+      <p class="hint">Points show one of the training sets. The faint curves are fits to the other sets.</p>
+    </figure>
+    <figure class="panel">
+      <figcaption>Error vs polynomial degree (log scale)</figcaption>
+      <canvas id="errors" role="img" aria-label="Training error, test error, bias squared and variance against polynomial degree"></canvas>
+      <div class="legend">
+        <span><i style="background:var(--s1)"></i>training error</span>
+        <span><i style="background:var(--s2)"></i>test error</span>
+        <span><i style="background:var(--s3)"></i>bias²</span>
+        <span><i style="background:var(--s4)"></i>variance</span>
+        <span><i class="dash" style="color:var(--c-ghost)"></i>noise σ²</span>
+      </div>
+      <p class="hint">Click or drag on this chart to choose the degree.</p>
+    </figure>
+  </div>
+
+  <div class="readouts">
+    <div class="readout"><span class="k">Degree</span><span class="v" id="ro-d">—</span></div>
+    <div class="readout"><span class="k">Training error</span><span class="v" id="ro-train">—</span></div>
+    <div class="readout"><span class="k">Test error</span><span class="v" id="ro-test">—</span></div>
+    <div class="readout"><span class="k">Bias²</span><span class="v" id="ro-bias">—</span></div>
+    <div class="readout"><span class="k">Variance</span><span class="v" id="ro-var">—</span></div>
+    <div class="readout"><span class="k">Noise σ²</span><span class="v" id="ro-noise">—</span></div>
+  </div>
+
+  <div class="controls">
+    <div class="group">
+      <h3>The model</h3>
+      <label class="ctl"><span class="row">Polynomial degree <output for="deg"></output></span><input type="range" id="deg" min="0" max="15" step="1" value="3"></label>
+      <label class="check"><input type="checkbox" id="show-all" checked> Show fits on the other samples</label>
+      <label class="check"><input type="checkbox" id="show-mean" checked> Show the average fit</label>
+    </div>
+    <div class="group">
+      <h3>The data</h3>
+      <label class="ctl"><span class="row">Noise (spread) σ <output for="noise"></output></span><input type="range" id="noise" min="0" max="1" step="0.01" value="0.3"></label>
+      <label class="ctl"><span class="row">Points per training set <output for="n"></output></span><input type="range" id="n" min="5" max="100" step="1" value="20"></label>
+      <label class="ctl"><span class="row">Number of training sets <output for="k"></output></span><input type="range" id="k" min="2" max="50" step="1" value="20"></label>
+      <div class="buttons"><button class="btn" id="resample" type="button">Draw new training sets</button></div>
+    </div>
+  </div>
+
+  <section class="notes">
+    <h2>What to try</h2>
+    <ol>
+      <li><b>Degree 1.</b> Every fit is almost the same straight line, so the variance is tiny. But they all miss the curve in the same way, so the bias is large. This is <b>underfitting</b>.</li>
+      <li><b>Degree 3 to 5.</b> The fits hug the true curve and stay close together. Bias and variance are both small, and the test error is near its lowest.</li>
+      <li><b>Degree 12 to 15.</b> Each fit passes close to its own points but swings wildly between them and at the edges. The fits now <b>spread out</b> a lot, so the variance explodes. Training error keeps falling while test error shoots up. This is <b>overfitting</b>.</li>
+      <li><b>More data.</b> Stay at degree 12 and raise the points per training set to 100. The spread shrinks: more data reduces variance.</li>
+      <li><b>No noise.</b> Set σ to 0. Even high degrees behave much better, because there is no noise for the model to chase.</li>
+    </ol>
+
+    <h2>What's going on</h2>
+    <p>Each training set has <span id="n-txt">20</span> points drawn from <b>y = sin(2πx) + noise</b>. For every degree, the page fits one polynomial per training set and then, at each x:</p>
+    <ul>
+      <li><b>bias²</b> compares the <i>average</i> fit (orange) with the true curve (green),</li>
+      <li><b>variance</b> measures how much the individual fits spread around their average,</li>
+      <li><b>noise σ²</b> is the randomness in y that no model can predict.</li>
+    </ul>
+    <p>The expected error on new data is exactly their sum. The bias² and variance shown are averaged over x in [0, 1].</p>
+    <p>One caveat: at very high degrees the measured bias² rises too. The average of a few dozen wildly different fits is itself noisy, so part of the variance leaks into the bias estimate. Increase the number of training sets and that part shrinks.</p>
+    <div class="formula">expected test error = bias² + variance + σ²</div>
+    <div class="callout">The best degree is where the <b>test error</b> curve bottoms out. In practice you can't draw fresh training sets, so you estimate that point with a validation set or cross-validation.</div>
+  </section>
+
+  <footer class="links">
+    Theory: <a href="https://github.com/sandeshjung/Machine-Learning-Foundation/blob/main/01_Supervised_Regression/README.md#4-polynomial-regression-and-overfitting">Module 01 README</a> ·
+    <a href="https://github.com/sandeshjung/Machine-Learning-Foundation/blob/main/03_Model_evaluation_selection/README.md#1-generalisation-and-the-biasvariance-trade-off">Module 03 README</a> ·
+    Code: <a href="https://github.com/sandeshjung/Machine-Learning-Foundation/blob/main/01_Supervised_Regression/polynomial_overfitting.ipynb">polynomial_overfitting notebook</a>
+  </footer>
+</div>
+
+<script src="assets/mlmath.js"></script>
+<script src="assets/plot.js"></script>
+<script>
+(function () {
+  "use strict";
+  const M = MLMath, U = PlotUI, $ = (id) => document.getElementById(id);
+  const MAXDEG = 15;
+  const truth = (x) => Math.sin(2 * Math.PI * x);
+  const grid = M.linspace(0, 1, 121);
+
+  const S = { seed: 3, base: null, curves: null, fits: null };
+
+  const fitPlot = new Plot($("fits"), { xmin: 0, xmax: 1, ymin: -2.2, ymax: 2.2, xlabel: "x", ylabel: "y" });
+  const errPlot = new Plot($("errors"), { xmin: -0.5, xmax: MAXDEG + 0.5, ymin: -3, ymax: 1.5, ylog: true, xlabel: "polynomial degree", ylabel: "error" });
+
+  const deg = U.bindRange("deg", { format: String, onInput: () => { S.fits = null; draw(); } });
+  const noise = U.bindRange("noise", { format: (v) => v.toFixed(2), onInput: recompute });
+  const nIn = U.bindRange("n", { format: String, onInput: () => { S.base = null; recompute(); } });
+  const kIn = U.bindRange("k", { format: String, onInput: () => { S.base = null; recompute(); } });
+  ["show-all", "show-mean"].forEach((id) => $(id).addEventListener("change", draw));
+  $("resample").addEventListener("click", () => { S.seed++; S.base = null; recompute(); });
+
+  // Base samples: x ~ U(0, 1) and z ~ N(0, 1) per training set; y = sin(2πx) + σ z.
+  function makeBase() {
+    const n = nIn.get(), K = kIn.get();
+    S.base = Array.from({ length: K }, (_, k) => {
+      const r = M.rng(S.seed * 7919 + k * 104729);
+      const xs = [], zs = [];
+      for (let i = 0; i < n; i++) { xs.push(r()); zs.push(M.randn(r)); }
+      return { xs, zs };
+    });
+  }
+
+  /** Fit degree d on every training set: predictions on the grid and training errors. */
+  function fitAll(d) {
+    const sigma = noise.get();
+    return S.base.map(({ xs, zs }) => {
+      const ys = xs.map((x, i) => truth(x) + sigma * zs[i]);
+      const coef = M.polyFit(xs.map((x) => 2 * x - 1), ys, d);
+      const pred = (x) => M.polyEval(coef, 2 * x - 1);
+      const train = M.mean(xs.map((x, i) => (pred(x) - ys[i]) ** 2));
+      return { xs, ys, pred, onGrid: grid.map(pred), train };
+    });
+  }
+
+  function decompose(fits) {
+    const K = fits.length;
+    let bias2 = 0, variance = 0;
+    grid.forEach((x, g) => {
+      const vals = fits.map((f) => f.onGrid[g]);
+      const m = M.mean(vals);
+      bias2 += (m - truth(x)) ** 2;
+      variance += vals.reduce((s, v) => s + (v - m) ** 2, 0) / K;
+    });
+    bias2 /= grid.length; variance /= grid.length;
+    const s2 = noise.get() ** 2;
+    return { bias2, variance, noise: s2, test: bias2 + variance + s2, train: M.mean(fits.map((f) => f.train)) };
+  }
+
+  function recompute() {
+    if (!S.base) makeBase();
+    S.curves = [];
+    for (let d = 0; d <= MAXDEG; d++) S.curves.push(decompose(fitAll(d)));
+    S.fits = null;
+    draw();
+  }
+
+  // pick the degree from the error chart
+  const pickDeg = (px) => { const d = Math.round(errPlot.invX(px)); deg.set(Math.max(0, Math.min(MAXDEG, d))); S.fits = null; draw(); };
+  U.draggable($("errors"), {
+    pick: (px, py) => (errPlot.inside(px, py) ? "deg" : null),
+    onDown: (h, px) => { if (h) pickDeg(px); return h; },
+    onMove: (h, px) => pickDeg(px),
+  });
+
+  function draw() {
+    const css = U.cssVar, d = deg.get();
+    if (!S.fits) S.fits = fitAll(d);
+    const fits = S.fits, cur = S.curves[d];
+    U.setText("cap-k", String(fits.length));
+    U.setText("n-txt", String(nIn.get()));
+
+    // fits panel
+    const P = fitPlot;
+    P.clear(); P.axes();
+    P.clipped(() => {
+      if ($("show-all").checked) fits.slice(1).forEach((f) => P.line(grid, f.onGrid, { color: css("--s1"), width: 1.3, alpha: 0.28 }));
+      P.fn(truth, { color: css("--c-true"), width: 2.5, dash: [7, 5] });
+      if ($("show-mean").checked) P.line(grid, grid.map((_, g) => M.mean(fits.map((f) => f.onGrid[g]))), { color: css("--s4"), width: 2.8 });
+      P.line(grid, fits[0].onGrid, { color: css("--c-fit"), width: 3 });
+      P.dots(fits[0].xs, fits[0].ys, { color: css("--c-data"), r: 4.5, stroke: css("--surface") });
+    });
+
+    // error panel
+    const Q = errPlot, ds = S.curves.map((_, i) => i);
+    Q.clear(); Q.axes();
+    Q.clipped(() => {
+      const c = Q.ctx;
+      c.save(); c.fillStyle = css("--accent-soft");
+      c.fillRect(Q.X(d - 0.5), Q.T, Q.X(d + 0.5) - Q.X(d - 0.5), Q.B - Q.T); c.restore();
+      if (cur.noise > 0) Q.line([-0.5, MAXDEG + 0.5], [cur.noise, cur.noise], { color: css("--c-ghost"), dash: [6, 5], width: 1.8 });
+      const series = [["bias2", "--s3"], ["variance", "--s4"], ["train", "--s1"], ["test", "--s2"]];
+      for (const [key, col] of series) {
+        const ys = S.curves.map((c) => Math.max(c[key], 1e-12));
+        Q.line(ds, ys, { color: css(col), width: 2.4 });
+        Q.dots(ds, ys, { color: css(col), r: 2.6 });
+        Q.dots([d], [ys[d]], { color: css(col), r: 5.5, stroke: css("--surface") });
+      }
+    });
+
+    U.setText("ro-d", String(d));
+    U.setText("ro-train", U.fmt(cur.train));
+    U.setText("ro-test", U.fmt(cur.test));
+    U.setText("ro-bias", U.fmt(cur.bias2));
+    U.setText("ro-var", U.fmt(cur.variance));
+    U.setText("ro-noise", U.fmt(cur.noise));
+  }
+
+  U.autoRedraw([fitPlot, errPlot], draw);
+  recompute();
+})();
+</script>
+</body>
+</html>

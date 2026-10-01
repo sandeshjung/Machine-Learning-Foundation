@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fitting a Line</title>
+<meta name="description" content="Drag points, move the line and watch the squared errors, the loss landscape and gradient descent update live.">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="wrap">
+  <nav class="topbar">
+    <a href="index.html">← All explorables</a>
+    <span class="tag">Module 01 · Regression</span>
+    <span class="spacer"></span>
+    <button class="theme-btn" id="theme-btn" type="button">◐ Auto</button>
+  </nav>
+
+  <h1>Fitting a line</h1>
+  <p class="lede">Find the line that best fits the points. Move it yourself, see how the squared errors change, then watch gradient descent find the best line on the loss landscape.</p>
+
+  <div class="panels">
+    <figure class="panel">
+      <figcaption>Data and line &nbsp;<span style="font-weight:400;color:var(--muted)">ŷ = w·x + b</span></figcaption>
+      <canvas id="data" class="square" role="img" aria-label="Scatter plot of the data with the current line and its residuals"></canvas>
+      <div class="legend">
+        <span><i style="background:var(--c-fit)"></i>your line</span>
+        <span><i style="background:var(--c-resid)"></i>residuals</span>
+        <span id="leg-best" hidden><i class="dash" style="color:var(--c-ghost)"></i>least-squares line</span>
+        <span id="leg-true" hidden><i class="dash" style="color:var(--c-true)"></i>true line</span>
+      </div>
+      <p class="hint">Drag a point to move it · click empty space to add one · double-click a point to remove it</p>
+    </figure>
+    <figure class="panel">
+      <figcaption>Loss landscape: the MSE for every (w, b)</figcaption>
+      <canvas id="loss" class="square" role="img" aria-label="Contour map of the mean squared error over slope and intercept"></canvas>
+      <div class="legend">
+        <span><i class="dot" style="background:var(--c-fit)"></i>your (w, b)</span>
+        <span><i style="background:var(--c-true)"></i>× minimum</span>
+        <span><i style="background:var(--s4)"></i>gradient-descent path</span>
+      </div>
+      <p class="hint">Stronger colour = lower error · click or drag anywhere to choose (w, b)</p>
+    </figure>
+  </div>
+
+  <div class="readouts">
+    <div class="readout" id="ro-mse-box"><span class="k">Your MSE</span><span class="v" id="ro-mse">—</span></div>
+    <div class="readout"><span class="k">Best possible MSE</span><span class="v" id="ro-best">—</span></div>
+    <div class="readout"><span class="k">R² of your line</span><span class="v" id="ro-r2">—</span></div>
+    <div class="readout"><span class="k">Slope w</span><span class="v" id="ro-w">—</span></div>
+    <div class="readout"><span class="k">Intercept b</span><span class="v" id="ro-b">—</span></div>
+    <div class="readout"><span class="k">Gradient descent</span><span class="v" id="ro-gd">—</span></div>
+  </div>
+
+  <div class="controls">
+    <div class="group">
+      <h3>Your line</h3>
+      <label class="ctl"><span class="row">Slope w <output for="w"></output></span><input type="range" id="w" min="-2.5" max="3.5" step="0.01" value="0.3"></label>
+      <label class="ctl"><span class="row">Intercept b <output for="b"></output></span><input type="range" id="b" min="-8" max="12" step="0.01" value="6"></label>
+      <label class="check"><input type="checkbox" id="show-resid" checked> Show residuals</label>
+      <label class="check"><input type="checkbox" id="show-sq"> Show squared errors as boxes</label>
+      <label class="check"><input type="checkbox" id="show-best"> Show least-squares line</label>
+      <div class="buttons"><button class="btn" id="snap" type="button">Jump to best fit</button></div>
+    </div>
+
+    <div class="group">
+      <h3>The data</h3>
+      <label class="ctl"><span class="row">Noise (spread) σ <output for="noise"></output></span><input type="range" id="noise" min="0" max="4" step="0.05" value="1.5"></label>
+      <label class="ctl"><span class="row">Number of points <output for="n"></output></span><input type="range" id="n" min="2" max="80" step="1" value="25"></label>
+      <label class="ctl"><span class="row">True slope <output for="tw"></output></span><input type="range" id="tw" min="-1.5" max="2.5" step="0.05" value="0.8"></label>
+      <label class="ctl"><span class="row">True intercept <output for="tb"></output></span><input type="range" id="tb" min="-4" max="8" step="0.1" value="2"></label>
+      <label class="check"><input type="checkbox" id="show-true"> Show true line</label>
+      <div class="buttons"><button class="btn" id="newdata" type="button">New random data</button></div>
+    </div>
+
+    <div class="group">
+      <h3>Gradient descent</h3>
+      <label class="ctl"><span class="row">Learning rate η <output for="lr"></output></span><input type="range" id="lr" min="-3.5" max="-1.3" step="0.01" value="-2"></label>
+      <div class="seg" role="radiogroup" aria-label="Speed">
+        <label><input type="radio" name="speed" value="1"><span>Slow</span></label>
+        <label><input type="radio" name="speed" value="5" checked><span>Medium</span></label>
+        <label><input type="radio" name="speed" value="25"><span>Fast</span></label>
+      </div>
+      <div class="buttons">
+        <button class="btn primary" id="run" type="button">▶ Run</button>
+        <button class="btn" id="step" type="button">Step</button>
+        <button class="btn" id="clearpath" type="button">Clear path</button>
+      </div>
+      <p class="hint">GD starts from your current (w, b). Each step: w ← w − η·∂MSE/∂w, b ← b − η·∂MSE/∂b.</p>
+    </div>
+  </div>
+
+  <section class="notes">
+    <h2>What to try</h2>
+    <ol>
+      <li><b>Fit it by hand.</b> Move the slope and intercept until your MSE is as low as you can get it. Then tick <i>Show least-squares line</i> to see how close you came.</li>
+      <li><b>See what MSE measures.</b> Tick <i>Show squared errors as boxes</i>. The MSE is the average area of the boxes, so one far-away point has a huge box. Drag a point far from the others and watch the best line swing towards it: MSE is <b>sensitive to outliers</b>.</li>
+      <li><b>Spread the data.</b> Raise the noise σ. The best line barely moves, but the best possible MSE grows (roughly as σ²) and R² falls. No line can remove that noise.</li>
+      <li><b>Few points, wobbly line.</b> Set the number of points to 3–5 and click <i>New random data</i> a few times. The fitted line jumps around a lot. That is <b>variance</b>, and more data reduces it.</li>
+      <li><b>Run gradient descent.</b> Drag the dot on the landscape somewhere far from the ×, then press <i>Run</i>. The path zig-zags down a long, narrow valley. Now raise the learning rate above about 0.03 and run again: the steps overshoot and <b>diverge</b>.</li>
+    </ol>
+
+    <h2>What's going on</h2>
+    <p>The model is a straight line, <b>ŷ = w·x + b</b>. Its error is the <b>mean squared error</b>:</p>
+    <div class="formula">MSE(w, b) = (1/m) · Σᵢ (w·xᵢ + b − yᵢ)²</div>
+    <p>Every (w, b) has an MSE, and the right-hand panel colours each one. The MSE is a quadratic in w and b, so the landscape is a <b>bowl with a single lowest point</b>. That point is the least-squares line, and it can be computed directly with the <i>normal equation</i>.</p>
+    <p>Gradient descent finds the same point step by step, always moving downhill:</p>
+    <div class="formula">∂MSE/∂w = (2/m) · Σᵢ (ŷᵢ − yᵢ)·xᵢ &nbsp;&nbsp;&nbsp; ∂MSE/∂b = (2/m) · Σᵢ (ŷᵢ − yᵢ)</div>
+    <div class="callout"><b>Why the valley is long and narrow.</b> The x-values run from 0 to 10, so a small change in w moves the line a lot more than the same change in b. The bowl is very steep in the w direction and very flat in the b direction. Gradient descent needs a learning rate small enough for the steep direction, which makes it crawl along the flat one. Standardising the features (zero mean, unit variance) makes the bowl round and gradient descent much faster.</div>
+  </section>
+
+  <footer class="links">
+    Theory: <a href="https://github.com/sandeshjung/Machine-Learning-Foundation/blob/main/01_Supervised_Regression/README.md">Module 01 README</a> ·
+    Code: <a href="https://github.com/sandeshjung/Machine-Learning-Foundation/blob/main/01_Supervised_Regression/linear_regression.ipynb">linear_regression notebook</a>
+  </footer>
+</div>
+
+<script src="assets/mlmath.js"></script>
+<script src="assets/plot.js"></script>
+<script>
+(function () {
+  "use strict";
+  const M = MLMath, U = PlotUI, $ = (id) => document.getElementById(id);
+  const W_RANGE = [-2.5, 3.5], B_RANGE = [-8, 12];
+
+  const S = { seed: 7, base: [], xs: [], ys: [], w: 0.3, b: 6, path: [], running: false, steps: 0, status: "ready", version: 0 };
+  let stats, best, yRange;
+
+  const dataPlot = new Plot($("data"), { xmin: 0, xmax: 10, xlabel: "x", ylabel: "y" });
+  const lossPlot = new Plot($("loss"), { xmin: W_RANGE[0], xmax: W_RANGE[1], ymin: B_RANGE[0], ymax: B_RANGE[1], xlabel: "slope w", ylabel: "intercept b" });
+
+  // ---------- controls
+  const wIn = U.bindRange("w", { format: (v) => v.toFixed(2), onInput: (v) => { S.w = v; stopGD(); draw(); } });
+  const bIn = U.bindRange("b", { format: (v) => v.toFixed(2), onInput: (v) => { S.b = v; stopGD(); draw(); } });
+  const noise = U.bindRange("noise", { format: (v) => v.toFixed(2), onInput: () => regenerate(false) });
+  const nIn = U.bindRange("n", { format: (v) => String(v), onInput: () => regenerate(true) });
+  const tw = U.bindRange("tw", { format: (v) => v.toFixed(2), onInput: () => regenerate(false) });
+  const tb = U.bindRange("tb", { format: (v) => v.toFixed(1), onInput: () => regenerate(false) });
+  const lr = U.bindRange("lr", { log: true, format: (v) => v.toFixed(4) });
+  ["show-resid", "show-sq", "show-best", "show-true"].forEach((id) => $(id).addEventListener("change", draw));
+  const speed = () => parseInt(document.querySelector('input[name="speed"]:checked').value, 10);
+
+  // ---------- data
+  function makeBase(n) {
+    const r = M.rng(S.seed);
+    S.base = Array.from({ length: n }, () => ({ u: r(), z: M.randn(r) }));
+  }
+
+  function regenerate(newBase) {
+    const n = nIn.get();
+    if (newBase || S.base.length !== n) makeBase(n);
+    S.xs = S.base.map((p) => 0.4 + 9.2 * p.u);
+    S.ys = S.xs.map((x, i) => tb.get() + tw.get() * x + noise.get() * S.base[i].z);
+    const ends = [tb.get(), tb.get() + 10 * tw.get()];
+    const lo = Math.min(...ends, ...S.ys) - 1, hi = Math.max(...ends, ...S.ys) + 1;
+    const span = Math.max(hi - lo, 8), mid = (hi + lo) / 2;
+    yRange = [mid - span / 2, mid + span / 2];
+    dataPlot.setRange(0, 10, yRange[0], yRange[1]);
+    dataChanged();
+  }
+
+  function dataChanged() {
+    stats = M.lineStats(S.xs, S.ys);
+    best = M.olsLine(S.xs, S.ys);
+    S.version++;
+    draw();
+  }
+
+  // ---------- gradient descent
+  function gdStep() {
+    const g = M.lineGrad(stats, S.w, S.b);
+    const eta = lr.get();
+    S.w -= eta * g.dw; S.b -= eta * g.db;
+    S.steps++;
+    S.path.push([S.w, S.b]);
+    const loss = M.lineMSE(stats, S.w, S.b);
+    if (!isFinite(loss) || loss > 1e6) { S.status = "diverged"; return false; }
+    if (Math.hypot(g.dw, g.db) < 1e-5) { S.status = "converged"; return false; }
+    if (S.steps >= 5000) { S.status = "stopped"; return false; }
+    S.status = "running";
+    return true;
+  }
+
+  function loop() {
+    if (!S.running) return;
+    let go = true;
+    for (let k = 0; k < speed() && go; k++) go = gdStep();
+    syncSliders();
+    draw();
+    if (go) requestAnimationFrame(loop); else stopGD();
+  }
+
+  function startGD() {
+    if (S.path.length === 0) { S.path = [[S.w, S.b]]; S.steps = 0; }
+    S.running = true; $("run").textContent = "❚❚ Pause";
+    requestAnimationFrame(loop);
+  }
+  function stopGD() { S.running = false; $("run").textContent = "▶ Run"; draw(); }
+  function clearPath() { S.path = []; S.steps = 0; S.status = "ready"; }
+
+  $("run").addEventListener("click", () => (S.running ? stopGD() : startGD()));
+  $("step").addEventListener("click", () => { stopGD(); if (!S.path.length) S.path = [[S.w, S.b]]; gdStep(); syncSliders(); draw(); });
+  $("clearpath").addEventListener("click", () => { stopGD(); clearPath(); draw(); });
+  $("snap").addEventListener("click", () => { stopGD(); S.w = best.w; S.b = best.b; syncSliders(); draw(); });
+  $("newdata").addEventListener("click", () => { S.seed++; clearPath(); regenerate(true); });
+
+  function syncSliders() { wIn.set(S.w); bIn.set(S.b); }
+
+  // ---------- interaction: data panel
+  const pickPoint = (px, py) => {
+    let bestI = null, bestD = 14;
+    S.xs.forEach((x, i) => { const d = Math.hypot(dataPlot.X(x) - px, dataPlot.Y(S.ys[i]) - py); if (d < bestD) { bestD = d; bestI = i; } });
+    return bestI;
+  };
+  const clampToPlot = (px, py) => [
+    Math.min(9.9, Math.max(0.1, dataPlot.invX(px))),
+    Math.min(yRange[1], Math.max(yRange[0], dataPlot.invY(py))),
+  ];
+  U.draggable($("data"), {
+    pick: pickPoint,
+    onDown(h, px, py) {
+      if (h != null || !dataPlot.inside(px, py)) return h;
+      const [x, y] = clampToPlot(px, py);
+      S.xs.push(x); S.ys.push(y);
+      dataChanged();
+      return S.xs.length - 1;
+    },
+    onMove(i, px, py) { const [x, y] = clampToPlot(px, py); S.xs[i] = x; S.ys[i] = y; dataChanged(); },
+  });
+  $("data").addEventListener("dblclick", (e) => {
+    const [px, py] = U.pointerPos($("data"), e);
+    const i = pickPoint(px, py);
+    if (i != null && S.xs.length > 2) { S.xs.splice(i, 1); S.ys.splice(i, 1); dataChanged(); }
+  });
+
+  // ---------- interaction: loss landscape
+  const setWB = (px, py) => {
+    S.w = Math.min(W_RANGE[1], Math.max(W_RANGE[0], lossPlot.invX(px)));
+    S.b = Math.min(B_RANGE[1], Math.max(B_RANGE[0], lossPlot.invY(py)));
+    stopGD(); clearPath(); syncSliders(); draw();
+  };
+  U.draggable($("loss"), {
+    pick: (px, py) => (lossPlot.inside(px, py) ? "wb" : null),
+    onDown: (h, px, py) => { if (h) setWB(px, py); return h; },
+    onMove: (h, px, py) => setWB(px, py),
+  });
+
+  // ---------- drawing
+  function draw() {
+    const css = U.cssVar;
+    const showSq = $("show-sq").checked, showRes = $("show-resid").checked;
+    $("leg-best").hidden = !$("show-best").checked;
+    $("leg-true").hidden = !$("show-true").checked;
+
+    // data panel
+    const P = dataPlot;
+    P.clear(); P.axes();
+    P.clipped(() => {
+      const resid = css("--c-resid");
+      S.xs.forEach((x, i) => {
+        const yhat = S.w * x + S.b, r = S.ys[i] - yhat;
+        if (showSq) {
+          const side = Math.abs(r), x1 = x + side <= 10 ? x + side : x - side;
+          P.rect(x, yhat, x1, S.ys[i], { fill: resid, alpha: 0.12 });
+          P.rect(x, yhat, x1, S.ys[i], { color: resid, alpha: 0.45, width: 1 });
+        }
+        if (showRes) P.segment(x, yhat, x, S.ys[i], { color: resid, width: 1.6, alpha: 0.85 });
+      });
+      if ($("show-true").checked) P.fn((x) => tb.get() + tw.get() * x, { color: css("--c-true"), dash: [7, 5], width: 2 }, 2);
+      if ($("show-best").checked) P.fn((x) => best.w * x + best.b, { color: css("--c-ghost"), dash: [6, 5], width: 2.5 }, 2);
+      P.fn((x) => S.w * x + S.b, { color: css("--c-fit"), width: 3 }, 2);
+      P.dots(S.xs, S.ys, { color: css("--c-data"), r: 5, stroke: css("--surface") });
+    });
+
+    // loss panel
+    const Q = lossPlot;
+    Q.clear();
+    Q.heatmap((w, b) => M.lineMSE(stats, w, b), { key: "v" + S.version, transform: Math.log1p, bands: 16, cell: 1 });
+    Q.axes({ grid: false });
+    Q.clipped(() => {
+      if (S.path.length > 1) {
+        Q.line(S.path.map((p) => p[0]), S.path.map((p) => p[1]), { color: css("--s4"), width: 2 });
+        const few = S.path.slice(0, 60);
+        Q.dots(few.map((p) => p[0]), few.map((p) => p[1]), { color: css("--s4"), r: 2.2 });
+      }
+      Q.cross(best.w, best.b, { color: css("--c-true"), r: 7 });
+      Q.dots([S.w], [S.b], { color: css("--c-fit"), r: 7, stroke: "#fff" });
+    });
+
+    // readouts
+    const mse = M.lineMSE(stats, S.w, S.b), bestMse = M.lineMSE(stats, best.w, best.b);
+    U.setText("ro-mse", U.fmt(mse));
+    U.setText("ro-best", U.fmt(bestMse));
+    U.setText("ro-r2", U.fmt(M.r2Score(S.ys, S.xs.map((x) => S.w * x + S.b))));
+    U.setText("ro-w", S.w.toFixed(3));
+    U.setText("ro-b", S.b.toFixed(3));
+    U.setText("ro-gd", S.path.length ? `${S.steps} steps · ${S.status}` : "not run");
+    $("ro-mse-box").className = "readout" + (mse <= bestMse * 1.01 + 1e-9 ? " good" : "");
+  }
+
+  U.autoRedraw([dataPlot, lossPlot], draw);
+  regenerate(true);
+})();
+</script>
+</body>
+</html>

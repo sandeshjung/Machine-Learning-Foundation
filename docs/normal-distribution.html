@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spread and Averages</title>
+<meta name="description" content="Change the mean and standard deviation of a normal distribution, draw samples, and watch the central limit theorem shrink the spread of averages.">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="wrap">
+  <nav class="topbar">
+    <a href="index.html">← All explorables</a>
+    <span class="tag">Module 00 · Probability</span>
+    <span class="spacer"></span>
+    <button class="theme-btn" id="theme-btn" type="button">◐ Auto</button>
+  </nav>
+
+  <h1>Spread: the normal distribution and the central limit theorem</h1>
+  <p class="lede">The mean μ says <i>where</i> the data is centred, and the standard deviation σ says <i>how spread out</i> it is. Move them and watch both the curve and a real sample respond. Then see why averages are far less spread out than single values.</p>
+
+  <h2>1. Mean and standard deviation</h2>
+  <div class="panels">
+    <figure class="panel" style="grid-column: 1 / -1">
+      <figcaption>N(μ, σ²) and a sample drawn from it</figcaption>
+      <canvas id="normal" class="wide" role="img" aria-label="Normal density with shaded one, two and three standard deviation bands and a histogram of samples"></canvas>
+      <div class="legend">
+        <span><i style="background:var(--c-fit)"></i>density</span>
+        <span><i style="background:var(--c-ghost)"></i>histogram of the sample</span>
+        <span><i style="background:var(--accent);opacity:.5"></i>μ ± 1σ, 2σ, 3σ</span>
+        <span id="leg-std" hidden><i class="dash" style="color:var(--c-true)"></i>standard normal N(0, 1)</span>
+      </div>
+    </figure>
+  </div>
+
+  <div class="readouts">
+    <div class="readout"><span class="k">Sample mean x̄</span><span class="v" id="ro-mean">—</span></div>
+    <div class="readout"><span class="k">Sample std s</span><span class="v" id="ro-std">—</span></div>
+    <div class="readout"><span class="k">Within μ ± 1σ</span><span class="v" id="ro-in1">—</span></div>
+    <div class="readout"><span class="k">Within μ ± 2σ</span><span class="v" id="ro-in2">—</span></div>
+    <div class="readout"><span class="k">Within μ ± 3σ</span><span class="v" id="ro-in3">—</span></div>
+  </div>
+
+  <div class="controls">
+    <div class="group">
+      <h3>Distribution</h3>
+      <label class="ctl"><span class="row">Mean μ <output for="mu"></output></span><input type="range" id="mu" min="-5" max="5" step="0.05" value="0"></label>
+      <label class="ctl"><span class="row">Standard deviation σ <output for="sigma"></output></span><input type="range" id="sigma" min="0.65" max="4" step="0.05" value="1.5"></label>
+      <label class="check"><input type="checkbox" id="show-std"> Compare with the standard normal N(0, 1)</label>
+    </div>
+    <div class="group">
+      <h3>Sample</h3>
+      <label class="ctl"><span class="row">Sample size n <output for="ns"></output></span><input type="range" id="ns" min="1" max="3.7" step="0.01" value="2.7"></label>
+      <label class="check"><input type="checkbox" id="show-hist" checked> Show histogram</label>
+      <div class="buttons"><button class="btn" id="redraw" type="button">Draw a new sample</button></div>
+    </div>
+  </div>
+
+  <h2>2. The central limit theorem: averages spread less</h2>
+  <div class="panels">
+    <figure class="panel" style="grid-column: 1 / -1">
+      <figcaption>Histogram of 3,000 averages, each of <span id="cap-n">1</span> value(s)</figcaption>
+      <canvas id="clt" class="wide" role="img" aria-label="Histogram of sample means with the source distribution and the normal approximation"></canvas>
+      <div class="legend">
+        <span><i style="background:var(--c-ghost)"></i>source distribution</span>
+        <span><i style="background:var(--s4)"></i>histogram of the averages</span>
+        <span><i style="background:var(--c-fit)"></i>normal with σ/√n</span>
+      </div>
+    </figure>
+  </div>
+
+  <div class="readouts">
+    <div class="readout"><span class="k">Mean of the averages</span><span class="v" id="ro-cm">—</span></div>
+    <div class="readout"><span class="k">Std of the averages</span><span class="v" id="ro-cs">—</span></div>
+    <div class="readout"><span class="k">Predicted σ/√n</span><span class="v" id="ro-cp">—</span></div>
+  </div>
+
+  <div class="controls">
+    <div class="group">
+      <h3>Source distribution</h3>
+      <div class="seg" role="radiogroup" aria-label="Source distribution">
+        <label><input type="radio" name="src" value="uniform" checked><span>Uniform</span></label>
+        <label><input type="radio" name="src" value="exp"><span>Exponential (skewed)</span></label>
+        <label><input type="radio" name="src" value="bimodal"><span>Two bumps</span></label>
+      </div>
+    </div>
+    <div class="group">
+      <h3>Averaging</h3>
+      <label class="ctl"><span class="row">Values per average n <output for="nc"></output></span><input type="range" id="nc" min="1" max="50" step="1" value="1"></label>
+      <div class="buttons"><button class="btn" id="redraw-clt" type="button">Draw new averages</button></div>
+    </div>
+  </div>
+
+  <section class="notes">
+    <h2>What to try</h2>
+    <ol>
+      <li><b>Move μ.</b> The whole curve slides sideways, but its shape doesn't change.</li>
+      <li><b>Move σ.</b> The curve gets wider and flatter, because the total area always stays 1. The sample spreads out with it.</li>
+      <li><b>Check the 68–95–99.7 rule.</b> Whatever μ and σ are, about 68 % of values fall within 1σ of the mean, 95 % within 2σ and 99.7 % within 3σ. Compare the readouts.</li>
+      <li><b>Small samples are noisy.</b> Set n to 10 and draw a few new samples. The sample mean and standard deviation jump around their true values. With n = 5000 they barely move.</li>
+      <li><b>Central limit theorem.</b> In part 2, pick the skewed exponential or the two bumps, and raise n from 1 to 30. The histogram of averages becomes <b>bell-shaped</b> and gets <b>narrower</b>, exactly as σ/√n predicts.</li>
+    </ol>
+
+    <h2>What's going on</h2>
+    <div class="formula">f(x) = 1 / (σ√(2π)) · exp(−(x − μ)² / (2σ²))</div>
+    <p>μ and σ are the <b>parameters</b> of the distribution. The sample mean x̄ and sample standard deviation s are <b>estimates</b> of them computed from data. s uses n − 1 in the denominator, which makes s² an unbiased estimate of σ².</p>
+    <p>The <b>central limit theorem</b> says that the average of n independent values, from almost any distribution with mean μ and standard deviation σ, is approximately normal:</p>
+    <div class="formula">x̄ ≈ N(μ, σ²/n), so the spread of the average is σ/√n</div>
+    <div class="callout">This is why mini-batch gradients get less noisy as the batch size grows: their standard deviation shrinks like 1/√B. It's also why the noise in a cross-validation score shrinks with more folds and more data.</div>
+  </section>
+
+  <footer class="links">
+    Theory: <a href="https://github.com/sandeshjung/Machine-Learning-Foundation/blob/main/00_Mathematical_foundation/README.md#2-probability-and-statistics">Module 00 README</a> ·
+    Code: <a href="https://github.com/sandeshjung/Machine-Learning-Foundation/blob/main/00_Mathematical_foundation/probability_statistics.ipynb">probability_statistics notebook</a>
+  </footer>
+</div>
+
+<script src="assets/mlmath.js"></script>
+<script src="assets/plot.js"></script>
+<script>
+(function () {
+  "use strict";
+  const M = MLMath, U = PlotUI, $ = (id) => document.getElementById(id);
+  const NMAX = 5000, NMEANS = 3000, NCMAX = 50;
+
+  const S = { seed: 11, z: [], cltSeed: 5, clt: {} };
+  const nplot = new Plot($("normal"), { xmin: -10, xmax: 10, ymin: 0, ymax: 0.65, xlabel: "x", ylabel: "density" });
+  const cplot = new Plot($("clt"), { xmin: 0, xmax: 1, ymin: 0, ymax: 1, xlabel: "value of the average", ylabel: "density" });
+
+  const mu = U.bindRange("mu", { format: (v) => v.toFixed(2), onInput: drawNormal });
+  const sigma = U.bindRange("sigma", { format: (v) => v.toFixed(2), onInput: drawNormal });
+  const ns = U.bindRange("ns", { log: true, format: (v) => String(Math.min(NMAX, Math.round(v))), onInput: drawNormal });
+  const nc = U.bindRange("nc", { format: String, onInput: drawClt });
+  ["show-std", "show-hist"].forEach((id) => $(id).addEventListener("change", drawNormal));
+  document.querySelectorAll('input[name="src"]').forEach((el) => el.addEventListener("change", drawClt));
+  $("redraw").addEventListener("click", () => { S.seed++; makeZ(); drawNormal(); });
+  $("redraw-clt").addEventListener("click", () => { S.cltSeed++; S.clt = {}; drawClt(); });
+
+  // standard normal draws, reused so that moving μ and σ moves the same sample smoothly
+  function makeZ() { const r = M.rng(S.seed); S.z = Array.from({ length: NMAX }, () => M.randn(r)); }
+
+  function drawNormal() {
+    const css = U.cssVar, m = mu.get(), s = sigma.get(), n = Math.min(NMAX, Math.round(ns.get()));
+    const xs = S.z.slice(0, n).map((z) => m + s * z);
+    $("leg-std").hidden = !$("show-std").checked;
+
+    const P = nplot;
+    P.clear(); P.axes();
+    P.clipped(() => {
+      const acc = css("--accent");
+      for (const [k, a] of [[3, 0.1], [2, 0.14], [1, 0.2]]) {
+        const pts = M.linspace(m - k * s, m + k * s, 120).map((x) => [x, M.normalPdf(x, m, s)]);
+        P.polygon([[m - k * s, 0], ...pts, [m + k * s, 0]], { fill: acc, alpha: a });
+      }
+      if ($("show-hist").checked && n > 1) {
+        const h = M.histogram(xs, -10, 10, 80);
+        h.density.forEach((d, i) => { if (d > 0) P.rect(h.edges[i], 0, h.edges[i + 1], d, { fill: css("--c-ghost"), alpha: 0.45 }); });
+      }
+      if ($("show-std").checked) P.fn((x) => M.normalPdf(x, 0, 1), { color: css("--c-true"), dash: [7, 5], width: 2 });
+      P.fn((x) => M.normalPdf(x, m, s), { color: css("--c-fit"), width: 3 });
+      P.line([m, m], [0, M.normalPdf(m, m, s)], { color: css("--c-fit"), width: 1.5, dash: [4, 4] });
+      const top = M.normalPdf(m, m, s);
+      [["68.3%", 0.5], ["95.4%", 1.5], ["99.7%", 2.5]].forEach(([t, k]) => {
+        const yv = Math.min(0.6, M.normalPdf(m + k * s, m, s) * 0.5 + 0.012);
+        if (Math.abs(m + k * s) < 9.5) P.text(t, m + k * s, yv, { align: "center", color: css("--muted"), halo: true, font: "11px system-ui" });
+      });
+      P.text("μ", m, Math.min(0.63, top + 0.025), { align: "center", halo: true, font: "600 13px system-ui" });
+    });
+
+    const xbar = n ? M.mean(xs) : NaN, sd = n > 1 ? Math.sqrt(M.variance(xs, 1)) : NaN;
+    const within = (k) => (n ? `${((100 * xs.filter((x) => Math.abs(x - m) <= k * s).length) / n).toFixed(1)} %` : "—");
+    U.setText("ro-mean", U.fmt(xbar));
+    U.setText("ro-std", U.fmt(sd));
+    U.setText("ro-in1", within(1) + " (68.3 %)");
+    U.setText("ro-in2", within(2) + " (95.4 %)");
+    U.setText("ro-in3", within(3) + " (99.7 %)");
+  }
+
+  // ---------- central limit theorem
+  const SOURCES = {
+    uniform: { range: [0, 1], mean: 0.5, sd: Math.sqrt(1 / 12), pdf: (x) => (x >= 0 && x <= 1 ? 1 : 0), draw: (r) => r() },
+    exp: { range: [0, 4], mean: 1, sd: 1, pdf: (x) => (x >= 0 ? Math.exp(-x) : 0), draw: (r) => -Math.log(1 - r()) },
+    bimodal: {
+      range: [-4, 4], mean: 0, sd: Math.sqrt(0.36 + 4),
+      pdf: (x) => 0.5 * M.normalPdf(x, -2, 0.6) + 0.5 * M.normalPdf(x, 2, 0.6),
+      draw: (r) => (r() < 0.5 ? -2 : 2) + 0.6 * M.randn(r),
+    },
+  };
+  const src = () => document.querySelector('input[name="src"]:checked').value;
+
+  function cltSamples(key) {
+    if (!S.clt[key]) {
+      const r = M.rng(S.cltSeed * 31 + key.length), d = SOURCES[key];
+      S.clt[key] = Array.from({ length: NMEANS }, () => Array.from({ length: NCMAX }, () => d.draw(r)));
+    }
+    return S.clt[key];
+  }
+
+  function drawClt() {
+    const css = U.cssVar, key = src(), d = SOURCES[key], n = nc.get();
+    const means = cltSamples(key).map((row) => { let s = 0; for (let i = 0; i < n; i++) s += row[i]; return s / n; });
+    const [lo, hi] = d.range;
+    const h = M.histogram(means, lo, hi, 60);
+    const sdPred = d.sd / Math.sqrt(n);
+    const peak = Math.max(...h.density, M.normalPdf(d.mean, d.mean, sdPred), 1.05 * Math.max(...M.linspace(lo, hi, 200).map(d.pdf)));
+    cplot.setRange(lo, hi, 0, peak * 1.12);
+    U.setText("cap-n", String(n));
+
+    const P = cplot;
+    P.clear(); P.axes();
+    P.clipped(() => {
+      const srcPts = M.linspace(lo, hi, 300).map((x) => [x, d.pdf(x)]);
+      P.polygon([[lo, 0], ...srcPts, [hi, 0]], { fill: css("--c-ghost"), alpha: 0.25 });
+      h.density.forEach((v, i) => { if (v > 0) P.rect(h.edges[i], 0, h.edges[i + 1], v, { fill: css("--s4"), alpha: 0.55 }); });
+      P.fn((x) => M.normalPdf(x, d.mean, sdPred), { color: css("--c-fit"), width: 2.8 }, 500);
+    });
+
+    U.setText("ro-cm", U.fmt(M.mean(means)) + `  (true ${U.fmt(d.mean)})`);
+    U.setText("ro-cs", U.fmt(Math.sqrt(M.variance(means))));
+    U.setText("ro-cp", U.fmt(sdPred));
+  }
+
+  U.autoRedraw([nplot], drawNormal);
+  U.autoRedraw([cplot], drawClt);
+  makeZ();
+  drawNormal();
+  drawClt();
+})();
+</script>
+</body>
+</html>
