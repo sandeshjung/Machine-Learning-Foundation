@@ -40,7 +40,9 @@ torch.manual_seed(42)
 np.random.seed(42)
 
 # %% [markdown]
-# #### Introduction to Unsupervised Learning and Clustering
+# # Clustering: K-Means & Hierarchical
+#
+# ### Introduction to Unsupervised Learning and Clustering
 #
 # - Unsupervised Learning: Algorithms learn patterns from untagged/unlabeled data. 
 # - Clustering: A common  unsupervised task that aims to group similar data points together into clusters, such that points in the same cluster are more similar to each other than to those in other clusters. 
@@ -77,7 +79,7 @@ plt.show()
 
 
 # %% [markdown]
-# ### K-Means Clustering
+# ## K-Means Clustering
 # Algorithm:
 # 1. Initialize K cluster centroids randomly (or using methods like K-means++)
 # 2. Repeat until convergence (or max iterations):
@@ -183,7 +185,7 @@ plt.legend()
 plt.show()
 
 # %% [markdown]
-# #### Choosing K (Elbow Method & Silhouette Score - Conceptual) 
+# ### Choosing K (Elbow Method & Silhouette Score)
 # The Elbow Method:
 # - Plot Sum of Squared Errors (SSE) or Within-Cluster Sum of Squares (WCSS)
 #   for different values of K.
@@ -207,7 +209,7 @@ for k_idx in range(K_KMEANS):
 print(f"WCSS for K={K_KMEANS}: {wcss.item():.2f}")
 
 # %% [markdown]
-# #### Verifying against scikit-learn
+# ### Verifying against scikit-learn
 # `sklearn.cluster.KMeans` (k-means++ initialisation, 10 restarts) should find the same clustering on these well-separated blobs. Cluster *numbers* are arbitrary, so we compare assignments with the adjusted Rand index (1.0 means identical partitions).
 
 # %%
@@ -231,7 +233,7 @@ except ValueError as e:
     print(f"Could not calculate silhouette score: {e}")
 
 # %% [markdown]
-# #### Try it: the number of clusters $K$
+# ### Try it: the number of clusters $K$
 # The data was generated with 4 blobs. Try other values of $K$: inertia (WCSS) always drops as $K$ grows, which is why we can't simply minimise it. The silhouette score peaks near the true structure.
 #
 # *Interactive: run the notebook locally or in Colab to use the controls. GitHub only renders a static page.*
@@ -252,7 +254,7 @@ def explore_k(k):
 
 
 # %% [markdown]
-# #### Hierarchical clustering
+# ### Hierarchical clustering
 # Algorithm (Agglomerative):
 # 1. Start with each data point as its own cluster.
 # 2. Repeat:
@@ -289,7 +291,7 @@ plt.tight_layout()
 plt.show()
 
 # %% [markdown]
-# #### Obtaining flat clusters from dendrogram
+# ### Obtaining Flat Clusters from the Dendrogram
 
 # %%
 # we can cut the dendrogram at a certain height (distance threshold) or specify the desired nuber of clusters

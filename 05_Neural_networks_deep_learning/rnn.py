@@ -38,16 +38,16 @@ np.random.seed(42)
 
 
 # %% [markdown]
-# ### Recurrent Neural Networks (RNNs)
+# # Recurrent Neural Networks (RNN, LSTM, GRU)
 # <p>RNNs are a class of neural networks designed to process sequential data, where the order of elements matters (e.g., text, speech, time series)</p>
 # <p>Key Idea: RNNs have a "memory" or "hidden state" that captures information about previous elements in the sequence, influencing the processing of current elements. This is achieved by having recurrent connections (loops) in the network.</p>
 
 # %% [markdown]
 # This notebook compares a **vanilla RNN**, an **LSTM** and a **GRU** on one-step-ahead forecasting of a synthetic time series, then uses them for multi-step forecasting.
 #
-# Theory: [Recurrent Neural Networks (RNN)](README.md#recurrent-neural-networks-rnn) · [RNN vs LSTM vs GRU](README.md#comparison-rnn-vs-lstm-vs-gru)
+# Theory: [Recurrent Neural Networks (RNN)](README.md#3-recurrent-neural-networks-rnn-lstm-gru) · [RNN vs LSTM vs GRU](README.md#37-rnn-vs-lstm-vs-gru)
 #
-# #### Data: synthetic time series
+# ## Data: synthetic time series
 # A sine wave plus a linear trend and noise. It is simple enough to visualise, but still needs memory of past values to predict well.
 
 # %%
@@ -83,7 +83,7 @@ print(f"Data range: {raw_data.min():.3f} to {raw_data.max():.3f}")
 
 
 # %% [markdown]
-# #### Sliding-window sequences
+# ## Sliding-window sequences
 # Each input is a window of `SEQUENCE_LENGTH` consecutive values, and the target is the **next** value. The data is scaled to $[0, 1]$ with `MinMaxScaler` first. The train/test split is chronological: the last 20% of windows form the test set.
 
 # %%
@@ -131,7 +131,7 @@ print(f"Test set: X={X_test.shape}, y={y_test.shape}")
 
 
 # %% [markdown]
-# #### Models
+# ## Models
 # All three share the same interface: a recurrent layer followed by a linear head on the **last** hidden state.
 # - **RNN:** $h_t = \tanh(W_{xh} x_t + W_{hh} h_{t-1} + b_h)$
 # - **LSTM:** adds a cell state and input/forget/output gates to fight vanishing gradients
@@ -231,7 +231,7 @@ class SimpleGRU(nn.Module):
 
 
 # %% [markdown]
-# #### DataLoaders
+# ## DataLoaders
 # The inputs get a trailing feature dimension, giving shape `(batch, seq_len, 1)`, which matches `batch_first=True`.
 
 # %%
@@ -252,7 +252,7 @@ test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
 
 # %% [markdown]
-# #### Training
+# ## Training
 # MSE loss with the Adam optimizer. Train and test loss are recorded every epoch.
 
 # %%
@@ -330,7 +330,7 @@ gru_train_losses, gru_test_losses = train_model(gru_model, train_loader, test_lo
 
 
 # %% [markdown]
-# #### Unrolling the RNN by hand
+# ## Unrolling the RNN by hand
 # `nn.RNN` implements $h_t = \tanh(W_{ih} x_t + b_{ih} + W_{hh} h_{t-1} + b_{hh})$. Applying that recurrence manually with the trained weights, followed by the same linear head, should reproduce the model's predictions exactly.
 
 # %%
@@ -348,7 +348,7 @@ with torch.no_grad():
 check_close("Manual RNN unroll vs nn.RNN", manual_pred, library_pred, atol=1e-5)
 
 # %% [markdown]
-# #### Loss curves
+# ## Loss curves
 
 # %%
 plt.figure(figsize=(12, 4))
@@ -385,7 +385,7 @@ plt.show()
 
 
 # %% [markdown]
-# #### Evaluation
+# ## Evaluation
 # Predictions are transformed back to the original scale before computing error metrics.
 
 # %%
@@ -468,7 +468,7 @@ plt.show()
 
 
 # %% [markdown]
-# #### Multi-step (autoregressive) forecasting
+# ## Multi-step (autoregressive) forecasting
 # Each prediction is appended to the input window and fed back in to predict the next step. Errors compound over the horizon, which makes this a harder test of what each model has learned.
 
 # %%

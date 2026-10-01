@@ -1,1459 +1,524 @@
-# Supervised Classification
+# 02 · Supervised Classification
 
-> **Quick reference:** the key equations, hyperparameters and pitfalls for this module are on one page in [CHEATSHEET.md](CHEATSHEET.md).
+Classification predicts a **category**: spam or not spam, which digit, which species. This module covers six classic classifiers, from the simplest probabilistic model to the ensembles that still win most tabular-data competitions.
 
-## Logistic Regression
+> **Notebooks:** [logistic_regression](logistic_regression.ipynb) · [svm_kernels](svm_kernels.ipynb) · [naive_bayes](naive_bayes.ipynb) · [knn](knn.ipynb) · [decision_trees](decision_trees.ipynb) · [ensembles](ensembles.ipynb)
+>
+> **Quick revision:** [CHEATSHEET.md](CHEATSHEET.md) · **Evaluating classifiers** (precision, recall, ROC, calibration) is covered in [module 03](../03_Model_evaluation_selection/README.md).
 
-### Introduction
+## Contents
 
-Logistic Regression is a fundamental statistical method for binary classification problems, where we need to predict whether an instance belongs to one of two classes (e.g., spam/not spam, pass/fail, malignant/benign). Despite its name containing "regression," it is primarily a classification algorithm. It aims to model the probability $\large P(y=1 | \mathbf{x}; \mathbf{\theta})$ that an input $\large \mathbf{x}$ belongs to class 1, given parameters $\large \mathbf{\theta}$.
+1. [Logistic regression](#1-logistic-regression)
+2. [Support vector machines and kernels](#2-support-vector-machines-and-kernels)
+3. [Naive Bayes](#3-naive-bayes)
+4. [k-nearest neighbours](#4-k-nearest-neighbours)
+5. [Decision trees](#5-decision-trees)
+6. [Ensembles: bagging, random forests and boosting](#6-ensembles-bagging-random-forests-and-boosting)
+7. [Which classifier should I use?](#7-which-classifier-should-i-use)
 
-#### Why Not Use Linear Regression for Classification?
+---
 
-Linear regression predicts continuous values, but classification requires probabilities bounded between 0 and 1. If we use linear regression directly:
+## 1. Logistic regression
 
--   Predictions can exceed 1 or fall below 0, which doesn't make sense for probabilities
--   The linear model assumes that changes in input features have constant effects on the output, which isn't realistic for probabilities
--   The relationship between features and class membership is often non-linear
+Despite its name, logistic regression is a **classification** model. It predicts the probability that a sample belongs to class 1.
 
-#### The Logistic Approach
+### 1.1 Why not just use linear regression?
 
-Logistic Regression solves these issues by:
+A straight line outputs any number from $-\infty$ to $+\infty$, but a probability must lie between 0 and 1. We need a way to **squash** the line's output into $(0, 1)$.
 
-1.  Modeling probabilities directly: Instead of predicting class labels, it predicts the probability of belonging to a class
-2.  Using a link function: The sigmoid function transforms any real-valued input into a probability between 0 and 1
-3.  Maintaining linearity in log-odds: While the probability relationship is non-linear, the log-odds remain linear in the features
+### 1.2 Odds, log-odds and the sigmoid
 
-#### Mathematical Foundation
+- The **odds** of an event with probability $p$ are $\frac{p}{1-p}$. For example, $p = 0.8$ gives odds of 4 : 1.
+- The **log-odds** (the *logit*) are $\ln \frac{p}{1-p}$. They range over all real numbers, so they *can* be modelled by a straight line.
 
-#### The Odds and Log-Odds Concept
-
-Before diving into the sigmoid function, let's understand **odds** and **log-odds**:
-
-**Odds**: If the probability of an event is $\large p$, then the odds are: 
-
-<div align="center">
-
-$$\large 
-\text{Odds} = \frac{p}{1-p}
-$$
-
-</div>
-
--   If $\large p = 0.5$, odds = 1:1 (equal chance)
--   If $\large p = 0.8$, odds = 4:1 (4 times more likely to occur)
--   If $\large p = 0.2$, odds = 1:4 (4 times less likely to occur)
-
-**Log-Odds (Logit)**: The natural logarithm of the odds: 
-
-<div align="center">
-
-$$\large 
-\text{Logit}(p) = \ln\left(\frac{p}{1-p}\right)
-$$
-
-</div>
-
-The log-odds can range from $\large -\infty$ to $\large +\infty$, making it suitable for linear modeling.
-
-### The Sigmoid (Logistic) Function
-
-The sigmoid function is the inverse of the logit function: 
-
-<div align="center">
-
-$$\large 
-\sigma(z) = \frac{1}{1 + e^{-z}} = \frac{e^z}{1 + e^z}
-$$
-
-</div>
-
-<div align="center">
-<img src="assets/sigmoid.png" width="500", height="320">
-<p>Fig. Sigmoid Function</p>
-</div>
-
-**Key Properties:**
-
--   Range: $\large (0, 1)$ - perfect for probabilities
--   Monotonic: Always increasing, so higher $\large z$ values always correspond to higher probabilities
--   S-shaped curve: Gentle transitions at extremes, steep in the middle
--   Symmetric around 0.5: $\large \sigma(-z) = 1 - \sigma(z)$
--   Derivative: $\large \sigma'(z) = \sigma(z)(1 - \sigma(z))$ - this elegant property simplifies gradient calculations
-
-**Interpretation of $\large z$ values:**
-
--   $\large z = 0 \Rightarrow \sigma(z) = 0.5$ (neutral/uncertain)
--   $\large z > 0 \Rightarrow \sigma(z) > 0.5$ (favors class 1)
--   $\large z < 0 \Rightarrow \sigma(z) < 0.5$ (favors class 0)
--   $\large z = \pm 2 \Rightarrow \sigma(z) \approx 0.88/0.12$ (fairly confident)
--   $\large z = \pm 4 \Rightarrow \sigma(z) \approx 0.98/0.02$ (very confident)
-
-### The Logistic Regression Model
-
-For input features $\large \mathbf{x} = [x_1, x_2, \ldots, x_n]^T$ and parameters $\large \boldsymbol{\theta} = [\theta_0, \theta_1, \ldots, \theta_n]^T$:
-
-**Linear combination (logit)**: $$\large z = \theta_0 + \theta_1 x_1 + \theta_2 x_2 + \cdots + \theta_n x_n = \boldsymbol{\theta}^T \mathbf{x}'$$
-
-where $\large \mathbf{x}' = [1, x_1, x_2, \ldots, x_n]^T$ includes the bias term.
-
-**Probability prediction**: $$\large P(y = 1 | \mathbf{x}; \boldsymbol{\theta}) = h_{\boldsymbol{\theta}}(\mathbf{x}) = \sigma(z) = \frac{1}{1 + e^{-\boldsymbol{\theta}^T \mathbf{x}'}}$$
-
-**Class prediction**: 
-
-When $\large h_{\theta}(x)\ge0.5$ (i.e.\ $z\ge0$), 
-
-set $$\large \hat y=1,$$
-
-otherwise $$\large \hat y=0.$$
-
-<div align="center">
-<img src="assets/logistic.png" width="600", height="350">
-<p>Fig. Logistic Regression in Machine Learning</p>
-</div>
-
-### Decision Boundary
-### Linear Decision Boundaries
-
-The decision boundary occurs where $\large P(y=1|\mathbf{x}) = 0.5$, which happens when $\large z = 0$: 
-
-<div align="center">
-
-$$\large 
-\theta_0 + \theta_1 x_1 + \theta_2 x_2 + \cdots + \theta_n x_n = 0
-$$
-
-</div>
-
-This is a **hyperplane** in $n$-dimensional space:
-
--   In 2D: A straight line
--   In 3D: A plane
--   In higher dimensions: A hyperplane
-
-<div align="center">
-<img src="assets/decision.png" width="500", height="400">
-<p>Fig. Decision Boundary in 2D</p>
-</div>
-
-**Geometric Interpretation:**
-
--   The normal vector to the decision boundary is $\large [\theta_1, \theta_2, \ldots, \theta_n]^T$
--   The distance from origin to the boundary is $\large |\theta_0|/||\boldsymbol{\theta}||$
--   Points are classified based on which side of the hyperplane they fall on
-
-### Non-linear Decision Boundaries
-
-While basic logistic regression produces linear boundaries, we can create non-linear boundaries by:
-
-**Polynomial features**: $$\large z = \theta_0 + \theta_1 x_1 + \theta_2 x_2 + \theta_3 x_1^2 + \theta_4 x_2^2 + \theta_5 x_1 x_2$$
-
-**Interaction terms**: $$\large z = \theta_0 + \theta_1 x_1 + \theta_2 x_2 + \theta_3 x_1 x_2$$
-
-**Other transformations**:
-
--   Logarithmic: $\large \log(x_i)$
--   Trigonometric: $\large \sin(x_i), \cos(x_i)$
--   Radial basis functions: $\large e^{-||x_i - c||^2}$
-
-### Cost Function: Binary Cross-Entropy (Log Loss)
-For classification, Mean Squared Error (MSE) is generally not a good cost function because it can lead to a non-convex optimization problem when combined with the sigmoid function. Instead, **Binary Cross-Entropy (BCE) Loss**, also known as Log Loss, is used.
-
-#### Motivation for Log-Likelihood
-
-Logistic regression uses **Maximum Likelihood Estimation (MLE)** to find optimal parameters. Given training data, we want to find parameters that make the observed data most likely.
-
-**Likelihood for a single sample**: 
-
-<div align="center">
-
-$$\large 
-L(\boldsymbol{\theta}) = P(y|\mathbf{x}; \boldsymbol{\theta}) = h_{\boldsymbol{\theta}}(\mathbf{x})^y \cdot (1 - h_{\boldsymbol{\theta}}(\mathbf{x}))^{1-y}
-$$
-
-</div>
-
-This clever formulation works because:
-
--   **If $\large y = 1$**: $\large L = h_{\boldsymbol{\theta}}(\mathbf{x})^1 \cdot (1 - h_{\boldsymbol{\theta}}(\mathbf{x}))^0 = h_{\boldsymbol{\theta}}(\mathbf{x})$
--   **If $\large y = 0$**: $\large L = h_{\boldsymbol{\theta}}(\mathbf{x})^0 \cdot (1 - h_{\boldsymbol{\theta}}(\mathbf{x}))^1 = 1 - h_{\boldsymbol{\theta}}(\mathbf{x})$
-
-**Likelihood for all samples** (assuming independence): 
-
-<div align="center">
-
-$$\large 
-L(\boldsymbol{\theta}) = \prod_{i=1}^{m} h_{\boldsymbol{\theta}}(\mathbf{x}^{(i)})^{y^{(i)}} \cdot (1 - h_{\boldsymbol{\theta}}(\mathbf{x}^{(i)}))^{1-y^{(i)}}
-$$
-
-</div>
-
-**Log-likelihood** (easier to optimize): 
-
-<div align="center">
-
-$$\large 
-\ell(\boldsymbol{\theta}) = \log L(\boldsymbol{\theta}) = \sum_{i=1}^{m} \left[ y^{(i)} \log h_{\boldsymbol{\theta}}(\mathbf{x}^{(i)}) + (1-y^{(i)}) \log(1 - h_{\boldsymbol{\theta}}(\mathbf{x}^{(i)})) \right]
-$$
-
-</div>
-
-#### Binary Cross-Entropy Loss
-
-Since we typically minimize cost functions rather than maximize likelihood, we define: 
-
-<div align="center">
-
-$$\large 
-J(\boldsymbol{\theta}) = -\frac{1}{m} \ell(\boldsymbol{\theta}) = -\frac{1}{m} \sum_{i=1}^{m} \left[ y^{(i)} \log h_{\boldsymbol{\theta}}(\mathbf{x}^{(i)}) + (1-y^{(i)}) \log(1 - h_{\boldsymbol{\theta}}(\mathbf{x}^{(i)})) \right]
-$$
-
-</div>
-
-**Properties of BCE Loss:**
-
--   Convex: Guarantees a global minimum (unlike MSE with sigmoid, which can have local minima)
--   Differentiable: Enables gradient-based optimization
--   Proper scoring rule: Encourages honest probability estimates
--   Penalizes confident wrong predictions heavily: The cost approaches infinity as predictions approach the wrong extreme
-
-**Intuitive Understanding:**
-
--   When $\large y = 1$ and $h_{\boldsymbol{\theta}}(\mathbf{x}) \to 1$: Cost $\large \to 0$ (correct and confident)
--   When $\large y = 1$ and $h_{\boldsymbol{\theta}}(\mathbf{x}) \to 0$: Cost $\large \to \infty$ (wrong and confident)
--   When $\large y = 0$ and $h_{\boldsymbol{\theta}}(\mathbf{x}) \to 0$: Cost $\large \to 0$ (correct and confident)
--   When $\large y = 0$ and $h_{\boldsymbol{\theta}}(\mathbf{x}) \to 1$: Cost $\large \to \infty$ (wrong and confident)
-
-### Optimization with Gradient Descent
-
-#### Detailed Gradient Calculation
-
-To derive the gradient, we need the partial derivative of $J(\boldsymbol{\theta})$ with respect to each parameter $\theta_j$.
-
-**Step 1: Derivative of sigmoid function** 
-
-<div align="center">
-
-$$
-\frac{d\sigma(z)}{dz} = \sigma(z)(1 - \sigma(z))
-$$
-
-</div>
-
-**Step 2: Chain rule application** For a single sample $(x^{(i)}, y^{(i)})$: 
-
-<div align="center">
-
-$$\large \
-frac{\partial}{\partial \theta_j} \left[-y^{(i)} \log h_{\boldsymbol{\theta}}(\mathbf{x}^{(i)}) - (1-y^{(i)}) \log(1 - h_{\boldsymbol{\theta}}(\mathbf{x}^{(i)}))\right]
-$$
-
-</div>
-
-**Step 3: After applying chain rule and simplifying** 
-
-<div align="center">
-
-$$\large 
-\frac{\partial J(\boldsymbol{\theta})}{\partial \theta_j} = \frac{1}{m} \sum_{i=1}^{m} (h_{\boldsymbol{\theta}}(\mathbf{x}^{(i)}) - y^{(i)}) x_j^{(i)}
-$$
-
-</div>
-
-This looks identical to the gradient for linear regression with MSE, but remember that $\large h_{\mathbf{\theta}}(\mathbf{x}^{(i)})$ here is $\large \sigma(\mathbf{x}^{(i)} \cdot \mathbf{\theta})$
-
-**Vectorized form:** 
-
-<div align="center">
-
-$$\large 
-\nabla J(\boldsymbol{\theta}) = \frac{1}{m} \mathbf{X}^T (\mathbf{h} - \mathbf{y})
-$$
-
-</div>
-
-where:
-
--   $\large \mathbf{X}$ is the $\large m \times (n+1)$ design matrix
--   $\large \mathbf{h} = \sigma(\mathbf{X}\boldsymbol{\theta})$ is the vector of predictions
--   $\large \mathbf{y}$ is the vector of true labels
-
-#### Gradient Descent Algorithm
-
-**Standard Gradient Descent:**
-
-```
-Initialize θ randomly
-For epoch = 1 to max_epochs:
-    h = σ(Xθ)
-    gradient = (1/m) * X^T * (h - y)
-    θ = θ - η * gradient
-    if convergence_criteria_met:
-        break
-
-```
-
-**Variants:**
-
--   **Stochastic Gradient Descent (SGD)**: Update after each sample
--   **Mini-batch GD**: Update after small batches
--   **Adaptive methods**: Adam, RMSprop, AdaGrad adjust learning rates
-
-#### Learning Rate Considerations
-
-**Too large**: Oscillation or divergence **Too small**: Slow convergence **Adaptive scheduling**: Start large, decrease over time
-
-Common schedules:
-
--   Step decay: $\large \eta_t = \eta_0 \cdot \gamma^{t/k}$
--   Exponential decay: $\large \eta_t = \eta_0 \cdot e^{-\lambda t}$
--   Cosine annealing: $\large \eta_t = \eta_{min} + \frac{1}{2}(\eta_{max} - \eta_{min})(1 + \cos(\frac{t\pi}{T}))$
-
-
-### Related Topics
-
-#### Regularization
-
-**L1 Regularization (Lasso)**: 
-
-<div align="center">
-
-$$\large 
-J(\boldsymbol{\theta}) = \text{BCE}(\boldsymbol{\theta}) + \lambda \sum_{j=1}^{n} |\theta_j|
-$$
-
-</div>
-
--   Promotes sparsity (feature selection)
--   Some coefficients become exactly zero
-
-**L2 Regularization (Ridge)**: 
-
-<div align="center">
-
-$$\large 
-J(\boldsymbol{\theta}) = \text{BCE}(\boldsymbol{\theta}) + \lambda \sum_{j=1}^{n} \theta_j^2
-$$
-
-</div>
-
--   Prevents overfitting by penalizing large weights
--   Keeps all features but shrinks coefficients
-
-**Elastic Net**: 
-
-<div align="center">
-
-$$\large 
-J(\boldsymbol{\theta}) = \text{BCE}(\boldsymbol{\theta}) + \lambda_1 \sum_{j=1}^{n} |\theta_j| + \lambda_2 \sum_{j=1}^{n} \theta_j^2
-$$
-
-</div>
-
--   Combines L1 and L2 penalties
-
-#### Feature Scaling and Preprocessing
-
-**Why scaling matters:**
-
--   Features with larger scales can dominate the optimization
--   Gradient descent converges faster with scaled features
--   Regularization affects features proportionally to their scale
-
-**Common scaling methods:**
-
--   Standardization: $\large x' = \frac{x - \mu}{\sigma}$
--   Min-Max scaling: $\large x' = \frac{x - \min(x)}{\max(x) - \min(x)}$
--   Robust scaling: Uses median and IQR instead of mean and std
-
-#### Handling Imbalanced Datasets
-
-**Class weight adjustment**:
-
--   Assign higher weights to minority class samples
--   Common approach: inverse proportion weighting
-
-**Threshold tuning**:
-
--   Instead of 0.5, choose threshold based on business requirements
--   Use ROC curve or precision-recall curve to select optimal threshold
-
-**Sampling techniques**:
-
--   Oversampling
--   Undersampling: Random, edited nearest neighbors
--   Hybrid methods: Combine over and undersampling
-
-### Comprehensive Evaluation Metrics
-
-#### Confusion Matrix Analysis
-
-For binary classification:
-
-```
-                 Predicted
-                0       1
-Actual  0    TN      FP     (N)
-        1    FN      TP     (P)
-
-```
-
-**Derived Metrics:**
-
-**Accuracy**: Overall correctness 
-
-<div align="center">
-
-$$\large 
-\text{Accuracy} = \frac{TP + TN}{TP + TN + FP + FN}
-$$
-
-</div>
-
-**Precision**: Exactness of positive predictions 
-
-<div align="center">
-
-$$\large 
-\text{Precision} = \frac{TP}{TP + FP}
-$$
-
-</div>
-
-**Recall (Sensitivity/TPR)**: Completeness of positive detection 
-
-<div align="center">
-
-$$\large 
-\text{Recall} = \frac{TP}{TP + FN}
-$$
-
-</div>
-
-**Specificity (TNR)**: Correct rejection rate 
-
-<div align="center">
-
-$$\large 
-\text{Specificity} = \frac{TN}{TN + FP}
-$$
-
-</div>
-
-**F1-Score**: Harmonic mean of precision and recall 
-
-<div align="center">
-
-$$\large 
-F_1 = 2 \cdot \frac{\text{Precision} \cdot \text{Recall}}{\text{Precision} + \text{Recall}}
-$$
-
-</div>
-
-**F-Beta Score**: Weighted harmonic mean 
-
-<div align="center">
-
-$$\large 
-F_\beta = (1 + \beta^2) \cdot \frac{\text{Precision} \cdot \text{Recall}}{\beta^2 \cdot \text{Precision} + \text{Recall}}
-$$
-
-</div>
-
--   $\large \beta > 1$: Emphasizes recall
--   $\large \beta < 1$: Emphasizes precision
-
-#### ROC and AUC Analysis
-
-**ROC Curve**: Plots TPR vs FPR at various thresholds
-
--   AUC (Area Under Curve): Single metric summarizing ROC
--   AUC = 0.5: Random classifier
--   AUC = 1.0: Perfect classifier
--   AUC > 0.8: Generally considered good
-
-**Precision-Recall Curve**: Better for imbalanced datasets
-
--   Plots Precision vs Recall at various thresholds
--   AP (Average Precision): Area under PR curve
-
-#### Business-Oriented Metrics
-
-**Cost-sensitive evaluation**: 
-
-<div align="center">
-
-$$\large 
-\text{Total Cost} = C_{FP} \cdot FP + C_{FN} \cdot FN
-$$
-
-</div>
-
-where $\large C_{FP}$ and $\large C_{FN}$ are business costs of false positives and false negatives.
-
-### Assumptions and Limitations
-
-#### Key Assumptions
-
-1.  Linear relationship: Between log-odds and features
-2.  Independence: Observations are independent
-3.  No multicollinearity: Features shouldn't be highly correlated
-4.  Large sample size: Asymptotic properties require sufficient data
-5.  No extreme outliers: Can heavily influence the model
-
-#### Limitations
-
-1.  Linear decision boundary: May not capture complex patterns
-2.  Sensitive to outliers: Extreme values can skew results
-3.  Requires feature engineering: May need polynomial or interaction terms
-4.  Assumes linear log-odds: Real relationships might be more complex
-
-#### When to Use Logistic Regression
-
-**Good for:**
-
--   Binary classification problems
--   When you need probability estimates
--   When interpretability is important
--   As a baseline model
--   When you have limited data
--   When features have roughly linear relationships with log-odds
-
-**Consider alternatives when:**
-
--   You have highly non-linear relationships
--   You have many irrelevant features
--   You need to capture complex interactions
--   You have very large datasets where tree-based methods might be faster
-
-#### Hyperparameter Tuning
-
-**Key hyperparameters:**
-
--   Learning rate: Use learning rate scheduling or adaptive methods
--   Regularization strength: Cross-validation to find optimal λ
--   Maximum iterations: Based on convergence criteria
--   Tolerance: For stopping criteria
-
-**Cross-validation strategy:**
-
--   K-fold cross-validation for parameter selection
--   Stratified sampling to maintain class proportions
--   Time series split for temporal data
-
-## Support Vector Machines and Kernels
-
-### Introduction
-
-Support Vector Machines (SVMs) were introduced by Vladimir Vapnik and his colleagues, building on statistical learning theory and the principle of structural risk minimization. SVMs represent one of the most theoretically grounded and practically successful machine learning algorithms, particularly excelling in high-dimensional spaces and scenarios with limited training data.
-
-#### Core Philosophy
-
-The fundamental insight behind SVMs is that **not all training examples are equally important**. The decision boundary should be determined primarily by the most "difficult" examples - those that lie closest to the boundary between classes. This leads to several key advantages:
-
--   Robust generalization: By focusing on the most informative examples, SVMs often generalize better than methods that treat all training points equally
--   Sparse solutions: Only support vectors influence the final model, leading to compact representations
--   Maximum margin principle: Among all possible separating hyperplanes, choose the one with maximum margin for better generalization
-
-#### Mathematical Foundation: Statistical Learning Theory
-
-SVMs are grounded in **Vapnik-Chervonenkis (VC) theory**, which provides theoretical guarantees about generalization. The key insight is that generalization error is bounded by:
-
-$$\large 
-R(f) \leq R_{emp}(f) + \sqrt{\frac{h(\log(2m/h) + 1) - \log(\eta/4)}{m}}
-$$
-
-Where:
-
--   $\large R(f)$ is the true risk (generalization error)
--   $\large R_{emp}(f)$ is the empirical risk (training error)
--   $\large h$ is the VC dimension of the function class
--   $\large m$ is the number of training examples
--   $\large \eta$ is the confidence parameter
-
-The maximum margin principle directly minimizes the VC dimension, leading to better generalization bounds.
-
-### Geometric Intuition and Margin Theory
-
-#### The Margin Concept
-
-The **margin** is the perpendicular distance from the decision boundary to the nearest data point. For a hyperplane defined by $\large \mathbf{w}^T\mathbf{x} + b = 0$:
-
-**Functional margin** for point $\large i$: $\large \hat{\gamma}_i = y_i(\mathbf{w}^T\mathbf{x}_i + b)$
-
--   Always positive for correctly classified points
--   Measures "confidence" of classification
-
-**Geometric margin** for point $\large i$: $\Large \gamma_i = \frac{y_i(\mathbf{w}^T\mathbf{x}_i + b)}{||\mathbf{w}||}$
-
--   Distance from point to hyperplane
--   Scale-invariant (doesn't change if we scale $\large \mathbf{w}$ and $b$)
-
-**Total geometric margin**: $\large \gamma = \min_i \gamma_i$
-
-<div align="center">
-<img src="assets/marginal.jpg">
-<p>Fig. Maximum margin classification with support vector machines</p>
-</div>
-
-#### Why Maximum Margin?
-
-1.  Generalization: Larger margins typically lead to better generalization (supported by VC theory)
-2.  Noise robustness: Points far from the boundary are less likely to be misclassified due to noise
-3.  Unique solution: Among all separating hyperplanes, the maximum margin solution is unique
-
-#### Margin Calculation
-
-For a normalized hyperplane where the closest points satisfy $\large |\mathbf{w}^T\mathbf{x}_i + b| = 1$:
-
--   The margin width is $\large \frac{2}{||\mathbf{w}||}$
--   Maximizing margin ⟺ minimizing $\large ||\mathbf{w}||$ ⟺ minimizing $\large \frac{1}{2}||\mathbf{w}||^2$
-
-### Linear SVM: Complete Mathematical Treatment
-
-<div align="center">
-<img src="assets/margin.png">
-<p>Fig. Hard Margin vs Soft Margin in SVM</p>
-</div>
-
-#### Hard Margin SVM (Linearly Separable Case)
-
-**Optimization problem**: 
-
-<div align="center">
-
-$$\large 
-\min_{\mathbf{w}, b} \frac{1}{2}||\mathbf{w}||^2
-$$ 
-
-$$\large
-\text{subject to: } y_i(\mathbf{w}^T\mathbf{x}_i + b) \geq 1, \quad i = 1, \ldots, m
-$$
-
-</div>
-
-This is a **convex quadratic programming** problem with linear constraints.
-
-**Lagrangian formulation**: 
-
-<div align="center">
-
-$$\large 
-L(\mathbf{w}, b, \boldsymbol{\alpha}) = \frac{1}{2}||\mathbf{w}||^2 - \sum_{i=1}^{m} \alpha_i [y_i(\mathbf{w}^T\mathbf{x}_i + b) - 1]
-$$
-
-</div>
-
-Where $\large \alpha_i \geq 0$ are Lagrange multipliers.
-
-**KKT conditions**:
-
-1.  $`\large \nabla_{\mathbf{w}} L = \mathbf{w} - \sum_{i=1}^{m} \alpha_i y_i \mathbf{x}_i = 0 \Rightarrow \mathbf{w} = \sum_{i=1}^{m} \alpha_i y_i \mathbf{x}_i`$
-2.  $\large \frac{\partial L}{\partial b} = -\sum_{i=1}^{m} \alpha_i y_i = 0 \Rightarrow \sum_{i=1}^{m} \alpha_i y_i = 0$
-3.  $\large \alpha_i \geq 0$
-4.  $\large y_i(\mathbf{w}^T\mathbf{x}_i + b) - 1 \geq 0$
-5.  $\large \alpha_i [y_i(\mathbf{w}^T\mathbf{x}_i + b) - 1] = 0$ (complementary slackness)
-
-**Dual formulation**: 
-
-<div align="center">
-
-$$\large 
-\max_{\boldsymbol{\alpha}} W(\boldsymbol{\alpha}) = \sum_{i=1}^{m} \alpha_i - \frac{1}{2} \sum_{i=1}^{m} \sum_{j=1}^{m} \alpha_i \alpha_j y_i y_j \mathbf{x}_i^T \mathbf{x}_j
-$$
+Logistic regression models the log-odds as linear, $z = \mathbf{w}^\top \mathbf{x} + b$. Solving for $p$ gives the **sigmoid** function:
 
 ```math
-\large \text{subject to: } \sum_{i=1}^{m} \alpha_i y_i = 0, \quad \alpha_i \geq 0
+p = \sigma(z) = \frac{1}{1 + e^{-z}}
 ```
 
-</div>
+<p align="center">
+  <img src="assets/sigmoid.png" alt="The sigmoid function" width="480">
+  <br>
+  <em>The sigmoid squashes any number into (0, 1).</em>
+</p>
 
-#### Soft Margin SVM (Non-separable Case)
+**Useful properties:**
 
-Real data is rarely perfectly separable. **Soft margin SVM** introduces slack variables $\large \xi_i \geq 0$ to allow some misclassifications:
+- $\sigma(0) = 0.5$, $\sigma(2) \approx 0.88$, $\sigma(4) \approx 0.98$
+- symmetric: $\sigma(-z) = 1 - \sigma(z)$
+- a neat derivative: $\sigma'(z) = \sigma(z)\,(1 - \sigma(z))$
 
-**Primal optimization problem**: 
-
-<div align="center">
-
-$$\large 
-\min_{\mathbf{w}, b, \boldsymbol{\xi}} \frac{1}{2}||\mathbf{w}||^2 + C \sum_{i=1}^{m} \xi_i
-$$
-
-</div>
-
-<div align="center">
-
-$$\large 
-\text{subject to: } y_i(\mathbf{w}^T\mathbf{x}_i + b) \geq 1 - \xi_i, \quad \xi_i \geq 0
-$$
-
-</div>
-
-**Interpretation of slack variables**:
-
--   $\large \xi_i = 0$: Point is correctly classified and outside margin
--   $\large 0 < \xi_i < 1$: Point is correctly classified but inside margin
--   $\large \xi_i = 1$: Point is exactly on the decision boundary
--   $\large \xi_i > 1$: Point is misclassified
-
-**Dual formulation**: 
-
-<div align="center">
-
-$$\large 
-\max_{\boldsymbol{\alpha}} W(\boldsymbol{\alpha}) = \sum_{i=1}^{m} \alpha_i - \frac{1}{2} \sum_{i=1}^{m} \sum_{j=1}^{m} \alpha_i \alpha_j y_i y_j \mathbf{x}_i^T \mathbf{x}_j
-$$
-
-</div>
-
-<div align="center">
-$$\large 
-\text{subject to: } \sum_{i=1}^{m} \alpha_i y_i = 0, \quad 0 \leq \alpha_i \leq C
-$$
-
-</div>
-
-#### Support Vector Classification
-
-From the KKT conditions, we can classify training points:
-
-1.  **$\large \alpha_i = 0$**: Non-support vectors (correctly classified, outside margin)
-2.  **$\large 0 < \alpha_i < C$**: Support vectors on margin boundary ($\large \xi_i = 0$)
-3.  **$\large \alpha_i = C$**: Support vectors inside margin or misclassified ($\large \xi_i > 0$)
-
-**Decision function**: 
-
-<div align="center">
-
-$$\large 
-f(\mathbf{x}) = \sum_{i \in SV} \alpha_i y_i \mathbf{x}_i^T \mathbf{x} + b
-$$
-
-</div>
-
-Where $\large SV$ is the set of support vector indices.
-
-### Hinge Loss: Detailed Analysis
-
-#### Mathematical Definition
-
-The **hinge loss** provides a convex surrogate for the 0-1 loss:
-
-$$\large L_{hinge}(y, f(\mathbf{x})) = \max(0, 1 - yf(\mathbf{x}))$$
-
-Where $\large y \in {-1, +1}$ and $\large f(\mathbf{x}) = \mathbf{w}^T\mathbf{x} + b$.
-
-<div align="center">
-<img src="assets/hinge.png">
-<p>Fig. Hinge Loss</p>
-</div>
-
-#### Properties of Hinge Loss
-
-1.  Convex: Enables efficient optimization
-2.  Piecewise linear: Not differentiable everywhere, but has subgradients
-3.  Margin-based: Penalizes points within the margin, even if correctly classified
-4.  Sparse: Only support vectors contribute to the loss
-
-#### Subgradient Analysis
-
-The hinge loss is not differentiable at $\large yf(\mathbf{x}) = 1$. The subgradient is:
-
-$$\large 
-\partial L_{hinge} = \begin{cases} 0 & \text{if } yf(\mathbf{x}) > 1 \ [-y\mathbf{x}, 0] & \text{if } yf(\mathbf{x}) = 1 \ -y\mathbf{x} & \text{if } yf(\mathbf{x}) < 1 \end{cases}
-$$
-
-#### Regularized Hinge Loss Objective
-
-The complete SVM objective combines hinge loss with L2 regularization:
-
-$$\large 
-J(\mathbf{w}, b) = \frac{1}{m} \sum_{i=1}^{m} \max(0, 1 - y_i(\mathbf{w}^T\mathbf{x}_i + b)) + \frac{\lambda}{2}||\mathbf{w}||^2
-$$
-
-**Equivalent formulations**:
-
--   $\large J(\mathbf{w}, b) = C \sum_{i=1}^{m} \max(0, 1 - y_i(\mathbf{w}^T\mathbf{x}_i + b)) + \frac{1}{2}||\mathbf{w}||^2$
--   Where $\large C = \frac{1}{\lambda m}$
-
-### Optimization Algorithms
-
-#### Sequential Minimal Optimization (SMO)
-
-SMO, developed by John Platt, is the most popular algorithm for training SVMs. It breaks the large QP problem into smaller sub-problems:
-
-**Key insight**: The smallest possible optimization problem involves two variables (due to the constraint $\large \sum \alpha_i y_i = 0$).
-
-**Algorithm outline**:
-
-1.  Select two variables $\large \alpha_i, \alpha_j$ to optimize
-2.  Fix all other variables
-3.  Solve the 2-variable QP analytically
-4.  Repeat until convergence
-
-**Variable selection heuristics**:
-
--   Choose variables that violate KKT conditions most
--   Use second-order information for faster convergence
-
-#### Gradient Descent for Hinge Loss
-
-While not as efficient as SMO for traditional SVMs, gradient descent is useful for:
-
--   Online learning scenarios
--   Integration with deep learning frameworks
--   Large-scale problems with approximate solutions
-
-**Subgradient descent update**: 
+### 1.3 The model
 
 ```math
-\large \mathbf{w}_{t+1} = \mathbf{w}_t - \eta_t \left( \lambda \mathbf{w}_t + \frac{1}{m} \sum_{i=1}^{m} \mathbf{g}_i \right)
+P(y = 1 \mid \mathbf{x}) = \sigma(\mathbf{w}^\top \mathbf{x} + b)
 ```
 
-Where $\large \mathbf{g}_i$ is the subgradient of the hinge loss for sample $\large i$.
+Predict class 1 when this probability is $\ge 0.5$, which is the same as $z \ge 0$.
 
-**Stochastic subgradient descent**: 
+<p align="center">
+  <img src="assets/logistic.png" alt="Logistic regression as a single neuron" width="600">
+  <br>
+  <em>Logistic regression as a single neuron: weighted sum → sigmoid → threshold.</em>
+</p>
+
+### 1.4 The decision boundary
+
+The boundary is where $P = 0.5$, that is, where $\mathbf{w}^\top \mathbf{x} + b = 0$. This is a **straight line** in 2-D, a plane in 3-D and a *hyperplane* in general. The vector $\mathbf{w}$ points perpendicular to it.
+
+<p align="center">
+  <img src="assets/decision.png" alt="Linear decision boundary between two classes" width="480">
+  <br>
+  <em>The linear boundary learned by the from-scratch model in the notebook.</em>
+</p>
+
+For a **curved** boundary, add polynomial or interaction features ($x_1^2$, $x_1 x_2$, …) just as in polynomial regression.
+
+### 1.5 The loss: binary cross-entropy
+
+We choose $\mathbf{w}$ to make the observed labels **as likely as possible** (maximum likelihood). For one sample, the probability of its label is $\hat{p}^{\,y} (1 - \hat{p})^{1-y}$. This equals $\hat{p}$ when $y = 1$ and $1 - \hat{p}$ when $y = 0$.
+
+Taking the negative log and averaging over all samples gives the **binary cross-entropy (log loss)**:
 
 ```math
-\large \mathbf{w}_{t+1} = \mathbf{w}_t - \eta_t (\lambda \mathbf{w}_t + \mathbf{g}_{i_t})
+J(\mathbf{w}, b) = -\frac{1}{m} \sum_{i=1}^{m} \Big[ y^{(i)} \log \hat{p}^{(i)} + \big(1 - y^{(i)}\big) \log\big(1 - \hat{p}^{(i)}\big) \Big]
 ```
 
-For randomly selected sample $\large i_t$.
-
-### Non-Linear SVMs
-
-#### The Challenge of Non-Linear Data
-Many real-world datasets are not linearly separable. A linear decision boundary will perform poorly.
-
-<div align="center">
-<img src="assets/nonlinear.png">
-<p>Fig. Non-Linearly Separable Data</p>
-</div>
-
-#### Mapping to Higher Dimensions
-One way to handle non-linear data is to map the original features $\large \mathbf{x}$ into a much higher-dimensional feature space $\large \phi(\mathbf{x})$ where the data might become linearly separable. An SVM could then find a linear hyperplane in this new, higher-dimensional space.
-
-### Kernel Methods: The Mathematical Foundation
-
-#### The Kernel Trick Explained
-
-The **kernel trick** allows us to work in high-dimensional feature spaces without explicitly computing the feature mappings. This is based on the **representer theorem**.
-
-**Representer Theorem**: For a wide class of regularized risk minimization problems, the optimal solution can be written as: 
-
-<div align="center">
-
-$$\large 
-f^*(\mathbf{x}) = \sum_{i=1}^{m} \alpha_i K(\mathbf{x}_i, \mathbf{x})
-$$
-
-</div>
-
-#### Kernel Functions: Mathematical Properties
-
-A function $\large K: \mathcal{X} \times \mathcal{X} \rightarrow \mathbb{R}$ is a **valid kernel** (positive definite kernel) if:
-
-1.  **Symmetry**: $\large K(\mathbf{x}, \mathbf{x}') = K(\mathbf{x}', \mathbf{x})$
-2.  **Positive semi-definiteness**: For any $\large {\mathbf{x}_1, \ldots, \mathbf{x}_m}$, the Gram matrix $\large \mathbf{K}$ with $`\large K_{ij} = K(\mathbf{x}_i, \mathbf{x}_j)`$ is positive semi-definite
-
-**Mercer's theorem**: A continuous function $\large K$ is a valid kernel if and only if it can be expressed as:
-
-<div align="center">
-
-$$\large 
-K(\mathbf{x}, \mathbf{x}') = \sum_{i=1}^{\infty} \lambda_i \phi_i(\mathbf{x}) \phi_i(\mathbf{x}')
-$$
-
-</div>
-
-Where $\large \lambda_i \geq 0$ and $\large {\phi_i}$ are orthonormal functions.
-
-#### Common Kernels
-
-#### Linear Kernel
-
-$$\large K(\mathbf{x}, \mathbf{x}') = \mathbf{x}^T \mathbf{x}'$$
-
-**Feature mapping**: $\large \phi(\mathbf{x}) = \mathbf{x}$ (identity) **Use cases**: Linearly separable data, high-dimensional sparse data (text) **Computational complexity**: $\large O(d)$ where $\large d$ is input dimension
-
-#### Polynomial Kernel
-
-$$\large K(\mathbf{x}, \mathbf{x}') = (\gamma \mathbf{x}^T \mathbf{x}' + r)^d$$
-
-**Parameters**:
-
--   $\large d$: degree (typically 2-4)
--   $\large \gamma > 0$: scaling factor
--   $\large r \geq 0$: offset term
-
-**Feature space dimension**: $\large \binom{d+n-1}{d}$ for degree $\large d$ and $\large n$ input features
-
-**Example** (degree 2, $\large n=2$): 
-
-<div align="center">
-
-$$\large 
-\phi(\mathbf{x}) = [x_1^2, x_2^2, \sqrt{2\gamma r}x_1, \sqrt{2\gamma r}x_2, \sqrt{2\gamma}x_1x_2, r]
-$$
-
-</div>
-
-#### Radial Basis Function (RBF) Kernel
-
-$$\large 
-K(\mathbf{x}, \mathbf{x}') = \exp\left(-\gamma ||\mathbf{x} - \mathbf{x}'||^2\right)
-$$
-
-**Feature space**: Infinite dimensional **Parameter**: $\large \gamma > 0$ controls kernel width
-
--   Small $\large \gamma$: smooth, wide influence
--   Large $\large \gamma$: complex, narrow influence
-
-**Taylor expansion**: 
-
-<div align="center">
-
-$$\large 
-K(\mathbf{x}, \mathbf{x}') = \exp(-\gamma ||\mathbf{x}||^2) \exp(-\gamma ||\mathbf{x}'||^2) \sum_{k=0}^{\infty} \frac{(2\gamma)^k}{k!} (\mathbf{x}^T \mathbf{x}')^k
-$$
-
-</div>
-
-This shows RBF contains polynomial features of all degrees.
-
-#### Sigmoid Kernel
-
-$$\large 
-K(\mathbf{x}, \mathbf{x}') = \tanh(\gamma \mathbf{x}^T \mathbf{x}' + r)
-$$
-
-**Note**: Not always positive definite (depends on parameters) **Connection**: Similar to neural networks with sigmoid activation
-
-### Key Hyperparameters
-Tuning SVMs often involves selecting:
-*   **`C` (Regularization Parameter):**
-    *   Controls the trade-off between achieving a low training error (fitting the data points) and enforcing a large margin (simplicity/regularization).
-    *   Small `C`: Wider margin, more misclassifications allowed (stronger regularization, higher bias, lower variance).
-    *   Large `C`: Narrower margin, fewer misclassifications allowed (weaker regularization, lower bias, higher variance).
-*   **Kernel Choice:** `linear`, `poly`, `rbf`, `sigmoid`, or custom.
-*   **Kernel-Specific Parameters:**
-    *   `gamma` (for `rbf`, `poly`, `sigmoid`): Defines how much influence a single training example has.
-    *   `degree` (for `poly`): The degree of the polynomial.
-    *   `coef0` (for `poly`, `sigmoid`): An independent term in the kernel function.
-
-These hyperparameters are typically chosen using techniques like cross-validation.
-
-## Naive Bayes Classifiers
-
-This section covers Naive Bayes classifiers, a family of simple probabilistic algorithms based on Bayes' theorem with a "naive" assumption of conditional independence between features. We explore Gaussian Naive Bayes for continuous features, Multinomial Naive Bayes,and Bernoulli Naive Bayes variants, commonly used for discrete count data like text.
-
-### Introduction to Naive Bayes
-Naive Bayes classifiers are probabilistic models that use Bayes' theorem to determine the probability of a class label given a set of input features. They are "naive" because they make a strong assumption that all features are conditionally independent of each other, given the class label.
-
-#### Bayes' Theorem Foundation
-Bayes' theorem provides the mathematical foundation for all Bayesian inference:
-
-$$\large 
-P(C_k | \mathbf{x}) = \frac{P(\mathbf{x} | C_k) P(C_k)}{P(\mathbf{x})}
-$$
-
-Let's break down each component with detailed explanations:
-
-**Posterior Probability** $\large P(C_k | \mathbf{x})$:
-
--   This is what we want to compute: the probability that the true class is $\large C_k$ given that we've observed features $\large \mathbf{x}$
--   Represents our updated belief about the class after seeing the evidence
--   The goal of classification is to find $\large \arg\max_{k} P(C_k | \mathbf{x})$
-
-**Likelihood** $\large P(\mathbf{x} | C_k)$:
-
--   The probability of observing the feature vector $\large \mathbf{x}$ given that the true class is $\large C_k$
--   This captures how well the observed features "fit" with what we expect for class $\large C_k$
--   Different Naive Bayes variants model this likelihood differently
-
-**Prior Probability** $\large P(C_k)$:
-
--   Our initial belief about the probability of class $\large C_k$ before seeing any features
--   Usually estimated from the training data as the relative frequency of each class
--   Can incorporate domain knowledge if available
-
-**Evidence** $\large P(\mathbf{x})$:
-
--   The marginal probability of observing the feature vector $\large \mathbf{x}$
--   Acts as a normalization constant ensuring probabilities sum to 1
--   Can be computed as: $\large P(\mathbf{x}) = \sum_{k} P(\mathbf{x} | C_k) P(C_k)$
--   Often ignored during classification since it's the same for all classes
-
-#### The "Naive" Independence Assumption
-The computational challenge lies in estimating $\large P(\mathbf{x} | C_k) = P(x_1, x_2, \ldots, x_n | C_k)$ for high-dimensional feature vectors. Without assumptions, this would require estimating $\large 2^n$ parameters for binary features or infinite parameters for continuous features.
-
-The **naive independence assumption** states that: 
-
-$$\large 
-P(x_1, x_2, \ldots, x_n | C_k) = \prod_{j=1}^{n} P(x_j | C_k) 
-$$
-
-**Why is this assumption "naive"?**
-
--   Real-world features are often correlated (e.g., in text, the words "machine" and "learning" often appear together)
--   The assumption treats each feature as if it provides independent evidence about the class
--   Despite being unrealistic, it often works well in practice due to the robustness of the classification decision
-
-**Mathematical justification for why it works:** Even when the independence assumption is violated, Naive Bayes can still be an optimal classifier if:
-
-1.  The decision boundaries are not significantly affected by feature dependencies
-2.  The relative ordering of posterior probabilities remains correct
-3.  The bias introduced by the independence assumption affects all classes equally
-
-#### Mathematical Intuition
-
-The classification decision becomes: 
-
-$$\large 
-\hat{y} = \arg\max_{k} P(C_k) \prod_{j=1}^{n} P(x_j | C_k)
-$$
-
-To avoid numerical underflow with many features, we work in log-space: 
-
-$$\large 
-\hat{y} = \arg\max_{k} \left[ \log P(C_k) + \sum_{j=1}^{n} \log P(x_j | C_k) \right]
-$$
-
-This transforms the product into a sum, making computation more stable and efficient.
-
-### Gaussian Naive Bayes (GNB)
-#### Theoretical Foundation
-
-Gaussian Naive Bayes is designed for continuous features that can be modeled using normal distributions. The key insight is that many real-world continuous features, while not perfectly normal, are sufficiently bell-shaped that the Gaussian assumption provides a reasonable approximation.
-
-#### Assumption for Continuous Features
-
-For each class $\large C_k$ and feature $\large x_j$, we assume: 
-
-$$\large 
-x_j | C_k \sim \mathcal{N}(\mu_{kj}, \sigma_{kj}^2)
-$$
-
-<div align="center">
-<img src="assets/gaussian.png">
-<p>Decision Boundary of Gaussian Naive Bayes</p>
-</div>
-
-This means:
-
--   Each feature follows a normal distribution within each class
--   Different classes can have different means and variances for the same feature
--   Features can have different distributions (different $\large \mu$ and $\large \sigma$) across classes
-
-**Important considerations:**
-
--   The assumption is made separately for each class-feature combination
--   Features don't need to have the same variance across classes (heteroscedastic)
--   If a feature is clearly non-Gaussian, consider transformation (log, square root, etc.)
-
-#### Likelihood Calculation
-
-The likelihood for a continuous feature is given by the Gaussian probability density function:
-
-$$\large 
-P(x_j | C_k) = \frac{1}{\sqrt{2\pi\sigma_{kj}^2}} \exp\left(-\frac{(x_j - \mu_{kj})^2}{2\sigma_{kj}^2}\right)
-$$
-
-**Key insights:**
-
--   This is a density, not a probability (can be > 1)
--   The exponential term measures how far $\large x_j$ is from the class mean $\large \mu_{kj}$
--   Smaller variance $\large \sigma_{kj}^2$ makes the distribution more "peaked" around the mean
--   The normalization constant ensures the density integrates to 1
-
-**Log-likelihood for numerical stability:** 
-
-$$\large 
-\log P(x_j | C_k) = -\frac{1}{2}\log(2\pi\sigma_{kj}^2) - \frac{(x_j - \mu_{kj})^2}{2\sigma_{kj}^2}
-$$
-
-#### Parameter Estimation
-
-For each class $\large C_k$ and feature $\large j$, we estimate:
-
-**Sample Mean:** 
-
-```math
-\large \hat{\mu}_{kj} = \frac{1}{N_k} \sum_{i: y_i = k} x_{ij}
-```
-
-**Sample Variance:** 
-
-```math
-\large \hat{\sigma}_{kj}^2 = \frac{1}{N_k} \sum_{i: y_i = k} (x_{ij} - \hat{\mu}_{kj})^2
-```
-
-Where $\large N_k$ is the number of training samples in class $\large k$.
-
-**Variance smoothing:** To prevent division by zero when $\large \hat{\sigma}_{kj}^2 = 0$, add a small epsilon: 
-
-```math
-\large \hat{\sigma}_{kj}^2 \leftarrow \hat{\sigma}_{kj}^2 + \epsilon
-```
-
-Typical values: $\large \epsilon = 10^{-9}$ to $\large 10^{-6}$
-
-#### Training Algorithm
-
-```
-Algorithm: Gaussian Naive Bayes Training
-Input: Training data (X, y) where X is n×d, y is n×1
-Output: Class priors P(C_k), means μ_{kj}, variances σ²_{kj}
-
-1. For each class k:
-   a. Calculate prior: P(C_k) = (# samples in class k) / (total samples)
-   b. For each feature j:
-      i. Calculate μ_{kj} = mean of feature j in class k
-      ii. Calculate σ²_{kj} = variance of feature j in class k
-      iii. Apply variance smoothing: σ²_{kj} += ε
-
-2. Store parameters for prediction
-```
-
-### Multinomial Naive Bayes (MNB)
-#### Theoretical Foundation
-
-Multinomial Naive Bayes models count data where each feature represents the number of times a particular event (e.g., word) occurs. It's based on the multinomial distribution, which generalizes the binomial distribution to multiple categories.
-
-The multinomial distribution models the probability of observing a particular combination of counts when drawing $\large n$ items from $\large k$ categories with probabilities $\large p_1, p_2, \ldots, p_k$:
-
-$$\large 
-P(x_1, x_2, \ldots, x_k | n, p_1, \ldots, p_k) = \frac{n!}{x_1! x_2! \cdots x_k!} \prod_{i=1}^{k} p_i^{x_i}
-$$
-
-#### Text Classification Applications
-
-**Bag of Words Model:**
-
--   Documents are represented as vectors of word counts
--   Vocabulary size determines feature dimensionality
--   Word order is ignored (hence "bag" of words)
--   Example: "the cat sat on the mat" → [the:2, cat:1, sat:1, on:1, mat:1]
-
-**TF-IDF Representation:**
-
--   Term Frequency-Inverse Document Frequency
--   Weights words by their importance: common words get lower weights
--   Can be adapted for use with MNB with careful normalization
-
-#### Feature Representation
-
-**Document-Term Matrix:**
-
--   Rows: documents
--   Columns: unique words (vocabulary)
--   Entries: count of word j in document i
-
-**Preprocessing steps:**
-
-1.  Tokenization: split text into words
-2.  Lowercasing: convert to lowercase
-3.  Stop word removal: remove common words (the, is, at, etc.)
-4.  Stemming/Lemmatization: reduce words to root forms
-5.  N-gram extraction: consider word sequences
-
-#### Likelihood Calculation
-
-For MNB, the likelihood is the probability of observing a particular word count given the class:
-
-$$\large 
-P(x_j | C_k) = \frac{N_{kj}}{N_k}
-$$
-
-Where:
-
--   $\large N_{kj}$ = total count of feature $\large j$ in all documents of class $\large k$
--   $\large N_k$ = total count of all features in all documents of class $\large k$
-
-**For a document with word counts $\large \mathbf{x} = (x_1, x_2, \ldots, x_V)$:** 
-
-$$\large 
-P(\mathbf{x} | C_k) = \frac{(\sum_j x_j)!}{\prod_j x_j!} \prod_{j=1}^{V} P(x_j | C_k)^{x_j}
-$$
-
-The multinomial coefficient is often ignored since it's the same across classes.
-
-#### Laplace Smoothing Deep Dive
-
-**The Zero-Frequency Problem:** If a word appears in a test document but never appeared in training documents of a particular class, the likelihood becomes zero, making the entire posterior zero.
-
-**Laplace (Add-One) Smoothing:** 
-
-$$\large 
-P(x_j | C_k) = \frac{N_{kj} + \alpha}{N_k + \alpha V}
-$$
-
-Where:
-
--   $\large \alpha$ = smoothing parameter (typically 1)
--   $\large V$ = vocabulary size
--   Adds $\large \alpha$ to every word count (numerator)
--   Adds $\large \alpha V$ to total count (denominator) to maintain probability properties
-
-**Effect of smoothing:**
-
--   $\large \alpha = 0$: No smoothing (original estimates)
--   $\large \alpha = 1$: Laplace smoothing
--   $\large \alpha < 1$: Less aggressive smoothing
--   $\large \alpha > 1$: More aggressive smoothing toward uniform distribution
-
-#### Training Algorithm
-
-```
-Algorithm: Multinomial Naive Bayes Training
-Input: Document-term matrix X, class labels y, smoothing α
-Output: Class priors P(C_k), feature probabilities P(x_j | C_k)
-
-1. Calculate class priors:
-   For each class k: P(C_k) = N_k / N
-
-2. Calculate feature likelihoods:
-   For each class k:
-     a. N_k = total word count in all documents of class k
-     b. For each feature j:
-        i. N_{kj} = count of feature j in class k
-        ii. P(x_j | C_k) = (N_{kj} + α) / (N_k + α*V)
-        iii. Store log(P(x_j | C_k)) for numerical stability
-
-3. Store all parameters
-```
-
-### Bernoulli Naive Bayes (BNB)
-#### Theoretical Foundation
-
-Bernoulli Naive Bayes models binary features that indicate presence or absence of attributes. Each feature follows a Bernoulli distribution with parameter $\large p_{kj} = P(x_j = 1 | C_k)$.
-
-The Bernoulli distribution is: 
-
-$$\large 
-P(X = x) = p^x (1-p)^{1-x} \text{ where } x \in {0, 1}
-$$
-
-#### Binary Feature Modeling
-
-**Applications:**
-
--   Text classification with binary word presence/absence
--   Medical diagnosis with symptom presence/absence
--   Image classification with pixel activation patterns
--   Web page classification with link presence
-
-**Feature Engineering:**
-
--   Convert continuous features to binary using thresholds
--   One-hot encoding of categorical variables
--   Discretization of numerical features
-
-#### Likelihood Calculation
-
-For each feature $\large j$ and class $\large k$: 
-
-$$\large 
-P(x_j | C_k) = p_{kj}^{x_j} (1 - p_{kj})^{1-x_j}
-$$
-
-**Parameter estimation with smoothing:** 
-
-$$\large 
-p_{kj} = \frac{N_{kj1} + \alpha}{N_k + 2\alpha}
-$$
-
-Where:
-
--   $\large N_{kj1}$ = number of documents in class $\large k$ where feature $\large j = 1$
--   $\large N_k$ = total number of documents in class $k$
--   $\large \alpha$ = smoothing parameter
-
-**Log-likelihood:** 
-
-$$\large 
-\log P(x_j | C_k) = x_j \log(p_{kj}) + (1-x_j) \log(1-p_{kj})
-$$
-
-#### Training Algorithm
-
-```
-Algorithm: Bernoulli Naive Bayes Training
-Input: Binary feature matrix X, class labels y, smoothing α
-Output: Class priors P(C_k), feature probabilities p_{kj}
-
-1. Calculate class priors:
-   For each class k: P(C_k) = N_k / N
-
-2. Calculate feature probabilities:
-   For each class k:
-     For each feature j:
-       a. Count N_{kj1} = # of samples in class k with x_j = 1
-       b. p_{kj} = (N_{kj1} + α) / (N_k + 2α)
-       c. Store log(p_{kj}) and log(1 - p_{kj})
-
-3. Store all parameters
-```
-
-### Prediction Process
-
-### General Prediction Framework
-
-The unified prediction process for all Naive Bayes variants:
-
-```
-Algorithm: General Naive Bayes Prediction
-Input: Test sample x_new, trained parameters
-Output: Predicted class and class probabilities
-
-1. Initialize scores for each class k:
-   score[k] = log(P(C_k))
-
-2. For each feature j in x_new:
-   For each class k:
-     score[k] += log(P(x_new[j] | C_k))
-
-3. Convert scores to probabilities (optional):
-   For each class k:
-     prob[k] = exp(score[k]) / Σ_i exp(score[i])
-
-4. Return:
-   - Predicted class: argmax_k score[k]
-   - Class probabilities: prob (if computed)
-```
-
-### Advantages and Disadvantages
-**Advantages:**
-*   Simple to implement and computationally efficient (fast training and prediction).
-*   Requires a relatively small amount of training data to estimate parameters.
-*   Often performs well even if the naive independence assumption is violated in practice.
-*   Handles high-dimensional data well (e.g., text classification).
-*   Naturally robust to irrelevant features (their likelihoods $\large P(x_j|C_k)$ will be similar across classes and won't strongly influence the posterior).
-
-**Disadvantages:**
-*   The strong "naive" independence assumption is often unrealistic for real-world data, which can limit its accuracy if features are highly correlated.
-*   **Zero-frequency problem** for discrete data if not handled by smoothing (like Laplace smoothing).
-*   For continuous features, Gaussian Naive Bayes assumes a normal distribution, which might not be true for all features. If the distribution is far from Gaussian, GNB might perform poorly. (Feature transformation can sometimes help).
-*   The predicted probabilities from Naive Bayes are often not well-calibrated (i.e., a predicted probability of 0.8 doesn't necessarily mean there's an 80% chance of that class). However, the rank ordering of probabilities is usually good enough for classification.
-## k-Nearest Neighbours (k-NN)
-
-### Introduction
-k-NN is a **non-parametric, instance-based** method: it stores the training set and defers all computation to prediction time (a *lazy* learner). To classify a query point $\large \mathbf{x}$, it finds the $\large k$ training points closest to it, $\large \mathcal{N}_k(\mathbf{x})$, and lets them vote.
-
-$$\large
-\hat{y}(\mathbf{x}) = \arg\max_{c} \sum_{i \in \mathcal{N}_k(\mathbf{x})} w_i \, \mathbb{1}[y_i = c]
-$$
-
-With **uniform** weights $\large w_i = 1$; with **distance** weights $\large w_i = 1 / d(\mathbf{x}, \mathbf{x}_i)$, so closer neighbours count more. For regression, the prediction is the (weighted) mean of the neighbours' targets. The class-vote fractions double as probability estimates.
-
-### Distance Metrics
-*   **Euclidean** (default): $\large d(\mathbf{x}, \mathbf{z}) = \sqrt{\sum_j (x_j - z_j)^2}$
-*   **Manhattan**: $\large \sum_j |x_j - z_j|$, less sensitive to a single large coordinate difference
-*   **Minkowski**: $\large \left(\sum_j |x_j - z_j|^p\right)^{1/p}$, generalising both ($\large p=1, 2$)
-*   **Cosine** distance for text or embeddings, where direction matters more than magnitude
-
-Because every feature contributes to the distance, **features must be on comparable scales**. Standardise them first, or the feature with the largest units dominates.
-
-### Choosing k: Bias vs Variance
-*   $\large k = 1$: the decision boundary passes around every training point (zero training error, high variance, overfits noise).
-*   Large $\large k$: the boundary becomes smooth (high bias). At $\large k = n$ the model always predicts the majority class.
-*   Choose $\large k$ by cross-validation. Use odd $\large k$ for binary problems to avoid ties.
-
-### The Curse of Dimensionality
-In high dimensions, distances concentrate: for random data, the ratio between the nearest and farthest neighbour distance tends to 1, so "nearest" carries little information. Neighbourhoods also need exponentially more data to stay populated. k-NN therefore works best in low to moderate dimensions, or after dimensionality reduction (e.g. PCA).
-
-### Computational Cost
-Training is $\large O(1)$. A brute-force prediction costs $\large O(n d)$ per query. **KD-trees** and **ball trees** reduce this to roughly $\large O(\log n)$ in low dimensions, and **approximate nearest-neighbour** indexes (e.g. FAISS, HNSW) scale to millions of high-dimensional vectors.
-
-## Decision Trees
-
-### Introduction
-A decision tree recursively partitions the feature space with **axis-aligned** splits of the form $\large x_j \le t$. Each internal node tests one feature, and each leaf stores a prediction: the majority class (classification) or the mean target (regression). Prediction is a walk from the root to a leaf, so it costs $\large O(\text{depth})$.
-
-### Impurity Measures
-For a node with class proportions $\large p_1, \dots, p_K$:
-
-$$\large
-\text{Gini}(p) = 1 - \sum_{k=1}^{K} p_k^2 \qquad \text{Entropy}(p) = -\sum_{k=1}^{K} p_k \log_2 p_k
-$$
-
-Both are zero for a pure node and maximal for a uniform mix. Gini is slightly cheaper to compute, and the two usually produce very similar trees. For **regression** the impurity is the variance (MSE) of the node's targets.
-
-### Choosing a Split
-Greedy training picks, at every node, the feature $\large j$ and threshold $\large t$ that maximise the **impurity decrease** (information gain when using entropy):
-
-$$\large
-\Delta I = I(\text{parent}) - \frac{n_L}{n} I(\text{left}) - \frac{n_R}{n} I(\text{right})
-$$
-
-Sorting each feature once and sweeping thresholds with **cumulative class counts** evaluates every candidate split in $\large O(n \log n)$ per feature. Thresholds are placed midway between consecutive distinct values.
-
-### Stopping and Pruning
-Without limits a tree grows until every leaf is pure and memorises the training set. Complexity is controlled by:
-*   **Pre-pruning (early stopping):** `max_depth`, `min_samples_split`, `min_samples_leaf`, `max_leaf_nodes`, `min_impurity_decrease`.
-*   **Post-pruning (cost-complexity pruning):** grow a full tree, then remove the branches that least reduce the penalised objective
-    $$\large R_\alpha(T) = R(T) + \alpha \, |\tilde{T}|$$
-    where $\large R(T)$ is the total leaf impurity and $\large |\tilde{T}|$ the number of leaves. Increasing $\large \alpha$ yields a nested sequence of smaller trees, and $\large \alpha$ is chosen by cross-validation (`ccp_alpha` in scikit-learn).
-
-### Feature Importance
-The impurity-based importance of feature $\large j$ is the total impurity decrease of all splits on $\large j$, weighted by the fraction of samples reaching each split, normalised to sum to 1. It's cheap but biased towards high-cardinality features. **Permutation importance** on validation data is more reliable.
-
-### Strengths and Weaknesses
-**Strengths:** interpretable when small, no feature scaling needed, handles numeric and categorical features and non-linear interactions, fast predictions.
-**Weaknesses:** **high variance** (small data changes can produce a completely different tree), axis-aligned boundaries approximate diagonal ones with staircases, greedy splits are not globally optimal, and unconstrained trees overfit. Averaging many trees fixes most of this.
-
-## Ensemble Methods
-
-### Why Ensembles Work
-Averaging $\large B$ models, each with variance $\large \sigma^2$ and pairwise correlation $\large \rho$, gives
-
-$$\large
-\text{Var}\left(\frac{1}{B}\sum_{b=1}^{B} f_b(\mathbf{x})\right) = \rho \sigma^2 + \frac{1-\rho}{B}\sigma^2
-$$
-
-Adding models removes the second term, and **decorrelating** the models shrinks the first. Ensembles of high-variance, low-bias learners (deep trees) therefore benefit most from averaging. Ensembles of high-bias learners (stumps) instead benefit from **boosting**, which reduces bias.
-
-### Bagging
-**Bootstrap aggregating** trains each model on a bootstrap sample (drawing $\large n$ points with replacement) and averages the predictions (or predicted probabilities). Each bootstrap sample omits about $\large (1 - 1/n)^n \approx e^{-1} \approx 36.8\%$ of the data, the **out-of-bag (OOB)** samples. Predicting each training point with only the trees that didn't see it gives a nearly free estimate of generalisation error.
-
-### Random Forests
-A random forest is bagging with **random feature subsampling at every split**: only `max_features` randomly chosen features (typically $\large \sqrt{d}$ for classification) are considered. This decorrelates the trees (lower $\large \rho$), so the average generalises better. Random forests are robust, need little tuning, rarely overfit as more trees are added, and are strong default models for tabular data.
-
-### AdaBoost
-AdaBoost trains weak learners **sequentially**, reweighting the training samples so each new learner focuses on the previous mistakes. For $\large K$ classes (SAMME), starting from uniform weights $\large w_i = 1/n$:
-
-$$\large
-\varepsilon_m = \frac{\sum_i w_i \mathbb{1}[h_m(\mathbf{x}_i) \ne y_i]}{\sum_i w_i}, \qquad \alpha_m = \eta\left(\log\frac{1 - \varepsilon_m}{\varepsilon_m} + \log(K - 1)\right), \qquad w_i \leftarrow w_i \, e^{\alpha_m \mathbb{1}[h_m(\mathbf{x}_i) \ne y_i]}
-$$
-
-The final prediction is a weighted vote, $\large \hat{y} = \arg\max_k \sum_m \alpha_m \mathbb{1}[h_m(\mathbf{x}) = k]$. For binary labels AdaBoost is equivalent to forward stagewise additive modelling with the **exponential loss** $\large e^{-y F(\mathbf{x})}$, which also explains its sensitivity to label noise and outliers.
-
-### Gradient Boosting
-Gradient boosting fits an additive model $\large F_M(\mathbf{x}) = F_0 + \eta \sum_{m=1}^{M} h_m(\mathbf{x})$ by **gradient descent in function space**. At each round, a regression tree $\large h_m$ is fit to the pseudo-residuals, the negative gradient of the loss at the current predictions:
-
-$$\large
-r_i^{(m)} = -\left.\frac{\partial L(y_i, F(\mathbf{x}_i))}{\partial F(\mathbf{x}_i)}\right|_{F = F_{m-1}}
-$$
-
-*   **Squared error** $\large \frac{1}{2}(y - F)^2$: the pseudo-residual is the ordinary residual $\large y - F$.
-*   **Log-loss** (binary classification, $\large F$ = log-odds): the pseudo-residual is $\large y - \sigma(F)$.
-*   **Absolute error / Huber:** robust alternatives for regression with outliers.
-
-The **learning rate** $\large \eta$ (shrinkage) trades the number of trees against generalisation: smaller $\large \eta$ needs more rounds but usually gives a better model. Unlike random forests, boosting **does overfit** as rounds are added, so choose `n_estimators` by early stopping on validation data. Row subsampling (`subsample < 1`, *stochastic gradient boosting*) adds regularisation.
-
-### Modern Implementations
-**XGBoost**, **LightGBM**, **CatBoost** and scikit-learn's **`HistGradientBoosting`** add:
-*   **Second-order (Newton) steps** using the Hessian of the loss, with leaf values $\large w^* = -\frac{\sum g_i}{\sum h_i + \lambda}$
-*   **Explicit regularisation** of leaf values (L1/L2) and a minimum split gain
-*   **Histogram-based** split finding on binned features (orders of magnitude faster)
-*   **Native handling** of missing values and categorical features, plus leaf-wise tree growth (LightGBM)
-
-### Bagging vs Boosting
-| | Bagging / Random Forest | Boosting |
+| True label | Prediction $\hat{p}$ | Loss |
 |---|---|---|
-| Training | Parallel, independent models | Sequential, each model corrects the ensemble |
-| Base learners | Deep trees (low bias, high variance) | Shallow trees (high bias, low variance) |
-| Reduces | Variance | Bias (and variance through shrinkage) |
-| More estimators | Never hurts, it plateaus | Eventually overfits, so use early stopping |
+| 1 | close to 1 | ≈ 0 ✅ |
+| 1 | close to 0 | → ∞ ❌ (confident and wrong) |
+| 0 | close to 0 | ≈ 0 ✅ |
+| 0 | close to 1 | → ∞ ❌ |
+
+> [!NOTE]
+> Why not MSE? Combined with the sigmoid, MSE gives a **non-convex** loss with flat regions. Cross-entropy is **convex**, so gradient descent finds the global minimum.
+
+### 1.6 The gradient
+
+Using $\sigma' = \sigma(1-\sigma)$ and the chain rule, almost everything cancels:
+
+```math
+\nabla_{\mathbf{w}} J = \frac{1}{m} X^\top (\hat{\mathbf{p}} - \mathbf{y})
+```
+
+This has the same form as linear regression's gradient, but now $\hat{\mathbf{p}} = \sigma(X\mathbf{w})$. Training is ordinary gradient descent: predict, compute $\hat{\mathbf{p}} - \mathbf{y}$, step.
+
+### 1.7 In practice
+
+- **Regularisation:** add $\lambda \lVert \mathbf{w} \rVert_2^2$ (L2) or $\lambda \lVert \mathbf{w} \rVert_1$ (L1), exactly as in [module 01](../01_Supervised_Regression/README.md#5-regularisation-ridge-and-lasso). In scikit-learn, `C` is the **inverse** strength: small `C` means strong regularisation.
+- **Scale the features** so that gradient descent converges quickly and the penalty treats all features fairly.
+- **Imbalanced classes:** use `class_weight="balanced"` or move the decision threshold away from 0.5. The notebook has a threshold slider.
+- **More than two classes:** replace the sigmoid with **softmax**, $P(y = k) = \frac{e^{z_k}}{\sum_j e^{z_j}}$.
+
+**Good for:** a fast, interpretable baseline with probability outputs. **Limited by:** a linear boundary unless you engineer features.
+
+---
+
+## 2. Support vector machines and kernels
+
+### 2.1 The idea: maximise the margin
+
+Many lines can separate two classes. An SVM picks the one with the **widest gap** (the *margin*) to the nearest points of each class. Those nearest points are the **support vectors**. They alone determine the boundary, and every other point could be removed without changing it.
+
+<p align="center">
+  <img src="assets/marginal.jpg" alt="Maximum-margin hyperplane with support vectors" width="560">
+  <br>
+  <em>The widest possible "street" between the classes; support vectors sit on its edges.</em>
+</p>
+
+For a boundary $\mathbf{w}^\top \mathbf{x} + b = 0$, scaled so that the closest points satisfy $|\mathbf{w}^\top \mathbf{x} + b| = 1$:
+
+- the margin width is $\frac{2}{\lVert \mathbf{w} \rVert}$
+- so **maximising the margin** is the same as **minimising** $\frac{1}{2}\lVert \mathbf{w} \rVert^2$
+
+A wide margin is more robust to noise and tends to generalise better.
+
+### 2.2 Hard margin vs soft margin
+
+<p align="center">
+  <img src="assets/margin.png" alt="Hard margin vs soft margin" width="600">
+  <br>
+  <em>Hard margin: no point may enter the street. Soft margin: some may, at a cost.</em>
+</p>
+
+**Hard margin** (data must be perfectly separable):
+
+```math
+\min_{\mathbf{w}, b} \; \frac{1}{2}\lVert \mathbf{w} \rVert^2 \quad \text{subject to} \quad y_i(\mathbf{w}^\top \mathbf{x}_i + b) \ge 1 \;\; \text{for all } i
+```
+
+**Soft margin** (real data). Each point gets a **slack** $\xi_i \ge 0$ that measures how far it violates the margin:
+
+```math
+\min_{\mathbf{w}, b, \boldsymbol{\xi}} \; \frac{1}{2}\lVert \mathbf{w} \rVert^2 + C \sum_{i} \xi_i \quad \text{subject to} \quad y_i(\mathbf{w}^\top \mathbf{x}_i + b) \ge 1 - \xi_i
+```
+
+| Slack | Meaning |
+|---|---|
+| $\xi_i = 0$ | Correct and outside the margin |
+| $0 < \xi_i < 1$ | Correct but inside the margin |
+| $\xi_i > 1$ | Misclassified |
+
+**`C` sets the trade-off.** A small `C` gives a wide margin and tolerates errors (more regularisation). A large `C` gives a narrow margin and tries hard to classify every point, at the risk of overfitting.
+
+### 2.3 Hinge loss: the same thing as an unconstrained loss
+
+The soft-margin problem is equivalent to minimising the **hinge loss** plus L2 regularisation. This is how the notebook trains a linear SVM with gradient descent in PyTorch:
+
+```math
+J(\mathbf{w}, b) = \frac{1}{m} \sum_{i} \max\big(0,\; 1 - y_i(\mathbf{w}^\top \mathbf{x}_i + b)\big) + \frac{\lambda}{2}\lVert \mathbf{w} \rVert^2, \qquad y_i \in \{-1, +1\}
+```
+
+<p align="center">
+  <img src="assets/hinge.png" alt="Hinge loss as a function of distance from the boundary" width="560">
+  <br>
+  <em>Points beyond the margin on the correct side cost nothing; the loss grows linearly the further a point is on the wrong side.</em>
+</p>
+
+- The loss is **zero** for points that are correct *and* outside the margin, so only the support vectors contribute.
+- It isn't differentiable at $y f(\mathbf{x}) = 1$, so we use the sub-gradient: $-y_i \mathbf{x}_i$ if the point violates the margin, otherwise $0$.
+- The two forms match when $C = \frac{1}{\lambda m}$.
+
+### 2.4 The dual problem (why kernels are possible)
+
+Solving the soft-margin problem with Lagrange multipliers $\alpha_i$ gives the **dual** form:
+
+```math
+\max_{\boldsymbol{\alpha}} \; \sum_i \alpha_i - \frac{1}{2} \sum_{i,j} \alpha_i \alpha_j y_i y_j \, \mathbf{x}_i^\top \mathbf{x}_j \quad \text{subject to} \quad 0 \le \alpha_i \le C, \;\; \sum_i \alpha_i y_i = 0
+```
+
+Two things to notice:
+
+1. The data appears **only through dot products** $\mathbf{x}_i^\top \mathbf{x}_j$.
+2. The solution is $\mathbf{w} = \sum_i \alpha_i y_i \mathbf{x}_i$, and $\alpha_i > 0$ only for **support vectors**. So predictions are:
+
+```math
+f(\mathbf{x}) = \sum_{i \in \text{SV}} \alpha_i y_i \, \mathbf{x}_i^\top \mathbf{x} + b
+```
+
+Libraries solve the dual with **SMO** (Sequential Minimal Optimisation), which repeatedly optimises two $\alpha$'s at a time in closed form.
+
+### 2.5 The kernel trick
+
+Some data can't be separated by any straight line, such as one class forming a ring around the other.
+
+The fix is to map the data to a **higher-dimensional space** $\phi(\mathbf{x})$ where a flat boundary *does* work. Because the dual only needs dot products, we never have to compute $\phi$ itself. We just replace every $\mathbf{x}_i^\top \mathbf{x}_j$ with a **kernel** $K(\mathbf{x}_i, \mathbf{x}_j) = \phi(\mathbf{x}_i)^\top \phi(\mathbf{x}_j)$.
+
+| Kernel | $K(\mathbf{x}, \mathbf{x}')$ | Notes |
+|---|---|---|
+| Linear | $\mathbf{x}^\top \mathbf{x}'$ | For data that's already (nearly) separable, like high-dimensional text |
+| Polynomial | $(\gamma\, \mathbf{x}^\top \mathbf{x}' + r)^d$ | All feature products up to degree $d$ |
+| **RBF (Gaussian)** | $\exp\left(-\gamma \lVert \mathbf{x} - \mathbf{x}' \rVert^2\right)$ | The default. Its feature space is infinite-dimensional |
+| Sigmoid | $\tanh(\gamma\, \mathbf{x}^\top \mathbf{x}' + r)$ | Not always a valid kernel |
+
+<p align="center">
+  <img src="assets/nonlinear.png" alt="Linear, polynomial and RBF SVMs on ring-shaped data" width="720">
+  <br>
+  <em>Ring-shaped data: the linear kernel fails, while the polynomial and RBF kernels find a circular boundary.</em>
+</p>
+
+> [!NOTE]
+> A function is a valid kernel if every Gram matrix $K_{ij} = K(\mathbf{x}_i, \mathbf{x}_j)$ it produces is symmetric and positive semi-definite (**Mercer's condition**).
+
+### 2.6 Hyperparameters
+
+| Parameter | Small value | Large value |
+|---|---|---|
+| `C` | Wide margin, smoother boundary (may underfit) | Narrow margin, fits every point (may overfit) |
+| `gamma` (RBF) | Each point influences far away, so a smooth boundary | Each point only influences nearby, so a wiggly boundary |
+| `degree` (poly) | Simpler curves | More complex curves |
+
+Tune `C` and `gamma` **together** with a log-scale grid search, and always **scale the features** first. The notebook has sliders for both.
+
+---
+
+## 3. Naive Bayes
+
+### 3.1 Classification with Bayes' theorem
+
+Naive Bayes picks the class with the highest posterior probability:
+
+```math
+P(C_k \mid \mathbf{x}) = \frac{P(\mathbf{x} \mid C_k)\, P(C_k)}{P(\mathbf{x})}
+```
+
+- **Prior** $P(C_k)$: how common the class is in the training data.
+- **Likelihood** $P(\mathbf{x} \mid C_k)$: how typical these features are for the class.
+- **Evidence** $P(\mathbf{x})$: the same for every class, so it can be ignored when choosing the best one.
+
+### 3.2 The "naive" assumption
+
+Estimating $P(x_1, \dots, x_n \mid C_k)$ jointly needs huge amounts of data. Naive Bayes assumes the features are **independent given the class**, so the likelihood factorises:
+
+```math
+P(\mathbf{x} \mid C_k) = \prod_{j=1}^{n} P(x_j \mid C_k)
+```
+
+This is rarely true. Words like "machine" and "learning" clearly appear together. But the *ranking* of the classes is often still right, which is all classification needs.
+
+### 3.3 Predicting in log space
+
+Multiplying many small probabilities underflows to 0, so we add logs instead:
+
+```math
+\hat{y} = \arg\max_k \Big[ \log P(C_k) + \sum_{j=1}^{n} \log P(x_j \mid C_k) \Big]
+```
+
+### 3.4 The three variants
+
+The only difference between them is how $P(x_j \mid C_k)$ is modelled:
+
+| Variant | Features | Likelihood $P(x_j \mid C_k)$ | Typical use |
+|---|---|---|---|
+| **Gaussian** | Continuous | $\mathcal{N}(x_j;\, \mu_{kj}, \sigma^2_{kj})$ | Sensor readings, measurements |
+| **Multinomial** | Counts | $\dfrac{N_{kj} + \alpha}{N_k + \alpha V}$ | Word counts in documents |
+| **Bernoulli** | Binary (0/1) | $p_{kj}^{x_j} (1 - p_{kj})^{1 - x_j}$, with $p_{kj} = \dfrac{N_{kj} + \alpha}{N_k + 2\alpha}$ | Word present or absent |
+
+**Training is just counting** (closed form, one pass over the data):
+
+- **Gaussian:** the per-class mean and variance of each feature. Add a tiny $\epsilon$ to the variances to avoid dividing by zero.
+- **Multinomial:** $N_{kj}$ is the total count of word $j$ in class $k$, $N_k$ the total count of all words in class $k$, and $V$ the vocabulary size.
+- **Bernoulli:** $N_{kj}$ is the number of class-$k$ documents that contain word $j$, and $N_k$ the number of class-$k$ documents. Bernoulli also penalises words that are **absent**, which Multinomial ignores.
+
+<p align="center">
+  <img src="assets/gaussian.png" alt="Gaussian Naive Bayes decision boundary" width="480">
+  <br>
+  <em>Gaussian NB gives curved (quadratic) boundaries because each class has its own variances.</em>
+</p>
+
+### 3.5 Laplace smoothing
+
+If a word never appears in class $k$ during training, its probability is 0, and a single 0 wipes out the whole product. **Smoothing** adds a pseudo-count $\alpha$ (usually 1) to every count, which is the $\alpha$ in the formulas above.
+
+### 3.6 Strengths and weaknesses
+
+| ✅ Strengths | ❌ Weaknesses |
+|---|---|
+| Very fast to train and predict | The independence assumption hurts when features are strongly correlated |
+| Works with little data | Gaussian NB assumes bell-shaped features |
+| Handles thousands of features (text) | Probabilities are poorly **calibrated**, often too close to 0 or 1 |
+| A strong baseline for text classification | Needs smoothing for unseen feature values |
+
+---
+
+## 4. k-nearest neighbours
+
+### 4.1 The idea
+
+k-NN has no training step. It simply **stores the training set**, which is why it's called a *lazy* learner. To classify a new point:
+
+1. find the $k$ training points closest to it
+2. let them **vote**
+
+```math
+\hat{y}(\mathbf{x}) = \arg\max_{c} \sum_{i \in \mathcal{N}_k(\mathbf{x})} w_i \, \mathbb{1}[y_i = c]
+```
+
+- **Uniform** weights: $w_i = 1$, one neighbour one vote.
+- **Distance** weights: $w_i = 1 / d(\mathbf{x}, \mathbf{x}_i)$, so closer neighbours count more.
+- For **regression**, predict the (weighted) mean of the neighbours' targets.
+
+### 4.2 Distance metrics
+
+| Metric | Formula | Notes |
+|---|---|---|
+| Euclidean (default) | $\sqrt{\sum_j (x_j - z_j)^2}$ | Straight-line distance |
+| Manhattan | $\sum_j \lvert x_j - z_j \rvert$ | Less affected by one large difference |
+| Minkowski | $\left(\sum_j \lvert x_j - z_j \rvert^p\right)^{1/p}$ | $p = 1$ is Manhattan, $p = 2$ is Euclidean |
+| Cosine | $1 - \frac{\mathbf{x}^\top \mathbf{z}}{\lVert \mathbf{x} \rVert \lVert \mathbf{z} \rVert}$ | Text and embeddings, where direction matters more than length |
+
+> [!IMPORTANT]
+> Every feature contributes to the distance, so **standardise the features first**. Otherwise a feature measured in thousands (income) swamps one measured in units (age).
+
+### 4.3 Choosing k
+
+| $k$ | Boundary | Risk |
+|---|---|---|
+| 1 | Wraps around every training point | High variance (overfits noise) |
+| Moderate | Smooth but flexible | The sweet spot, so choose by cross-validation |
+| $n$ (everything) | Always predicts the majority class | High bias |
+
+Use an **odd** $k$ for two classes to avoid ties.
+
+### 4.4 Limitations
+
+- **Curse of dimensionality.** In many dimensions all points end up roughly the same distance apart, so "nearest" means little. k-NN works best in low dimensions or after PCA.
+- **Slow predictions.** Brute force costs $O(nd)$ per query. KD-trees and ball trees help in low dimensions, and approximate indexes (FAISS, HNSW) scale to millions of vectors.
+
+---
+
+## 5. Decision trees
+
+### 5.1 The idea
+
+A decision tree asks a sequence of **yes/no questions** of the form "is $x_j \le t$?". Each question splits the data in two. You follow the answers down to a **leaf**, which predicts the majority class (or, for regression, the mean value).
+
+Predictions are fast ($O(\text{depth})$) and easy to explain.
+
+### 5.2 Measuring impurity
+
+A good split produces **pure** children, each containing mostly one class. For a node with class proportions $p_1, \dots, p_K$:
+
+```math
+\text{Gini} = 1 - \sum_{k} p_k^2 \qquad\qquad \text{Entropy} = -\sum_{k} p_k \log_2 p_k
+```
+
+Both are 0 for a pure node and largest for an even mix. They usually give very similar trees, and Gini is slightly cheaper. For regression, the impurity is the variance of the targets.
+
+### 5.3 Choosing a split
+
+At every node, try every feature $j$ and threshold $t$, and keep the split with the largest **impurity decrease**:
+
+```math
+\Delta I = I(\text{parent}) - \frac{n_L}{n} I(\text{left}) - \frac{n_R}{n} I(\text{right})
+```
+
+With entropy, $\Delta I$ is called **information gain**. The notebook sorts each feature once and sweeps the thresholds with running class counts, so each feature costs $O(n \log n)$. Thresholds are placed midway between consecutive values.
+
+### 5.4 Controlling overfitting
+
+Left alone, a tree keeps splitting until every leaf is pure, which means it memorises the training data. Two ways to stop it:
+
+- **Pre-pruning** (stop early): `max_depth`, `min_samples_split`, `min_samples_leaf`, `max_leaf_nodes`, `min_impurity_decrease`.
+- **Post-pruning** (grow, then cut back). Cost-complexity pruning removes branches that don't earn their keep:
+
+```math
+R_\alpha(T) = \underbrace{R(T)}_{\text{total leaf impurity}} + \alpha \cdot \underbrace{|T|}_{\text{number of leaves}}
+```
+
+Larger $\alpha$ gives smaller trees. Choose `ccp_alpha` by cross-validation.
+
+### 5.5 Feature importance
+
+**Impurity-based** importance adds up how much each feature reduced impurity across all its splits. It's cheap, but it favours features with many distinct values. **Permutation importance** on validation data is more trustworthy.
+
+### 5.6 Strengths and weaknesses
+
+| ✅ Strengths | ❌ Weaknesses |
+|---|---|
+| Easy to interpret (when small) | **High variance**: a small change in the data can give a very different tree |
+| No feature scaling needed | Axis-aligned splits approximate diagonal boundaries with "staircases" |
+| Handles mixed feature types and interactions | Greedy splits aren't globally optimal |
+| Fast predictions | Overfits unless constrained |
+
+Most of these weaknesses disappear when you **average many trees**, which is the next section.
+
+---
+
+## 6. Ensembles: bagging, random forests and boosting
+
+### 6.1 Why combining models works
+
+Averaging $B$ models, each with variance $\sigma^2$ and pairwise correlation $\rho$, gives:
+
+```math
+\text{Var}\left(\frac{1}{B}\sum_{b=1}^{B} f_b\right) = \underbrace{\rho\,\sigma^2}_{\text{shrinks if models differ}} + \underbrace{\frac{1-\rho}{B}\,\sigma^2}_{\text{shrinks with more models}}
+```
+
+There are two strategies:
+
+- **Bagging** averages many *high-variance* models (deep trees) to cancel out their noise.
+- **Boosting** chains many *high-bias* models (shallow trees) so each one fixes the last one's mistakes.
+
+### 6.2 Bagging
+
+**Bootstrap aggregating:**
+
+1. Draw $B$ **bootstrap samples**: $n$ points drawn *with replacement*.
+2. Train one model on each.
+3. Average their predictions, or their predicted probabilities.
+
+Each bootstrap sample leaves out about **36.8 %** of the points ($\approx e^{-1}$). These **out-of-bag (OOB)** points give a free validation score, because each one can be predicted by the trees that never saw it.
+
+### 6.3 Random forests
+
+A random forest is bagging with one extra twist: at **every split**, a tree may only choose from a random subset of `max_features` features (typically $\sqrt{d}$).
+
+This makes the trees **less alike** (lower $\rho$), so averaging removes more variance.
+
+- Robust, with little tuning needed.
+- Adding more trees never makes it overfit. Performance just plateaus.
+- A strong default model for tabular data.
+
+### 6.4 AdaBoost
+
+AdaBoost trains weak learners **one after another**. After each round it **increases the weight of the misclassified samples**, so the next learner focuses on them. Each learner's say in the final vote is set by its accuracy.
+
+For $K$ classes (the SAMME algorithm), starting with equal weights $w_i = 1/n$:
+
+```math
+\varepsilon_m = \frac{\sum_i w_i \, \mathbb{1}[h_m(\mathbf{x}_i) \ne y_i]}{\sum_i w_i}
+```
+
+```math
+\alpha_m = \eta \left( \log \frac{1 - \varepsilon_m}{\varepsilon_m} + \log(K - 1) \right)
+```
+
+```math
+w_i \leftarrow w_i \cdot e^{\alpha_m \mathbb{1}[h_m(\mathbf{x}_i) \ne y_i]}
+```
+
+- $\varepsilon_m$ is the learner's weighted error.
+- $\alpha_m$ is its vote weight: accurate learners get a bigger say.
+- The final prediction is the weighted vote $\arg\max_k \sum_m \alpha_m \mathbb{1}[h_m(\mathbf{x}) = k]$.
+
+For two classes, AdaBoost minimises the **exponential loss** $e^{-yF(\mathbf{x})}$. That explains why it's sensitive to label noise: badly misclassified points get exponentially large weights.
+
+### 6.5 Gradient boosting
+
+Gradient boosting builds the model step by step:
+
+```math
+F_M(\mathbf{x}) = F_0 + \eta \sum_{m=1}^{M} h_m(\mathbf{x})
+```
+
+Each new tree $h_m$ is trained to predict the **negative gradient** of the loss at the current predictions. These targets are called the *pseudo-residuals*:
+
+```math
+r_i = -\frac{\partial L(y_i, F(\mathbf{x}_i))}{\partial F(\mathbf{x}_i)}
+```
+
+| Loss | Pseudo-residual |
+|---|---|
+| Squared error $\frac{1}{2}(y - F)^2$ | $y - F$, the ordinary residual |
+| Log loss ($F$ = log-odds) | $y - \sigma(F)$ |
+| Absolute / Huber | Robust to outliers |
+
+It's gradient descent, but in the space of *functions* instead of parameters.
+
+- The **learning rate** $\eta$ (shrinkage) is a trade-off: smaller values need more trees but usually generalise better.
+- Unlike random forests, boosting **does overfit** if you add too many rounds. Pick `n_estimators` with **early stopping** on validation data.
+- `subsample < 1` (stochastic gradient boosting) adds extra regularisation.
+
+**Modern libraries** (XGBoost, LightGBM, CatBoost, scikit-learn's `HistGradientBoosting`) add:
+
+- Newton steps using second derivatives
+- L1/L2 penalties on the leaf values
+- **histogram-based** splitting, which is much faster
+- built-in handling of missing values and categorical features
+
+### 6.6 Bagging vs boosting
+
+| | Bagging / random forest | Boosting |
+|---|---|---|
+| How models are trained | In parallel, independently | In sequence, each correcting the last |
+| Base learner | Deep trees (low bias, high variance) | Shallow trees (high bias, low variance) |
+| Mainly reduces | Variance | Bias |
+| Adding more models | Never hurts, performance plateaus | Eventually overfits, so use early stopping |
 | Tuning effort | Low | Moderate (`learning_rate`, `n_estimators`, depth) |
+
+---
+
+## 7. Which classifier should I use?
+
+| Model | Boundary | Needs scaling | Probabilities | Interpretable | Best for |
+|---|---|---|---|---|---|
+| Logistic regression | Linear | Yes | ✅ Well calibrated | ✅ Coefficients | Baselines, when you need to explain the model |
+| SVM (RBF) | Any shape | Yes | ⚠️ Needs extra calibration | ❌ | Small to medium data with complex boundaries |
+| Naive Bayes | Linear or quadratic | No | ⚠️ Over-confident | ✅ | Text, very little data |
+| k-NN | Any shape | **Yes** | ✅ Vote fractions | ✅ "Similar examples" | Low dimensions, small data |
+| Decision tree | Axis-aligned boxes | No | ⚠️ Coarse | ✅ When small | Explaining rules |
+| Random forest | Any shape | No | ✅ Reasonable | ⚠️ Feature importance | A robust default for tabular data |
+| Gradient boosting | Any shape | No | ✅ | ⚠️ Feature importance | Best accuracy on tabular data |

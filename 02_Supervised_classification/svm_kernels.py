@@ -44,7 +44,9 @@ torch.manual_seed(42)
 np.random.seed(42)
 
 # %% [markdown]
-# ### Introduction to Support Vector Machines (SVMs)
+# # Support Vector Machines & Kernels
+#
+# ## Introduction to Support Vector Machines (SVMs)
 
 # %% [markdown]
 # SVMs are powerful supervised learning models used for classification and regression. Key Idea (for classification): Find a hyperplane that best separates the data points of different classes in the feature space. Best separated often means the hyperplane that has the largest margin (distance) to the nearest data points of any class (these points are called support vectors).
@@ -52,7 +54,7 @@ np.random.seed(42)
 # - Non-linearly Separable Data: The 'kernel trick' is used to map data into a higher-dimensional space where it might become linearly separable.
 
 # %% [markdown]
-# ### Linearly Separable Data Generation
+# ## Linearly Separable Data Generation
 
 # %%
 X_linear, y_linear_np = make_blobs(n_samples=100, centers=2, random_state=42, cluster_std=1.0)
@@ -90,7 +92,7 @@ plt.legend()
 plt.show()
 
 # %% [markdown]
-# ### Linear SVM with Hinge Loss (PyTorch Gradient Descent Approximation)
+# ## Linear SVM with Hinge Loss (PyTorch Gradient Descent Approximation)
 
 # %% [markdown]
 # <p>The standard SVM optimization problem is typically solved using Quadratic Programming. However, we can approximate a linear SVM by minimizing the Hinge Loss using Gradient Descent. This is often how linear SVMs are implemented in libraries that use SGD (e.g., SGDClassifier in sklearn).</p>
@@ -209,7 +211,7 @@ plot_svm_decision_boundary(X_linear_tensor, y_linear_tensor, weights_svm_manual,
                            "Decision Boundary (Manual Linear SVM - Hinge+GD)")
 
 # %% [markdown]
-# ### The Kernel Trick and Non-Linear SVMs
+# ## The Kernel Trick and Non-Linear SVMs
 
 # %% [markdown]
 # <h5>What if data is not linearly separable?</h5>
@@ -310,7 +312,7 @@ plt.show()
 
 
 # %% [markdown]
-# #### Try it: RBF kernel hyperparameters
+# ### Try it: RBF kernel hyperparameters
 # - **`gamma`** sets how far each training point's influence reaches. Small values give smooth, almost linear boundaries, and large values wrap tightly around individual points (overfitting).
 # - **`C`** trades margin width against training errors. Small $C$ tolerates misclassifications for a wider margin, and large $C$ tries to classify every training point correctly.
 #
@@ -343,7 +345,7 @@ def explore_rbf(C, gamma):
 # - Hyperparameters (C, gamma, degree, coef0) are important for kernel SVMs and often require tuning
 
 # %% [markdown]
-# ### Model Evaluation (for Linear SVM Approximation)
+# ## Model Evaluation (for Linear SVM Approximation)
 
 # %%
 def evaluate_svm_manual(X_test_data, y_test_data, weights, bias, model_name="Manual SVM"):
@@ -376,7 +378,7 @@ evaluate_svm_manual(X_test_lin, y_test_lin, weights_svm_manual, bias_svm_manual,
                     "Manual Linear SVM (Hinge+GD)")
 
 # %% [markdown]
-# #### Verifying the manual SVM against scikit-learn
+# ### Verifying the manual SVM against scikit-learn
 # Our objective is $\frac{1}{N}\sum_i \max(0, 1 - y_i f(x_i)) + \lambda \lVert w \rVert^2$ with $\lambda = \frac{1}{2C}$. scikit-learn minimises $\frac{1}{2}\lVert w \rVert^2 + C_{sk} \sum_i \max(0, 1 - y_i f(x_i))$. Dividing that by $C_{sk} N$ shows the two are the same problem when $C_{sk} = C / N$.
 
 # %%
@@ -401,7 +403,7 @@ print(f"Sklearn SVC (Poly Kernel) Accuracy on Circle Data: {acc_poly_sk:.4f}")
 print(f"Sklearn SVC (RBF Kernel) Accuracy on Circle Data: {acc_rbf_sk:.4f}")
 
 # %% [markdown]
-# #### Conclusion
+# ### Conclusion
 # - SVMs aim to find a maximal margin hyperplane.
 # - Linear SVMs use Hinge Loss (often with L2 regularization) which can be optimized approximately with Gradient descent.
 # - The Kernel Trick allows SVMs to find non-linear decision boundaries by implicitly mapping data to higher dimensions (Polynomial, RBF kernels are common).

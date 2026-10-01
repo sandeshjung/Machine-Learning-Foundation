@@ -22,7 +22,7 @@ if "google.colab" in sys.modules:
     get_ipython().run_line_magic("pip", "install -q git+https://github.com/sandeshjung/Machine-Learning-Foundation.git")
 
 # %% [markdown]
-# ### Hyperparameter Tuning
+# # Hyperparameter Tuning
 
 # %%
 import torch
@@ -78,7 +78,7 @@ X_train_scaled = scaler.fit_transform(X_train_torch)
 X_test_scaled = scaler.transform(X_test_torch)
 
 # %% [markdown]
-# #### Basline Model (Default Hyperparameters)
+# ## Baseline Model (Default Hyperparameters)
 
 # %%
 baseline_model = SVC(C=1.0, kernel='linear', random_state=42)
@@ -96,7 +96,7 @@ baseline_accuracy
 print(classification_report(y_test_torch, y_pred_baseline_torch))
 
 # %% [markdown]
-# #### Grid Search CV
+# ## Grid Search CV
 
 # %%
 param_grid = {
@@ -139,7 +139,7 @@ grid_accuracy_test
 print(classification_report(y_test_torch, y_pred_grid_torch))
 
 # %% [markdown]
-# #### Randomized Search CV
+# ## Randomized Search CV
 
 # %%
 param_dist = {
@@ -184,7 +184,7 @@ random_accuracy_test
 print(classification_report(y_test_torch, y_pred_random_torch))
 
 # %% [markdown]
-# #### Comparison and Conclusion
+# ## Comparison and Conclusion
 
 # %%
 print("\n\n--- Hyperparameter Tuning Summary ---")

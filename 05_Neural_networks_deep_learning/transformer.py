@@ -22,11 +22,11 @@ if "google.colab" in sys.modules:
     get_ipython().run_line_magic("pip", "install -q git+https://github.com/sandeshjung/Machine-Learning-Foundation.git")
 
 # %% [markdown]
-# ## Attention is All you Need
+# # Attention Is All You Need: A Transformer from Scratch
 #
 # A from-scratch implementation of the encoder-decoder Transformer (Vaswani et al., 2017), trained on a toy **sequence-reversal** task (`[5, 9, 3] → [3, 9, 5]`). The task is easy to verify by eye, but still requires the decoder to attend to the right source positions.
 #
-# Theory: [Attention Is All You Need](README.md#attention-is-all-you-need)
+# Theory: [Attention Is All You Need](README.md#4-transformers-attention-is-all-you-need)
 
 # %%
 import torch
@@ -49,8 +49,8 @@ print(f"Using device: {device}")
 
 
 # %% [markdown]
-# ### Building blocks
-# #### Scaled dot-product attention
+# ## Building blocks
+# ### Scaled dot-product attention
 # $$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^\top}{\sqrt{d_k}}\right) V$$
 # Scaling by $\sqrt{d_k}$ keeps the dot products from growing with dimension and saturating the softmax. Masked positions are set to a large negative number ($-10^9$) before the softmax, so they get zero weight.
 
@@ -93,7 +93,7 @@ def scaled_dot_product_attention(Q, K, V, mask=None, dropout=None):
 
 
 # %% [markdown]
-# #### Verifying against PyTorch
+# ### Verifying against PyTorch
 # `F.scaled_dot_product_attention` (PyTorch ≥ 2.0) is the fused library version. Note the mask convention: ours masks where `mask == 0`, and PyTorch's boolean `attn_mask` uses `True` = *may attend*, so the same boolean mask works for both.
 
 # %%
@@ -111,7 +111,7 @@ check_close("Causal attention vs F.scaled_dot_product_attention", out_ours_maske
 
 
 # %% [markdown]
-# #### Multi-head attention
+# ### Multi-head attention
 # $Q$, $K$ and $V$ are projected into `num_heads` subspaces of size $d_k = d_{model} / h$. Attention is computed in each subspace in parallel, and the results are concatenated and projected back, which lets heads specialise on different relationships.
 
 # %%
@@ -157,7 +157,7 @@ class MultiHeadAttention(nn.Module):
 
 
 # %% [markdown]
-# #### Position-wise feed-forward network
+# ### Position-wise feed-forward network
 # $\text{FFN}(x) = \max(0, xW_1 + b_1)W_2 + b_2$, applied independently at each position.
 
 # %%
@@ -173,7 +173,7 @@ class PositionwiseFeedForward(nn.Module):
 
 
 # %% [markdown]
-# #### Positional encoding
+# ### Positional encoding
 # Attention is permutation-invariant, so position information is added with fixed sinusoids:
 # $PE_{(pos, 2i)} = \sin(pos / 10000^{2i/d_{model}})$ and $PE_{(pos, 2i+1)} = \cos(pos / 10000^{2i/d_{model}})$.
 
@@ -199,7 +199,7 @@ class PositionalEncoding(nn.Module):
 
 
 # %% [markdown]
-# #### Encoder layer
+# ### Encoder layer
 # Self-attention → Add & Norm → Feed-forward → Add & Norm.
 
 # %%
@@ -225,7 +225,7 @@ class EncoderLayer(nn.Module):
 
 
 # %% [markdown]
-# #### Decoder layer
+# ### Decoder layer
 # Masked self-attention → Add & Norm → Cross-attention over the encoder output → Add & Norm → Feed-forward → Add & Norm.
 
 # %%
@@ -257,7 +257,7 @@ class DecoderLayer(nn.Module):
 
 
 # %% [markdown]
-# #### Full model
+# ### Full model
 # Token embeddings (scaled by $\sqrt{d_{model}}$) + positional encoding → $N$ encoder layers → $N$ decoder layers → linear projection to the vocabulary.
 
 # %%
@@ -327,7 +327,7 @@ class Transformer(nn.Module):
 
 
 # %% [markdown]
-# ### Masks
+# ## Masks
 # - **Padding mask:** stops attention to `<pad>` tokens.
 # - **Look-ahead (causal) mask:** stops decoder position $t$ from seeing positions $> t$, so the model cannot cheat during training.
 
@@ -357,7 +357,7 @@ def create_masks(src, tgt, pad_idx=0):
 
 
 # %% [markdown]
-# ### Toy task: sequence reversal
+# ## Toy task: sequence reversal
 # Random token sequences of variable length. Targets are the reversed sequence wrapped in `<sos>` / `<eos>`, and index 0 is reserved for padding.
 
 # %%
@@ -410,7 +410,7 @@ train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
 len(train_dataset), train_dataset.vocab_size
 
 # %% [markdown]
-# ### Training
+# ## Training
 # A smaller configuration than the paper's base model ($d_{model}=512$, 6 layers) so it trains quickly. The decoder uses **teacher forcing**: it receives the target shifted right and predicts the next token, and the loss ignores padding.
 
 # %%
@@ -500,7 +500,7 @@ plt.show()
 
 
 # %% [markdown]
-# ### Inference: greedy decoding
+# ## Inference: greedy decoding
 # Encode the source once, then generate one token at a time, feeding each prediction back into the decoder until `<eos>` or the maximum length.
 
 # %%

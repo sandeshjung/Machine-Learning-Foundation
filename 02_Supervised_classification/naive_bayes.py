@@ -39,7 +39,7 @@ torch.manual_seed(42)
 np.random.seed(42) # If using numpy for initial data generation
 
 # %% [markdown]
-# ### Naive Bayes Classifiers
+# # Naive Bayes Classifiers
 
 # %% [markdown]
 # <p>Naive Bayes classifiers are a family of simple probabilistic classifiers based on applying Bayes' therem with strong (naive) independence assumptions between the features.</p>
@@ -60,7 +60,7 @@ np.random.seed(42) # If using numpy for initial data generation
 # <p>This simplifies the computation of the likelihood term. Despite this strong assumption, Naive Bayes often performs surprisingly well.</p>
 
 # %% [markdown]
-# ### Gaussian Naive Bayes (for continuous features)
+# ## Gaussian Naive Bayes (for continuous features)
 # Assumes that continuous features associated with each class are distributed according to a Gaussian (Normal) distribution.
 
 # %%
@@ -224,7 +224,7 @@ def plot_nb_decision_boundary(X_data_tensor, y_data_tensor, model, title="Naive 
 plot_nb_decision_boundary(X_gnb, y_gnb, gnb_model_torch, "Gaussian Naive Bayes Decision Boundary (PyTorch)")
 
 # %% [markdown]
-# #### Verifying Gaussian NB against scikit-learn
+# ### Verifying Gaussian NB against scikit-learn
 # Priors and means should match exactly. One difference is deliberate: `torch.var` is *unbiased* (divides by $n_c - 1$) while `GaussianNB` uses the biased estimate (divides by $n_c$), so we rescale before comparing. The tiny variance difference barely moves the predictions.
 
 # %%
@@ -240,7 +240,7 @@ check_close("Class variances vs sklearn (after n-1 -> n)", gnb_model_torch.class
 check_agreement("Test predictions vs sklearn", gnb_model_torch.predict(X_test_gnb), sk_gnb.predict(X_test_gnb.numpy()), min_agreement=0.97)
 
 # %% [markdown]
-# ### Multinomial Naive Bayes (for discrete features, e.g. word counts)
+# ## Multinomial Naive Bayes (for discrete features, e.g. word counts)
 # <p>Assumes features are generated from a multinomial distribution (counts of events). Common in text classification where features are word counts or TF-IDF values. Likelihood P(feature_j = k | Class) is estimated from frequency of feature value k in documents of that class. Often uses Laplace (additive) smoothing to handle unseen features in test data.</p>
 
 # %%
@@ -382,7 +382,7 @@ mnb_model_torch.fit(X_counts_train, y_labels_train)
 y_pred_mnb_torch = mnb_model_torch.predict(X_counts_test)
 
 # %% [markdown]
-# #### Verifying Multinomial NB against scikit-learn
+# ### Verifying Multinomial NB against scikit-learn
 # With the same Laplace smoothing ($\alpha = 1$) the smoothed word log-probabilities are identical.
 
 # %%
@@ -401,7 +401,7 @@ print(f"PyTorch MultinomialNB Confusion Matrix:\n{cm_mnb_torch}")
 print(f"PyTorch MultinomialNB Classification Report:\n{report_mnb_torch}")
 
 # %% [markdown]
-# ### Bernoulli Naive Bayes 
+# ## Bernoulli Naive Bayes
 # <p>Assumes features are binary (0 or 1, e.g. word presence/absence). Likelihood P(feature_j = 1 | Class) is estimated.</p>
 
 # %%
@@ -570,7 +570,7 @@ y_pred_bnb_torch = bnb_model_torch.predict(X_binary_test)
 y_pred_bnb_torch
 
 # %% [markdown]
-# #### Verifying Bernoulli NB against scikit-learn
+# ### Verifying Bernoulli NB against scikit-learn
 # `binarize=None` because the features are already 0/1.
 
 # %%

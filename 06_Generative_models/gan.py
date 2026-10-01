@@ -43,14 +43,14 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
 
 # %% [markdown]
-# ### Generative Adversarial Networks (GANs)
+# # Generative Adversarial Networks (GANs)
 # <p>GANs are a class of generative models that learn to generate new data with the same statistics as the training set.</p>
 # <p>Core Idea: Two neural networks, a Generator (G) and a Discriminator (D), are trained simulataneously in a "game-like" (adversarial) setting</p>
 
 # %% [markdown]
-# Theory: [Generative Adversarial Networks (GANs)](README.md#generative-adversarial-networks-gans)
+# Theory: [Generative Adversarial Networks (GANs)](README.md#3-generative-adversarial-networks-gans)
 #
-# #### Hyperparameters
+# ### Hyperparameters
 # `lr = 2e-4` and Adam with `beta1 = 0.5` follow the DCGAN paper's recommendations for stable adversarial training.
 
 # %%
@@ -65,7 +65,7 @@ beta1 = 0.5
 num_epochs = 50
 
 # %% [markdown]
-# #### Data: Fashion-MNIST
+# ### Data: Fashion-MNIST
 # Images are normalised to $[-1, 1]$ to match the generator's `tanh` output range.
 
 # %%
@@ -84,7 +84,7 @@ train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, nu
 len(train_dataset), train_dataset[0][0].shape
 
 # %% [markdown]
-# #### Visualisation helper
+# ### Visualisation helper
 # `show_images` from the shared [`mlf_utils`](../mlf_utils/plotting.py) package arranges a batch into a grid. `unnormalize=True` maps the $[-1, 1]$ images back to $[0, 1]$.
 
 # %%
@@ -97,7 +97,7 @@ show_images(images_batch, title="Sample Training Images", num_images=16, nrow=4,
 
 
 # %% [markdown]
-# ### GAN Architecture 
+# ## GAN Architecture
 # A DCGAN (Deep Convolution GAN) would use convolutional layers and typically perform better for images.
 
 # %%
@@ -171,7 +171,7 @@ with torch.no_grad():
 dummy_validity.shape
 
 # %% [markdown]
-# #### Loss and optimizers
+# ### Loss and optimizers
 # `BCEWithLogitsLoss` combines the sigmoid and binary cross-entropy in one numerically stable operation, so the discriminator outputs raw logits. $G$ and $D$ each get their own optimizer.
 
 # %%
@@ -182,7 +182,7 @@ optimizer_G = optim.Adam(generator.parameters(), lr=lr, betas=(beta1, 0.999))
 optimizer_D = optim.Adam(discriminator.parameters(), lr=lr, betas=(beta1, 0.999))
 
 # %% [markdown]
-# #### Training loop
+# ### Training loop
 # For each batch:
 # 1. **Discriminator step:** maximise $\log D(x) + \log(1 - D(G(z)))$. Fake images are `detach()`ed so this step doesn't update $G$.
 # 2. **Generator step:** use the **non-saturating** loss, maximising $\log D(G(z))$ (i.e. labelling fakes as real). This gives stronger gradients early in training than minimising $\log(1 - D(G(z)))$.
@@ -261,7 +261,7 @@ for epoch in range(num_epochs):
         generator.train() # Set back to train mode
 
 # %% [markdown]
-# #### Loss curves
+# ### Loss curves
 # GAN losses don't decrease monotonically like a supervised loss. Roughly stable, oscillating curves usually mean the two players are balanced.
 
 # %%
@@ -275,7 +275,7 @@ plt.legend()
 plt.show()
 
 # %% [markdown]
-# #### Samples from the trained generator
+# ### Samples from the trained generator
 
 # %%
 generator.eval()
@@ -285,7 +285,7 @@ with torch.no_grad():
 show_images(final_generated_images, title="Final Generated Samples", num_images=32, nrow=8, unnormalize=True)
 
 # %% [markdown]
-# #### Common GAN Challenges
+# ### Common GAN Challenges
 # - Mode Collapse: Generator produces very limited variety of samples.
 # - Non-Convergence/Oscillations: D and G losses may not smoothly converge; they might oscillate.
 # - Vanishing Gradients for G: If D gets too good too quickly, G struggles to learn.

@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Optimizer Race</title>
+<meta name="description" content="Race gradient descent, momentum, RMSProp and Adam across different loss surfaces.">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="wrap">
+  <nav class="topbar">
+    <a href="index.html">← All explorables</a>
+    <span class="tag">Modules 00 &amp; 05 · Optimisation</span>
+    <span class="spacer"></span>
+    <button class="theme-btn" id="theme-btn" type="button">◐ Auto</button>
+  </nav>
+
+  <h1>Optimiser race: GD, momentum, RMSProp and Adam</h1>
+  <p class="lede">All four optimisers start from the same point and only see the local slope (the gradient). Pick a surface, press play, and compare the paths they take to the bottom.</p>
+
+  <div class="panels">
+    <figure class="panel">
+      <figcaption id="surf-caption">Loss surface</figcaption>
+      <canvas id="surface" class="wide" role="img" aria-label="Contour map of the loss surface with the path of each optimiser"></canvas>
+      <div class="legend">
+        <span><i style="background:var(--s1)"></i>gradient descent</span>
+        <span><i style="background:var(--s2)"></i>momentum</span>
+        <span><i style="background:var(--s4)"></i>RMSProp</span>
+        <span><i style="background:var(--s3)"></i>Adam</span>
+        <span>× minimum &nbsp; ○ start</span>
+      </div>
+      <p class="hint">Click anywhere on the surface to choose a new starting point. Stronger colour = lower loss.</p>
+    </figure>
+  </div>
+
+  <div class="readouts" id="readouts"></div>
+
+  <div class="controls">
+    <div class="group">
+      <h3>Surface</h3>
+      <div class="seg" role="radiogroup" aria-label="Surface">
+        <label><input type="radio" name="surf" value="bowl" checked><span>Narrow bowl</span></label>
+        <label><input type="radio" name="surf" value="rosen"><span>Rosenbrock banana</span></label>
+        <label><input type="radio" name="surf" value="two"><span>Two valleys</span></label>
+      </div>
+      <p class="hint" id="surf-desc"></p>
+    </div>
+    <div class="group">
+      <h3>Optimisers</h3>
+      <label class="check"><input type="checkbox" class="opt-on" value="gd" checked> Gradient descent</label>
+      <label class="check"><input type="checkbox" class="opt-on" value="momentum" checked> Momentum</label>
+      <label class="check"><input type="checkbox" class="opt-on" value="rmsprop" checked> RMSProp</label>
+      <label class="check"><input type="checkbox" class="opt-on" value="adam" checked> Adam</label>
+    </div>
+    <div class="group">
+      <h3>Hyperparameters</h3>
+      <label class="ctl"><span class="row">η for GD &amp; momentum <output for="lr"></output></span><input type="range" id="lr" min="-4" max="0" step="0.01" value="-0.77"></label>
+      <label class="ctl"><span class="row">η for RMSProp &amp; Adam <output for="lra"></output></span><input type="range" id="lra" min="-3" max="0" step="0.01" value="-0.82"></label>
+      <label class="ctl"><span class="row">Momentum μ <output for="mu"></output></span><input type="range" id="mu" min="0" max="0.99" step="0.01" value="0.9"></label>
+      <div class="buttons">
+        <button class="btn primary" id="play" type="button">▶ Play</button>
+        <button class="btn" id="step" type="button">Step</button>
+        <button class="btn" id="reset" type="button">Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <section class="notes">
+    <h2>What to try</h2>
+    <ol>
+      <li><b>Narrow bowl.</b> The surface is ten times steeper in one direction than the other. Plain gradient descent <b>zig-zags</b> across the steep walls. Momentum builds up speed along the valley floor, and Adam rescales each direction so it heads more directly to the minimum.</li>
+      <li><b>Too large a step.</b> On the bowl, raise the GD learning rate above 0.2. The zig-zag grows instead of shrinking: it <b>diverges</b>.</li>
+      <li><b>Rosenbrock banana.</b> Finding the curved valley is easy. Following it to the minimum at (1, 1) is hard. Plain GD needs a tiny learning rate and crawls. Momentum and Adam get much further in the same number of steps.</li>
+      <li><b>Two valleys.</b> Start on the right-hand side. GD settles in the nearer, <b>local</b> minimum. With enough momentum, the optimiser can roll over the hump into the deeper, <b>global</b> one. Try μ = 0.5 vs 0.95.</li>
+      <li><b>Move the start.</b> Click different starting points. On a non-convex surface, <i>where</i> you start decides <i>where</i> you end.</li>
+    </ol>
+
+    <h2>What's going on</h2>
+    <p>Each optimiser turns the gradient g = ∇f(θ) into a step, using the PyTorch update rules:</p>
+    <ul>
+      <li><b>Gradient descent:</b> θ ← θ − η·g. The step is proportional to the slope, so it's large on steep walls and tiny on flat floors.</li>
+      <li><b>Momentum:</b> v ← μ·v + g, then θ ← θ − η·v. Consistent gradients add up and zig-zags cancel out, like a heavy ball rolling downhill.</li>
+      <li><b>RMSProp:</b> divides each coordinate's gradient by a running average of its size, so steep and flat directions take similar-sized steps.</li>
+      <li><b>Adam:</b> momentum plus RMSProp-style scaling, with bias correction for the first few steps. Its steps are roughly η in size, whatever the scale of the gradient.</li>
+    </ul>
+    <div class="callout">The two learning-rate sliders are separate because the methods use η differently. For GD and momentum, the step is η × gradient. For RMSProp and Adam, the step is about η, regardless of how steep the surface is. These update rules are checked against <code>torch.optim</code> in <code>docs/tests</code>.</div>
+  </section>
+
+  <footer class="links">
+    Theory: <a href="https://github.com/sandeshjung/Machine-Learning-Foundation/blob/main/00_Mathematical_foundation/README.md#5-optimisation-algorithms">Module 00 README</a> ·
+    <a href="https://github.com/sandeshjung/Machine-Learning-Foundation/blob/main/05_Neural_networks_deep_learning/README.md#5-optimisers-schedules-and-regularisation">Module 05 README</a> ·
+    Code: <a href="https://github.com/sandeshjung/Machine-Learning-Foundation/blob/main/05_Neural_networks_deep_learning/optimizers_regularization.ipynb">optimizers_regularization notebook</a>
+  </footer>
+</div>
+
+<script src="assets/mlmath.js"></script>
+<script src="assets/plot.js"></script>
+<script>
+(function () {
+  "use strict";
+  const M = MLMath, U = PlotUI, $ = (id) => document.getElementById(id);
+
+  // two-valley surface f = x⁴ − 3x² + x + y²: stationary points solve 4x³ − 6x + 1 = 0
+  const newton = (x) => { for (let i = 0; i < 50; i++) x -= (4 * x ** 3 - 6 * x + 1) / (12 * x * x - 6); return x; };
+  const twoF = (x, y) => x ** 4 - 3 * x * x + x + y * y;
+  const xg = newton(-1.3), xl = newton(1.1);
+
+  const SURF = {
+    bowl: {
+      name: "Narrow bowl: f = ½x² + 5y²",
+      desc: "Convex, but 10× steeper in y than in x.",
+      f: (x, y) => 0.5 * x * x + 5 * y * y,
+      g: (x, y) => [x, 10 * y],
+      range: [-3, 3, -1.6, 1.6], minima: [[0, 0, true]], start: [-2.6, 1.3], lr: 0.17, lra: 0.15,
+      transform: (v) => Math.log1p(v),
+    },
+    rosen: {
+      name: "Rosenbrock banana: f = (1 − x)² + 100(y − x²)²",
+      desc: "A curved, flat-bottomed valley. Minimum at (1, 1).",
+      f: (x, y) => (1 - x) ** 2 + 100 * (y - x * x) ** 2,
+      g: (x, y) => [-2 * (1 - x) - 400 * x * (y - x * x), 200 * (y - x * x)],
+      range: [-2, 2, -0.8, 3], minima: [[1, 1, true]], start: [-1.5, 2.2], lr: 0.0012, lra: 0.05,
+      transform: (v) => Math.log(v + 0.05),
+    },
+    two: {
+      name: "Two valleys: f = x⁴ − 3x² + x + y²",
+      desc: "Non-convex: a shallow local minimum (right) and a deeper global one (left).",
+      f: twoF,
+      g: (x, y) => [4 * x ** 3 - 6 * x + 1, 2 * y],
+      range: [-2.2, 2.2, -1.8, 1.8], minima: [[xg, 0, true], [xl, 0, false]], start: [1.9, 1.4], lr: 0.02, lra: 0.05,
+      transform: (v) => Math.log(v - twoF(xg, 0) + 0.3),
+    },
+  };
+  const OPTS = [
+    { kind: "gd", label: "Gradient descent", color: "--s1" },
+    { kind: "momentum", label: "Momentum", color: "--s2" },
+    { kind: "rmsprop", label: "RMSProp", color: "--s4" },
+    { kind: "adam", label: "Adam", color: "--s3" },
+  ];
+  const MAX_STEPS = 3000;
+
+  const S = { surf: "bowl", start: null, runs: [], playing: false, steps: 0 };
+  const plot = new Plot($("surface"), { xlabel: "x", ylabel: "y" });
+
+  const lr = U.bindRange("lr", { log: true, format: (v) => U.fmt(v, 3), onInput: reset });
+  const lra = U.bindRange("lra", { log: true, format: (v) => U.fmt(v, 3), onInput: reset });
+  const mu = U.bindRange("mu", { format: (v) => v.toFixed(2), onInput: reset });
+  document.querySelectorAll(".opt-on").forEach((el) => el.addEventListener("change", draw));
+  document.querySelectorAll('input[name="surf"]').forEach((el) => el.addEventListener("change", () => setSurface(el.value)));
+  $("play").addEventListener("click", () => (S.playing ? pause() : play()));
+  $("step").addEventListener("click", () => { pause(); stepAll(1); draw(); });
+  $("reset").addEventListener("click", () => { pause(); reset(); });
+
+  // readout chips, one per optimiser
+  $("readouts").innerHTML = OPTS.map((o) =>
+    `<div class="readout" id="ro-${o.kind}"><span class="k"><span style="color:var(${o.color})">●</span> ${o.label}</span><span class="v">—</span></div>`).join("");
+
+  function setSurface(key) {
+    S.surf = key;
+    const s = SURF[key];
+    plot.setRange(...s.range);
+    S.start = s.start.slice();
+    lr.set(s.lr); lra.set(s.lra);
+    U.setText("surf-caption", s.name);
+    U.setText("surf-desc", s.desc);
+    pause(); reset();
+  }
+
+  function reset() {
+    const s = SURF[S.surf];
+    S.steps = 0;
+    S.runs = OPTS.map((o) => ({
+      ...o,
+      opt: M.makeOptimizer(o.kind, { lr: o.kind === "gd" || o.kind === "momentum" ? lr.get() : lra.get(), mu: mu.get() }),
+      theta: S.start.slice(),
+      path: [S.start.slice()],
+      status: "ready",
+    }));
+    draw();
+  }
+
+  function stepAll(k) {
+    const s = SURF[S.surf];
+    for (let i = 0; i < k; i++) {
+      S.steps++;
+      for (const r of S.runs) {
+        if (r.status === "diverged" || r.status === "converged") continue;
+        const g = s.g(...r.theta);
+        const next = r.opt.step(r.theta, g);
+        if (!next.every(isFinite) || Math.abs(next[0]) > 1e3 || Math.abs(next[1]) > 1e3) { r.status = "diverged"; continue; }
+        r.theta = next;
+        r.path.push(next);
+        r.status = Math.hypot(...g) < 1e-6 ? "converged" : "running";
+      }
+    }
+  }
+
+  function loop() {
+    if (!S.playing) return;
+    const per = S.steps < 60 ? 1 : 3;
+    stepAll(per);
+    draw();
+    if (S.steps >= MAX_STEPS || S.runs.every((r) => r.status === "diverged" || r.status === "converged")) pause();
+    else requestAnimationFrame(loop);
+  }
+  function play() { S.playing = true; $("play").textContent = "❚❚ Pause"; requestAnimationFrame(loop); }
+  function pause() { S.playing = false; $("play").textContent = "▶ Play"; }
+
+  U.draggable($("surface"), {
+    pick: (px, py) => (plot.inside(px, py) ? "s" : null),
+    onDown: (h, px, py) => {
+      if (!h) return h;
+      S.start = [plot.invX(px), plot.invY(py)];
+      pause(); reset();
+      return null;
+    },
+  });
+
+  function draw() {
+    const css = U.cssVar, s = SURF[S.surf];
+    const on = new Set([...document.querySelectorAll(".opt-on:checked")].map((el) => el.value));
+    plot.clear();
+    plot.heatmap(s.f, { key: S.surf, transform: s.transform, bands: 18 });
+    plot.axes({ grid: false });
+    plot.clipped(() => {
+      for (const [x, y, global] of s.minima) plot.cross(x, y, { color: global ? css("--c-true") : css("--c-ghost"), r: 8 });
+      plot.dots([S.start[0]], [S.start[1]], { color: css("--surface"), r: 6, stroke: css("--text") });
+      for (const r of S.runs) {
+        if (!on.has(r.kind)) continue;
+        plot.line(r.path.map((p) => p[0]), r.path.map((p) => p[1]), { color: css(r.color), width: 2.4 });
+        plot.dots([r.theta[0]], [r.theta[1]], { color: css(r.color), r: 6, stroke: "#fff" });
+      }
+    });
+    for (const r of S.runs) {
+      const box = $("ro-" + r.kind);
+      box.style.opacity = on.has(r.kind) ? 1 : 0.4;
+      box.querySelector(".v").textContent = r.status === "diverged" ? "diverged" : `f = ${U.fmt(s.f(...r.theta))} · ${r.path.length - 1} steps`;
+      box.className = "readout" + (r.status === "diverged" ? " bad" : "");
+    }
+  }
+
+  U.autoRedraw([plot], draw);
+  setSurface("bowl");
+})();
+</script>
+</body>
+</html>

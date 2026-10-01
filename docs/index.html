@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ML Explorables</title>
+<meta name="description" content="Interactive, in-browser visualisations for the Machine Learning Foundation repository.">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="wrap">
+  <nav class="topbar">
+    <a href="https://github.com/sandeshjung/Machine-Learning-Foundation">Machine Learning Foundation on GitHub</a>
+    <span class="spacer"></span>
+    <button class="theme-btn" id="theme-btn" type="button">◐ Auto</button>
+  </nav>
+
+  <h1>Interactive explorables</h1>
+  <p class="lede">Drag, slide and click to build intuition for the ideas in each module. Everything runs in your browser, with nothing to install, and every chart updates as you move a control.</p>
+
+  <div class="cards">
+    <a class="card" href="linear-regression.html">
+      <span class="tag">Module 01 · Regression</span>
+      <h3>Fitting a line</h3>
+      <p>Drag points, move the line, and see the squared errors, the loss landscape and gradient descent's path update live.</p>
+    </a>
+    <a class="card" href="bias-variance.html">
+      <span class="tag">Modules 01 &amp; 03 · Overfitting</span>
+      <h3>Bias and variance</h3>
+      <p>Fit polynomials to many resampled datasets and watch the fits spread apart as the degree grows.</p>
+    </a>
+    <a class="card" href="regularization.html">
+      <span class="tag">Module 01 · Regularisation</span>
+      <h3>Ridge vs Lasso</h3>
+      <p>See the geometry behind regularisation, and why the L1 diamond sets weights exactly to zero.</p>
+    </a>
+    <a class="card" href="gradient-descent.html">
+      <span class="tag">Modules 00 &amp; 05 · Optimisation</span>
+      <h3>Optimiser race</h3>
+      <p>Race gradient descent, momentum, RMSProp and Adam across a narrow bowl, a banana valley and a surface with two minima.</p>
+    </a>
+    <a class="card" href="normal-distribution.html">
+      <span class="tag">Module 00 · Probability</span>
+      <h3>Spread and averages</h3>
+      <p>Move μ and σ, draw samples, check the 68–95–99.7 rule, and watch the central limit theorem shrink the spread of averages.</p>
+    </a>
+  </div>
+
+  <h2>How these are built</h2>
+  <p class="notes">Plain HTML, CSS and JavaScript drawn on <code>&lt;canvas&gt;</code>, with no libraries or build step. The maths lives in <code>assets/mlmath.js</code> and is checked against NumPy, scikit-learn, SciPy and PyTorch by <code>tests/mlmath.test.js</code>.</p>
+
+  <footer class="links">
+    Part of <a href="https://github.com/sandeshjung/Machine-Learning-Foundation">Machine Learning Foundation</a>. The theory is in each module's README, and the from-scratch code is in the notebooks.
+  </footer>
+</div>
+<script src="assets/plot.js"></script>
+</body>
+</html>

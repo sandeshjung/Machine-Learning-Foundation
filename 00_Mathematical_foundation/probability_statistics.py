@@ -22,10 +22,12 @@ if "google.colab" in sys.modules:
     get_ipython().run_line_magic("pip", "install -q git+https://github.com/sandeshjung/Machine-Learning-Foundation.git")
 
 # %% [markdown]
-# ### Probability Distributions
+# # Probability & Statistics
+#
+# ## Probability Distributions
 
 # %% [markdown]
-# ##### A probability distribution is a mathematical function that describes the likelihood of obtaining the possible values that a random variable can take. 
+# A **probability distribution** is a mathematical function that describes how likely each possible value of a random variable is.
 
 # %%
 import torch
@@ -42,10 +44,10 @@ print(f"SciPy Version: {scipy.__version__}")
 print(f"Seaborn Version: {sns.__version__}")
 
 # %% [markdown]
-# #### Discrete Distributions
+# ### Discrete Distributions
 
 # %% [markdown]
-# ##### Bernoulli Distribution
+# #### Bernoulli Distribution
 # - Represents a single trial with two outcomes (e.g., success/failure, 0/1).
 # - Parameter: p (probability of success, i.e., outcome 1).
 
@@ -108,7 +110,7 @@ plt.tight_layout()
 plt.show()
 
 # %% [markdown]
-# ##### Binomial Distribution
+# #### Binomial Distribution
 # - Represents the number of successes in a fixed number 'n' (total_count) of independent Bernoulli trials.
 # - Parameters: n (total_count), p (probability of success in each trial).
 
@@ -162,7 +164,7 @@ plt.tight_layout()
 plt.show()
 
 # %% [markdown]
-# ##### categorical Distribution (Generalized Bernoulli)
+# #### Categorical Distribution (Generalized Bernoulli)
 # - Represents a single trial with K possible outcomes (categories).
 # - Parameter: probs (a vector of K probabilities, must sum to 1).
 
@@ -224,10 +226,10 @@ plt.tight_layout()
 plt.show()
 
 # %% [markdown]
-# #### Continuous Distributions
+# ### Continuous Distributions
 
 # %% [markdown]
-# ##### Uniform Distribution
+# #### Uniform Distribution
 # - All values within a given range [a,b] are equally likely.
 # - Parameters: a (low), b (high)
 
@@ -311,7 +313,7 @@ plt.show()
 
 
 # %% [markdown]
-# ##### Normal (Gaussian) Distribution
+# #### Normal (Gaussian) Distribution
 
 # %%
 mean_normal = torch.tensor(0.0)
@@ -336,7 +338,7 @@ cdf_normal_pt = normal_dist_pt.cdf(x_values_normal)
 cdf_normal_scipy = norm_scipy.cdf(x_values_normal.numpy())
 
 # %% [markdown]
-# #### Verifying against SciPy
+# ### Verifying against SciPy
 # The manual uniform PDF/CDF and the `torch.distributions` results should match `scipy.stats` to float32 precision.
 
 # %%
@@ -406,7 +408,7 @@ plt.tight_layout()
 plt.show()
 
 # %% [markdown]
-# #### Try it: the normal distribution
+# ### Try it: the normal distribution
 # Change $\mu$, $\sigma$ and the number of samples. With few samples the histogram is noisy, and it approaches the PDF as $n$ grows (the law of large numbers). About 68% of samples fall within $\mu \pm \sigma$.
 #
 # *Interactive: run the notebook locally or in Colab to use the controls. GitHub only renders a static page.*
@@ -431,7 +433,7 @@ def explore_normal(mu, sigma, n):
 
 
 # %% [markdown]
-# #### Bayes' Theorem
+# ### Bayes' Theorem
 
 # %% [markdown]
 # Bayes' Theorem describes how to update the probability of a hypothesis (H) given new evidence (E).</br>
@@ -448,7 +450,7 @@ def explore_normal(mu, sigma, n):
 #      = Σ P(E|H_i) * P(H_i) (for multiple hypotheses H_i)
 
 # %% [markdown]
-# ##### Example : Medical Test
+# #### Example: Medical Test
 # - H: Patient has the disease.
 # - E: Patient tests positive
 # </br></br>
@@ -494,22 +496,22 @@ print(f"\nP(H|E) - Posterior (Patient has disease | Tests positive): {P_H_given_
 # **Interpretation**: Even with a positive test, the probability of actually having the disease if ~16.7%, due to the low prior probability (rarity of the disease) and the false positive rate. This is common illustration of how Bayes' theorem helps in reasoning under uncertainty.
 
 # %% [markdown]
-# #### Sampling
+# ### Sampling
 
 # %% [markdown]
 # Sampling is the process of selecting a subset of individuals or items from within a statistical population to estimate characteristics of the whole population. In ML, we sample from distributions or from datasets.
 
 # %% [markdown]
-# ##### *Sampling Techniques*
+# #### Sampling Techniques
 
 # %% [markdown]
-# ##### Sampling from Distributions
+# #### Sampling from Distributions
 
 # %%
 samples_normal_pt = normal_dist_pt.sample(sample_shape=torch.Size([n_samples_normal]))
 
 # %% [markdown]
-# ##### Simple Random Sampling from a Dataset 
+# #### Simple Random Sampling from a Dataset
 # - Each element has an equal chance of being selected.
 
 # %%
@@ -540,7 +542,7 @@ simple_random_sample_2 = population_data[torch.from_numpy(indices_np)]
 simple_random_sample_2
 
 # %% [markdown]
-# ##### Stratified Sampling (Conceptual)
+# #### Stratified Sampling (Conceptual)
 
 # %% [markdown]
 # The population is divided into subgroups (strata), and random samples are taken from each stratum, often proportionally. This ensures representation from all subgroups. Example: Sampling users, ensuring you get representation from different age groups. PyTorch doesn't have a direct stratified sampling function for general tensors. </br></br>

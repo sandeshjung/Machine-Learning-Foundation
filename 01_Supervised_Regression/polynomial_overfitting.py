@@ -22,7 +22,7 @@ if "google.colab" in sys.modules:
     get_ipython().run_line_magic("pip", "install -q git+https://github.com/sandeshjung/Machine-Learning-Foundation.git")
 
 # %% [markdown]
-# ## Polynomial Overfitting
+# # Polynomial Regression & Overfitting
 
 # %%
 import torch
@@ -48,7 +48,7 @@ np.random.seed(42)
 
 
 # %% [markdown]
-# ### Introduction: Limitations of Simple Linear Models and the Need for Non-Linearity
+# ## Introduction: Limitations of Simple Linear Models and the Need for Non-Linearity
 
 # %% [markdown]
 # <p>Simple linear regression assumes a linear relationship between features and the target. What if the true relationship is non-linear? A straight line won't fit well (underfitting).</p>
@@ -98,7 +98,7 @@ plt.legend()
 plt.show()
 
 # %% [markdown]
-# ### Simple Linear Regression (Underfitting)
+# ## Simple Linear Regression (Underfitting)
 
 # %%
 model_linear = nn.Linear(1,1)   # 1 input feature, 1 output feature
@@ -141,7 +141,7 @@ plt.legend()
 plt.show()
 
 # %% [markdown]
-# ### Polynomial Regression
+# ## Polynomial Regression
 
 # %% [markdown]
 # To fit non-linear data, we can add polynomial features. If X = [x], polynomial features of degree 2 would be [1, x, x^2]. We then fix a linear model to these transformed features.
@@ -212,7 +212,7 @@ plt.title(f"Polynomial Regression (Degree {degree_poly_good})")
 plt.legend(); plt.ylim(y_tensor_orig.numpy().min()-5, y_tensor_orig.numpy().max()+5); plt.show()
 
 # %% [markdown]
-# ### Overfitting with high-degree polynomials
+# ## Overfitting with high-degree polynomials
 
 # %%
 # lets define new sample to visualize overfitting
@@ -372,7 +372,7 @@ print("- High degrees: Low train MSE, high test MSE (overfitting)")
 print("- Overfitting ratio > 2.0 indicates significant overfitting")
 
 # %% [markdown]
-# #### Try it: polynomial degree
+# ### Try it: polynomial degree
 # Increase the degree and watch the training error keep falling while the test error eventually rises: the model starts fitting the noise. The fit uses the closed-form least-squares solution (via scikit-learn) so it updates instantly.
 #
 # *Interactive: run the notebook locally or in Colab to use the controls. GitHub only renders a static page.*
@@ -400,7 +400,7 @@ def explore_degree(degree):
 
 
 # %% [markdown]
-# ### Bias-Variance Tradeoff
+# ## Bias-Variance Tradeoff
 
 # %% [markdown]
 # - ##### Bias: Error from erroneous assumptions in the learning algorithm. High bias can cause
@@ -408,20 +408,20 @@ def explore_degree(degree):
 # - ##### Variance: Error from sensitivity to small fluctuations in the training set. High variance
 #   <p>can cause an algorithm to model the random noise in the training data (overfitting). Example: High-degree polynomial model.</p>
 #
-# ##### Goal: Find a model with low bias AND low variance. This is a tradeoff.
+# **Goal:** find a model with low bias *and* low variance. This is a trade-off.
 # - Simple models (e.g., linear): High bias, low variance.
 # - Complex models (e.g., high-degree poly): Low bias (on training), high variance.
 #
-# ##### The Test MSE can be decomposed (conceptually):
+# **The test MSE can be decomposed (conceptually):**
 # <p>E[(y - h(x))^2] = Bias[h(x)]^2 + Var[h(x)] + σ^2 (irreducible error)</p>
 #
-# ##### Our models:
+# **Our models:**
 # 1. Simple Linear: High Bias (underfits), Low Variance.
 # 2. Polynomial (Degree 2): Lower Bias (good fit), Moderate Variance.
 # 3. Polynomial (Degree 15): Very Low Bias (on training), Very High Variance (overfits).
 
 # %% [markdown]
-# ### Learning Curves
+# ## Learning Curves
 
 # %% [markdown]
 # <p>Learning curves plot the training error and validation (or test) error as a function of the training set size (or number of epochs, but training set size is more standard for this diagnosis). They are useful tool to diagnose if a model is suggering from high ias or high variance.</p>
@@ -503,7 +503,7 @@ plt.show()
 # Expected: Both errors converge to a low value. Small gap.
 
 # %% [markdown]
-# #### Conclusion
+# ### Conclusion
 # - Linear models can underfit if the underlying data relationship is non-linear (high bias).
 # - Polynomial regression can model non-linear relationships by adding polynomial terms as features.
 # - High-degree polynomials can overfit the training data, capturing noise and leading to

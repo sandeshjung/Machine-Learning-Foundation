@@ -40,8 +40,8 @@ print(f"PyTorch version: {torch.__version__}")
 
 
 # %% [markdown]
-# ## Reinforcement Learning
-# ### Markov Decision Process (MDP)
+# # Reinforcement Learning Basics: MDPs, Value Iteration & REINFORCE
+# ## Markov Decision Process (MDP)
 # **An MDP consists of:**
 # - **States (S)**: All possible situations the agent can be in
 # - **Actions (A)**: All possible moves the agent can make
@@ -55,9 +55,9 @@ print(f"PyTorch version: {torch.__version__}")
 # - Rewards = points you get for reaching certain positions
 
 # %% [markdown]
-# Theory: [Fundamentals & Policy Gradients](README.md#fundamentals--policy-gradients)
+# Theory: [Fundamentals & Policy Gradients](README.md#5-policy-gradients-reinforce)
 #
-# #### A 4×4 grid world
+# ### A 4×4 grid world
 # The agent starts in the top-left corner and must reach the goal in the bottom-right. Every step costs $-0.1$ and reaching the goal gives $+10$, so the optimal behaviour is the shortest path.
 
 # %%
@@ -102,7 +102,7 @@ grid_size, start_pos, goal_pos, actions, action_effects = create_simple_gridworl
 
 
 # %% [markdown]
-# #### Environment dynamics
+# ### Environment dynamics
 # Deterministic transitions: a move that would leave the grid keeps the agent in place.
 
 # %%
@@ -151,7 +151,7 @@ for i, action_name in enumerate(actions):
 
 
 # %% [markdown]
-# ### Value Functions - How Good is Each State?
+# ## Value Functions: How Good Is Each State?
 #
 # <p>The Value Function V(s) tells us how good it is to be in state s. It represents the expected total reward we'll get starting from state s and following our policy.</p>
 #
@@ -160,7 +160,7 @@ for i, action_name in enumerate(actions):
 # Value of current state = Expected immediate reward + Discounted value of next states</p>
 
 # %% [markdown]
-# #### Value iteration
+# ### Value iteration
 # Repeatedly apply the **Bellman optimality update** to every state until the values stop changing:
 # $$V(s) \leftarrow \max_a \left[ R(s') + \gamma V(s') \right]$$
 # where $s'$ is the state reached by taking action $a$ in $s$.
@@ -254,7 +254,7 @@ optimal_values
 
 
 # %% [markdown]
-# #### Extracting the optimal policy
+# ### Extracting the optimal policy
 # Once $V^*$ is known, the optimal policy is **greedy** with respect to it: in each state, pick the action leading to the highest-value next state.
 
 # %%
@@ -309,7 +309,7 @@ for row in range(grid_size):
 
 
 # %% [markdown]
-# #### Visualising values and policy
+# ### Visualising values and policy
 
 # %%
 def visualize_value_function_and_policy(values, policy, grid_size, goal_pos):
@@ -367,7 +367,7 @@ def visualize_value_function_and_policy(values, policy, grid_size, goal_pos):
 visualize_value_function_and_policy(optimal_values, optimal_policy, grid_size, goal_pos)
 
 # %% [markdown]
-# #### Try it: the discount factor $\gamma$
+# ### Try it: the discount factor $\gamma$
 # $\gamma$ controls how much future reward matters. With $\gamma$ near 0 the agent is short-sighted, and only states right next to the goal have high value. As $\gamma \to 1$, value spreads across the whole grid. The optimal policy (shortest path) stays the same here, but the values, and how many iterations it takes to converge, change a lot.
 #
 # *Interactive: run the notebook locally or in Colab to use the controls. GitHub only renders a static page.*
@@ -391,7 +391,7 @@ def explore_gamma(gamma):
 
 
 # %% [markdown]
-# ### Policy Gradient Methods
+# ## Policy Gradient Methods
 #
 # <p>Problem with Value-based methods:
 #
@@ -408,7 +408,7 @@ def explore_gamma(gamma):
 # </p>
 
 # %% [markdown]
-# #### Policy network
+# ### Policy network
 # A small MLP maps a (normalised) state to a probability distribution over the 4 actions. Actions are **sampled** from this distribution, so the policy is stochastic and explores naturally.
 
 # %%
@@ -488,7 +488,7 @@ print(f"Log probability: {log_prob.item():.4f}")
 
 
 # %% [markdown]
-# #### Rolling out an episode
+# ### Rolling out an episode
 
 # %%
 def normalize_state(position, grid_size):
@@ -558,7 +558,7 @@ print(f"Total reward: {sum(test_rewards):.2f}")
 
 
 # %% [markdown]
-# #### Discounted returns
+# ### Discounted returns
 # $G_t = \sum_{k=0}^{T-t} \gamma^k R_{t+k}$ is how good the rest of the episode was after time $t$, computed backwards from the final step.
 
 # %%
@@ -593,7 +593,7 @@ test_returns
 
 
 # %% [markdown]
-# #### REINFORCE update
+# ### REINFORCE update
 # The policy gradient theorem gives
 # $$\nabla_\theta J(\theta) = \mathbb{E}\left[ \sum_t \nabla_\theta \log \pi_\theta(a_t | s_t) \, G_t \right]$$
 # so we minimise $-\sum_t \log \pi_\theta(a_t|s_t) G_t$. Actions that led to high returns become more likely. The returns are normalised to zero mean and unit variance first, a simple baseline that reduces gradient variance.
@@ -643,7 +643,7 @@ loss
 
 
 # %% [markdown]
-# #### Training with REINFORCE
+# ### Training with REINFORCE
 # Repeat: roll out an episode with the current policy → compute returns → one gradient step.
 
 # %%
@@ -709,7 +709,7 @@ rewards_history, lengths_history, losses_history = train_policy_with_reinforce(
 
 
 # %% [markdown]
-# #### Training progress
+# ### Training progress
 # Reward per episode should rise and episode length should fall as the policy finds shorter paths. Expect noisy curves, because REINFORCE is a high-variance Monte Carlo method.
 
 # %%

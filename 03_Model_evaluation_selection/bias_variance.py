@@ -22,7 +22,7 @@ if "google.colab" in sys.modules:
     get_ipython().run_line_magic("pip", "install -q git+https://github.com/sandeshjung/Machine-Learning-Foundation.git")
 
 # %% [markdown]
-# ## Bias Variance
+# # The Bias–Variance Trade-off
 
 # %%
 import torch
@@ -134,7 +134,7 @@ def predict(model, x, poly_transformer, scaler):
 
 
 # %% [markdown]
-# ### Underfitting (High Bias)
+# ## Underfitting (High Bias)
 # <p>A model that is too simple to capture the underlying trend in the data</p>
 
 # %%
@@ -166,7 +166,7 @@ plt.ylim(y_bv_tensor.min()-5, y_bv_tensor.max()+5);
 plt.show()
 
 # %% [markdown]
-# ### Overfitting (High Variance)
+# ## Overfitting (High Variance)
 # <p>A model that is too complex and learns the noise in the training data, rather than the underlying trend. It performs well on training data but poorly on test data.</p>
 
 # %%

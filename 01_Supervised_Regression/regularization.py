@@ -22,7 +22,7 @@ if "google.colab" in sys.modules:
     get_ipython().run_line_magic("pip", "install -q git+https://github.com/sandeshjung/Machine-Learning-Foundation.git")
 
 # %% [markdown]
-# ## Regularization
+# # Regularization: Ridge & Lasso
 
 # %%
 import torch
@@ -45,7 +45,7 @@ torch.manual_seed(42)
 np.random.seed(42)
 
 # %% [markdown]
-# #### Why Regularization?
+# ### Why Regularization?
 # - Prevents Overfitting: Especially when the number of features is large or features are highly correlated, standard linear regression models can overfit the training data, leading to poor generalization on unseen data. Overfitting often manifests as very large parameter weights.
 # - Handles Multicollinearity: When features are highly correlated, the variance of the coefficient estimates can be large. Regularization helps to stabilize these estimates.
 # - Feature Selection (Lasso): L1 regularization can shrink some feature weights exactly to zero, effectively performing feature selection.
@@ -114,7 +114,7 @@ X_train.shape, y_train.shape
 
 
 # %% [markdown]
-# ### Standard Linear Regression (No Regularization)
+# ## Standard Linear Regression (No Regularization)
 
 # %%
 def train_linear_regression(x, y, lr, epochs, reg_type=None, alpha=0.0):
@@ -180,7 +180,7 @@ plt.xlabel("Epoch"); plt.ylabel("MSE Loss");
 plt.show()
 
 # %% [markdown]
-# ### Ridge Regression (L2 Regularization)
+# ## Ridge Regression (L2 Regularization)
 # Cost_Ridge = MSE + alpha * sum(weights^2) </br>
 # Gradient update for weights will have an additional term: - learning_rate * 2 * alpha * weights     </br>
 # (This extra term comes from the derivative of alpha * sum(weights^2))
@@ -208,7 +208,7 @@ plt.title(f"Loss History - Ridge Regression (alpha={ALPHA_RIDGE})")
 plt.xlabel("Epoch"); plt.ylabel("Total Loss (MSE + L2 Penalty)"); plt.show()
 
 # %% [markdown]
-# ### Lasso Regression (L1 Regularization)
+# ## Lasso Regression (L1 Regularization)
 # Cost_Lasso = MSE + alpha * sum(|weights|) </br>
 # Gradient of sum(|weights|) w.r.t. w_j is alpha * sign(w_j) for w_j != 0.
 
@@ -242,7 +242,7 @@ plt.title(f"Loss History - Lasso Regression (alpha={ALPHA_LASSO})")
 plt.xlabel("Epoch"); plt.ylabel("Total Loss (MSE + L1 Penalty)"); plt.show()
 
 # %% [markdown]
-# ### Comparing Learned Weights
+# ## Comparing Learned Weights
 
 # %%
 # For better comparison, let's also train scikit-learn models.
@@ -262,7 +262,7 @@ weights_sklearn_lasso = sklearn_lasso_model.coef_.flatten()
 bias_sklearn_lasso = sklearn_lasso_model.intercept_[0]
 
 # %% [markdown]
-# #### Verifying against scikit-learn
+# ### Verifying against scikit-learn
 # With $\alpha$ rescaled as above, both sides minimise the same objective, so the coefficients should agree. Our versions use plain (sub)gradient descent for a fixed number of epochs, so they get a small tolerance. scikit-learn solves Ridge in closed form and Lasso by coordinate descent.
 
 # %%
@@ -313,7 +313,7 @@ plt.show()
 # - The effect of regularization depends on the alpha value (strength).
 
 # %% [markdown]
-# ### Evaluation
+# ## Evaluation
 
 # %%
 def evaluate_model(weights, bias, X_test_data, y_test_data, model_name="Model"):
@@ -349,7 +349,7 @@ print(f"\nSklearn Lasso (alpha={ALPHA_LASSO}) Evaluation:")
 print(f"  MSE on Test Set: {mse_sklearn_lasso:.4f}, R2: {r2_sklearn_lasso:.4f}")
 
 # %% [markdown]
-# #### Try it: regularisation strength
+# ### Try it: regularisation strength
 # Slide $\alpha$ on a log scale. Ridge shrinks every coefficient smoothly towards zero, while Lasso sets the uninformative ones to *exactly* zero (feature selection) long before the informative ones. The black markers show the true coefficients used to generate the data (the features are standardised, so they are on a different scale).
 #
 # *Interactive: run the notebook locally or in Colab to use the controls. GitHub only renders a static page.*

@@ -1,855 +1,363 @@
-# Supervised Learning
+# 01 · Supervised Regression
 
-> **Quick reference:** the key equations, hyperparameters and pitfalls for this module are on one page in [CHEATSHEET.md](CHEATSHEET.md).
+Regression predicts a **number**: a house price, a temperature, a sales figure. This module starts with the simplest model, linear regression. It then shows what goes wrong when a model is too simple or too complex, and how regularisation keeps a model in check.
 
-## Linear Regression
+> **Notebooks:** [linear_regression](linear_regression.ipynb) · [polynomial_overfitting](polynomial_overfitting.ipynb) · [regularization](regularization.ipynb)
+>
+> **Quick revision:** [CHEATSHEET.md](CHEATSHEET.md)
+>
+> **Explore in your browser:** [Fitting a line](https://sandeshjung.github.io/Machine-Learning-Foundation/linear-regression.html) · [Bias and variance](https://sandeshjung.github.io/Machine-Learning-Foundation/bias-variance.html) · [Ridge vs Lasso](https://sandeshjung.github.io/Machine-Learning-Foundation/regularization.html)
 
-### Hypothesis Function
+## Contents
 
-The linear regression model assumes a linear relationship between the input features $\large \mathbf{X}$ and the output target $\large y$.
+1. [Linear regression](#1-linear-regression)
+2. [Training: gradient descent vs the normal equation](#2-training-gradient-descent-vs-the-normal-equation)
+3. [Evaluating a regression model](#3-evaluating-a-regression-model)
+4. [Polynomial regression and overfitting](#4-polynomial-regression-and-overfitting)
+5. [Regularisation: Ridge and Lasso](#5-regularisation-ridge-and-lasso)
+6. [Going further](#6-going-further)
 
-**For a single feature $\large x$:**
+---
 
-The hypothesis $\large h_{\mathbf{\theta}}(x)$ (predicted value) is given by:
-<div align="center">
-    
-$$\large 
-h_{\mathbf{\theta}}(x) = \theta_0 + \theta_1 x
-$$
+## 1. Linear regression
 
-</div>
+### 1.1 The model
 
-Where:
-*   $\large \theta_0$: The bias term (intercept).
-*   $\large \theta_1$: The weight (coefficient) for the feature $\large x$ (slope).
-*   $\large \mathbf{\theta} = [\theta_0, \theta_1]^T$: The vector of parameters.
+Linear regression assumes the target is a **weighted sum of the features** plus a constant.
 
-<div align="center">
-<img src="assets/regression.png" alt="Visualizing Linear Regression" width="556.8" height="444.8">
-<p>Fig. Visualizing Linear Regression</p>
-</div>
-
-**For multiple features $\large \mathbf{x} = [x_1, x_2, \dots, x_n]$:**
-
-It's common to prepend a feature $\large x_0 = 1$ to the feature vector to incorporate the bias term.
-So, $\large \mathbf{x}' = [x_0, x_1, x_2, \dots, x_n] = [1, x_1, x_2, \dots, x_n]$.
-The parameter vector is $\large \mathbf{\theta} = [\theta_0, \theta_1, \dots, \theta_n]^T$.
-The hypothesis is then the dot product:
-
-<div align="center">
-    
-$$\large 
-h_{\mathbf{\theta}}(\mathbf{x}') = \mathbf{x}' \cdot \mathbf{\theta} = \theta_0 x_0 + \theta_1 x_1 + \dots + \theta_n x_n = \sum_{j=0}^{n} \theta_j x_j
-$$
-
-</div>
-
-**Vectorized form for $\large m$ training samples:**
-
-Let $\large \mathbf{X}$ be the $\large m \times (n+1)$ design matrix (each row is a training sample $\large \mathbf{x}'^{(i)}$) and $\large \mathbf{y}$ be the $\large m \times 1$ vector of target values.
-The predictions for all samples can be computed as:
-
-<div align="center">
-    
-$$\large 
-\mathbf{h}_{\mathbf{\theta}}(\mathbf{X}) = \mathbf{X} \mathbf{\theta}
-$$
-
-</div>
-
-### Cost Function
-To find the best parameters $\large \mathbf{\theta}$, we need a cost function (or loss function) that measures how well the model fits the training data. Cost function quantifies the error between predicted and expected values and present that error in the form of a single real number. The purpose of cost function is to be either:
-- Minimized: The returned value is usually called cost, error or loss. The goal is to find the values of model parameters for which cost function return as small a number as possible.
-- Maximized: In this case, the value it yields is named a reward. The goal is to find values of model parameters for which the returned number is as large as possible.
-
-#### Mean Squared Error
-For linear regression, the most common cost function is the Mean Squared Error (MSE). It penalizes larger errors more heavily due to the squaring operation.
-For $m$ training samples:
-
-<div align="center">
-    
-$$\large 
-J_{MSE}(w, b) = \frac{1}{m} \sum_{i=1}^{m} ((w x^{(i)} + b) - y^{(i)})^2 \quad \text{(for single feature, often without } \frac{1}{2} \text{ for direct MSE interpretation)}
-$$
-
-</div>
-
-Or more generally using $\large \mathbf{\theta}$:
-
-<div align="center">
-    
-$$\large 
-J_{MSE}(\mathbf{\theta}) = \frac{1}{2m} \sum_{i=1}^{m} (h_{\mathbf{\theta}}(\mathbf{x}'^{(i)}) - y^{(i)})^2
-$$
-
-</div>
-
-The factor $\large \frac{1}{2}$ in the second form is included for mathematical convenience when taking derivatives (it cancels out the '2' from the power rule). If this factor is omitted, the cost function is directly the average of squared errors. The optimization result for the parameters $\large \mathbf{\theta}$ is the same regardless of this constant factor.
-
-In vectorized form using the design matrix $\large \mathbf{X}$ (which includes the column of ones for the bias $\large \theta_0=b$):
-
-<div align="center">
-    
-$$\large 
-J_{MSE}(\mathbf{\theta}) = \frac{1}{2m} (\mathbf{X}\mathbf{\theta} - \mathbf{y})^T (\mathbf{X}\mathbf{\theta} - \mathbf{y})
-$$
-
-</div>
-
-* **Properties:** Differentiable everywhere, convex (leading to a single global minimum for linear regression). Sensitive to outliers because large errors are squared.
-
-#### Mean Absolute Error (MAE)
-Another common loss function is the Mean Absolute Error (MAE), also known as L1 Loss. It measures the average magnitude of the errors without considering their direction. It is generally more robust to outliers than MSE because it does not square the errors.
-
-For $\large m$ training samples:
-
-<div align="center">
-    
-$$\large 
-J_{MAE}(w, b) = \frac{1}{m} \sum_{i=1}^{m} |(w x^{(i)} + b) - y^{(i)}| \quad \text{(for single feature)}
-$$
-
-</div>
-
-Or more generally using $\mathbf{\theta}$:
-
-<div align="center">
-    
-$$\large 
-J_{MAE}(\mathbf{\theta}) = \frac{1}{m} \sum_{i=1}^{m} |h_{\mathbf{\theta}}(\mathbf{x}'^{(i)}) - y^{(i)}|
-$$
-
-</div>
-
-* **Properties:** Less sensitive to outliers than MSE. However, its derivative is not defined at points where the error $\large (h_{\mathbf{\theta}}(\mathbf{x}'^{(i)}) - y^{(i)})$ is zero. For gradient-based optimization, subgradients are used, or the points of non-differentiability are handled with specific techniques (e.g., smoothed approximations or by optimizers that can handle non-smooth functions). The resulting models might be different from those optimized with MSE.
-
-#### Choice of Cost Function:
-While MSE is standard for deriving the Normal Equation and for basic linear regression due to its mathematical convenience, MAE can be preferred in applications where outliers are frequent and shouldn't disproportionately influence the model. The notebook primarily focuses on MSE for simplicity and its direct connection to standard Linear Regression theory.
-
-#### Goal
-The goal is to find the parameters ($\large w, b$ or $\large \mathbf{\theta}$) that minimize the chosen cost function $\large J$:
-
-<div align="center">
-    
-$$\large 
-\min_{w,b} J(w,b) \quad \text{or} \quad \min_{\mathbf{\theta}} J(\mathbf{\theta})
-$$
-(Where $\large J$ could be $\large J_{MSE}$ or $\large J_{MAE}$ or another suitable loss function).
-
-</div>
-
-### Optimization Methods
-
-#### Gradient Descent
-Gradient Descent is an iterative optimization algorithm used to find the minimum of a function. It works by repeatedly moving in the direction of the negative gradient of the cost function.
-
-<div align="center">
-<img src="assets/gradient.png" alt="Visualizing Gradient Descent">
-<p>Fig. Visualizing Gradient Descent</p>
-</div>
-
-##### Algorithm for Gradient Descent
-1.  Initialize parameters $\large \mathbf{\theta}$ (e.g., randomly or with zeros).
-2.  Choose a learning rate $\large \eta > 0$ and a number of iterations $\large T$ (or a convergence criterion).
-3.  For $\large k = 0, 1, \dots, T-1$ (or until convergence):
-    a.  Compute Gradient: Calculate the gradient of the cost function with respect to each parameter $\large \theta_j$:
-        $\large \frac{\partial J(\mathbf{\theta})}{\partial \theta_j}$
-    b.  Update Parameters: Simultaneously update all parameters $\large \theta_j$:
-        $\large \theta_j \leftarrow \theta_j - \eta \frac{\partial J(\mathbf{\theta})}{\partial \theta_j} \quad \text{for all } j$
-        In vector form:
-        $\large \mathbf{\theta} \leftarrow \mathbf{\theta} - \eta \nabla_{\mathbf{\theta}} J(\mathbf{\theta})$
-4.  Return final parameters $\large \mathbf{\theta}$.
-
-##### Gradient Calculation for MSE
-The partial derivative of the MSE cost function $J(\mathbf{\theta})$ with respect to a parameter $\large \theta_j$ is:
-<div align="center">
-    
-$$\large 
-\frac{\partial J(\mathbf{\theta})}{\partial \theta_j} = \frac{1}{m} \sum_{i=1}^{m} (h_{\mathbf{\theta}}(\mathbf{x}^{(i)}) - y^{(i)}) x_j^{(i)}
-$$
-
-</div>
-
-(Assuming cost function $\large J(\mathbf{\theta}) = \frac{1}{2m} \sum (h_{\mathbf{\theta}}(\mathbf{x}^{(i)}) - y^{(i)})^2$. If $\large J(\mathbf{\theta}) = \frac{1}{m} \sum (\dots)^2$, then the gradient is $\large \frac{2}{m} \sum (\dots) x_j^{(i)}$).
-
-Vectorized gradient calculation:
-
-<div align="center">
-    
-$$\large 
-\nabla_{\mathbf{\theta}} J(\mathbf{\theta}) = \frac{1}{m} \mathbf{X}^T (\mathbf{X}\mathbf{\theta} - \mathbf{y})
-$$
-
-</div>
-
-### Normal Equation (Analytical Solution)
-For Linear Regression with MSE loss, the cost function $\large J(\mathbf{\theta})$ is convex, meaning it has a single global minimum. This minimum can be found analytically by setting the gradient $\large \nabla_{\mathbf{\theta}} J(\mathbf{\theta})$ to zero and solving for $\large \mathbf{\theta}$.
-
-#### Formula 
-The solution is given by the Normal Equation:
-
-<div align="center">
-    
-$$\large
-\mathbf{\theta} = (\mathbf{X}^T \mathbf{X})^{-1} \mathbf{X}^T \mathbf{y}
-$$
-
-</div>
-
-Where:
-*   $\large \mathbf{X}$ is the design matrix (with $\large x_0=1$ for the bias term).
-*   $\large \mathbf{y}$ is the vector of target values.
-*   $\large (\mathbf{X}^T \mathbf{X})^{-1}$ is the inverse of the matrix $\large \mathbf{X}^T \mathbf{X}$.
-
-<div align="center">
-<img src="assets/normal.png" alt="Normal Equation" width="556.8" height="444.8">
-<p>. Linear Regression Fit (Normal Equation)</p>
-</div>
-
-#### Algorithm for Normal Equation
-1.  Construct the design matrix $\large \mathbf{X}$ by adding a column of ones ($\large x_0=1$) to the feature matrix.
-2.  Compute $\large \mathbf{X}^T \mathbf{X}$.
-3.  Compute $\large (\mathbf{X}^T \mathbf{X})^{-1}$.
-    *   This step requires $\large \mathbf{X}^T \mathbf{X}$ to be invertible (i.e., non-singular). This might not be the case if features are linearly dependent (collinearity) or if the number of features is greater than the number of samples.
-    *   Numerically, it's often better to solve the linear system $\large (\mathbf{X}^T \mathbf{X}) \mathbf{\theta} = \mathbf{X}^T \mathbf{y}$ for $\large \mathbf{\theta}$ using methods like LU decomposition or QR decomposition (e.g., `torch.linalg.solve` or `numpy.linalg.lstsq`) rather than explicitly computing the inverse.
-4.  Compute $\large \mathbf{X}^T \mathbf{y}$.
-5.  Calculate $\large \mathbf{\theta} = (\mathbf{X}^T \mathbf{X})^{-1} \mathbf{X}^T \mathbf{y}$.
-
-**Pros:**
-*   No need to choose a learning rate $\eta$.
-*   No iterations needed; direct solution.
-**Cons:**
-*   Computing $\large (\mathbf{X}^T \mathbf{X})^{-1}$ can be computationally expensive for a large number of features $\large n$ (typically $\large O(n^3)$).
-*   May not work if $\large \mathbf{X}^T \mathbf{X}$ is singular. Gradient Descent can still work in such cases or when regularization is used.
-
-### Implementation Approaches (Covered in Notebook)
-The accompanying notebook `linear_regression.ipynb` demonstrates:
-*   Manual Implementation: Using basic PyTorch tensor operations and `autograd` to compute gradients and manually implement the Gradient Descent update rule.
-*   Using `torch.nn.Linear` and `torch.optim`: Leveraging PyTorch's high-level modules for defining the linear layer and using built-in optimizers like SGD.
-
-### Evaluation Metrics 
-To assess the performance of a regression model:
-
-*   **Mean Squared Error (MSE):**
-
-    <div align="center">
-        
-    $$\large 
-    \text{MSE} = \frac{1}{m} \sum_{i=1}^{m} (y_{pred}^{(i)} - y_{actual}^{(i)})^2
-    $$
-
-    </div>
-
-    Measures the average squared difference between predictions and actual values. Lower is better. Sensitive to outliers.
-
-*   **Root Mean Squared Error (RMSE):**
-
-    <div align="center">
-
-    $$\large 
-    \text{RMSE} = \sqrt{\text{MSE}} = \sqrt{\frac{1}{m} \sum_{i=1}^{m} (y_{pred}^{(i)} - y_{actual}^{(i)})^2}
-    $$
-
-    </div>
-
-    The square root of MSE. It's in the same units as the target variable, making it more interpretable. Lower is better.
-
-*   **R-squared (Coefficient of Determination, $R^2$):**
-
-    <div align="center">
-
-    $$\large 
-    R^2 = 1 - \frac{\sum_{i=1}^{m} (y_{pred}^{(i)} - y_{actual}^{(i)})^2}{\sum_{i=1}^{m} (y_{mean} - y_{actual}^{(i)})^2} = 1 - \frac{\text{MSE}}{\text{Variance of } y}
-    $$
-
-    </div>
-
-    Where $\large y_{mean} = \frac{1}{m} \sum_{i=1}^{m} y_{actual}^{(i)}$.
-    Represents the proportion of the variance in the dependent variable that is predictable from the independent variable(s).
-    *   $\large R^2 = 1$: Perfect fit.
-    *   $\large R^2 = 0$: Model performs no better than predicting the mean of $\large y$.
-    *   $\large R^2 < 0$: Model performs worse than predicting the mean (can happen with poor models).
-    Higher is generally better (closer to 1).
-
-## Regularization
-
-This section explores regularization techniques, specifically Ridge (L2) and Lasso (L1) regularization, applied to linear regression models. Regularization helps to prevent overfitting, improve model generalization, and can also perform feature selection.
-
-### Deep Dive into Regularization Motivation
-Standard linear regression models aim to minimize the Mean Squared Error (MSE) between predicted and actual values. However, in certain scenarios, this can lead to issues:
-
-- **Overfitting:**
-    - When the number of features ($\large n$) is large compared to the number of training samples ($\large m$), or when features are highly complex, the model might learn the training data "too well," including its noise.
-    - This results in a model with low training error but high error on unseen test data (poor generalization).
-    - Overfitting often manifests as very large estimated coefficient (weight) values ($\large \theta_j$ or $\large w_j$). The model tries to contort itself to fit every data point, leading to extreme slopes.
-
-- **Multicollinearity:**
-    - When input features are highly correlated with each other, the design matrix $\large \mathbf{X}^T\mathbf{X}$ (used in the Normal Equation) becomes ill-conditioned or nearly singular.
-    - This leads to unstable estimates of the regression coefficients, meaning small changes in the data can cause large swings in the coefficient values. The variance of the estimates becomes very high.
-
-Regularization addresses these issues by adding a **penalty term** to the original cost function. This penalty term discourages excessively large coefficient values.
-
-<div align="center">
-
-$$\large 
-J_{regularized}(\mathbf{\theta}) = J_{MSE}(\mathbf{\theta}) + \text{Penalty}(\mathbf{\theta})
-$$
-
-</div>
-
-### Mathematical Foundation
-
-**Total Error Decomposition:** 
-
-For any learning algorithm, the expected error can be decomposed as: 
-
-<div align="center">
-
-$$\large 
-E[\text{Error}] = \text{Bias}^2 + \text{Variance} + \text{Irreducible Error}
-$$
-
-</div>
-
--   Bias: Error from overly simplistic assumptions
--   Variance: Error from sensitivity to small fluctuations in training data
--   Irreducible Error: Noise inherent in the problem
-
-**Regularization's Role:**
-
--   Increases Bias: By constraining model complexity
--   Reduces Variance: By preventing overfitting
--   Optimal Regularization: Finds the sweet spot that minimizes total error
-
-#### General Regularization Framework
-
-**Unified Cost Function:** 
-
-<div align="center">
-
-$$\large 
-J_{\text{reg}}(\theta) = J_{\text{MSE}}(\theta) + \alpha \cdot \Omega(\theta)
-$$
-
-</div>
-
-Where:
-
--   $\large J_{\text{MSE}}(\theta)$: Original loss function (data fitting term)
--   $\large \Omega(\theta)$: Regularization penalty (complexity penalty)
--   $\large \alpha$: Regularization strength (hyperparameter)
-
-**Types of Penalties:**
-
--   L1 (Lasso): $\large \Omega(\theta) = \sum_{j=1}^{n} |\theta_j|$ $\large = |\theta|_1$
--   L2 (Ridge): $\large \Omega(\theta) = \sum_{j=1}^{n} \theta_j^2$ $\large = |\theta|_2^2$
--   Elastic Net: $\large \Omega(\theta) = \lambda_1|\theta|_1 + \lambda_2|\theta|_2^2$
-
-### Ridge Regression (L2 Regularization)
-Ridge Regression adds a penalty equivalent to the **squared magnitude of the coefficients** (L2 norm squared) to the loss function.
-
-#### Cost Function
-The Ridge Regression cost function is:
-
-<div align="center">
-
-$$\large 
-J_{Ridge}(\mathbf{\theta}) = \frac{1}{2m} \sum_{i=1}^{m} (h_{\mathbf{\theta}}(\mathbf{x}'^{(i)}) - y^{(i)})^2 + \alpha \sum_{j=1}^{n} \theta_j^2
-$$
-
-</div>
-
-Or in vectorized form (using MSE = $\large \frac{1}{m}$ for simplicity in the MSE part):
+With a single feature $x$, the model is a straight line:
 
 ```math
-\large J_{Ridge}(\mathbf{\theta}) = \frac{1}{2m} \sum_{i=1}^{m} (h_{\mathbf{\theta}}(\mathbf{x}'^{(i)}) - y^{(i)})^2 + \alpha \sum_{j=1}^{n} \theta_j^2
+\hat{y} = \theta_0 + \theta_1 x
 ```
 
-Where:
-*   $\large J_{MSE}(\mathbf{\theta})$ is the original Mean Squared Error term.
-*   $\large \alpha \ge 0$ (often denoted as $\large \lambda$) is the **regularization parameter** (or strength). It controls the trade-off between fitting the data well (minimizing MSE) and keeping the weights small.
-    *   If $\large \alpha = 0$, Ridge Regression becomes standard Linear Regression.
-    *   As $\large \alpha \to \infty$, the weights $\theta_j$ are pushed towards zero.
-*   $\large \sum_{j=1}^{n} \theta_j^2$ (or $\|\mathbf{\theta}_{1:n}\|_2^2$) is the L2 penalty. **Note:** The bias term $\large \theta_0$ (or $\large b$) is typically *not* regularized. The sum is usually from $\large j=1$ to $\large n$ (for features), not $\large j=0$.
+- $\theta_0$ is the **bias** (intercept): where the line crosses the y-axis.
+- $\theta_1$ is the **weight** (slope): how much $\hat{y}$ changes when $x$ goes up by 1.
 
-#### Analytical Solution
+<p align="center">
+  <img src="assets/regression.png" alt="Data points scattered around a straight line" width="520">
+  <br>
+  <em>Noisy data generated from a straight line (red). Linear regression tries to recover that line.</em>
+</p>
 
-**Closed-Form Solution:** Unlike standard linear regression, Ridge has a unique analytical solution: 
-
-<div align="center">
-
-$$\large 
-\theta_{\text{Ridge}} = (X^TX + \alpha I)^{-1}X^Ty
-$$
-
-</div>
-
-**Key Insights:**
-
--   Adding $\large \alpha I$ to $\large X^TX$ makes it invertible even when $\large X^TX$ is singular
--   As $\large \alpha \to 0$: Approaches standard linear regression
--   As $\large \alpha \to \infty$: $\large \theta \to 0$ (all coefficients shrink to zero)
-
-#### Gradient Update
-The gradient of the Ridge cost function with respect to $\theta_j$ (for $j > 0$) is:
-
-<div align="center">
-
-$$\large 
-\frac{\partial J_{Ridge}(\mathbf{\theta})}{\partial \theta_j} = \left( \frac{1}{m} \sum_{i=1}^{m} (h_{\mathbf{\theta}}(\mathbf{x}^{(i)}) - y^{(i)}) x_j^{(i)} \right) + 2 \alpha \theta_j 
-$$
-
-</div>
-
-(Using MSE term as $\large \frac{1}{m}$ for the first part of the gradient, so the derivative of MSE is $\large \frac{2}{m}(\dots)x_j$. If MSE definition uses $\large \frac{1}{2m}$, then the gradient of MSE is $\large \frac{1}{m}(\dots)x_j$. The $\large 2\alpha\theta_j$ term from regularization remains.)
-
-The gradient descent update rule for $\theta_j$ ($j > 0$) becomes:
-
-<div align="center">
-
-$$\large 
-\theta_j \leftarrow \theta_j - \eta \left( \text{MSE gradient part for } \theta_j + 2 \alpha \theta_j \right)
-$$
-
-$$\large 
-\theta_j \leftarrow \theta_j (1 - 2\eta\alpha) - \eta (\text{MSE gradient part without } \theta_j \text{ term})
-$$
-
-</div>
-
-This shows that Ridge performs a kind of "weight decay": at each step, the weights are first shrunk by a factor and then updated based on the MSE gradient.
-For $\large \theta_0$ (bias), the update is the same as in standard linear regression as it's not penalized.
-
-#### Properties and Effects
-
-**Coefficient Shrinkage:**
-
-- Shrinks coefficients toward zero proportionally
-- Never sets coefficients exactly to zero (except with infinite $\alpha$)
-- Preserves all features in the model
-- Shrinkage is proportional to coefficient magnitude
-
-**Handling Multicollinearity:**
-
-- Distributes coefficients among correlated features
-- Stabilizes estimates by adding positive definite term to $\large X^TX$
-- Reduces variance of coefficient estimates
-
-**Computational Advantages:**
-
-- Differentiable everywhere: Easy to optimize with gradient-based methods
-- Analytical solution exists: Can be solved directly without iteration
-- Computationally stable: Well-conditioned optimization problem
-
-### Lasso Regression (L1 Regularization)
-Lasso (Least Absolute Shrinkage and Selection Operator) Regression adds a penalty equivalent to the **absolute magnitude of the coefficients** (L1 norm) to the loss function.
-
-#### Cost Function
-The Lasso Regression cost function is:
-
-<div align="center">
-
-$$\large 
-J_{Lasso}(\mathbf{\theta}) = \frac{1}{2m} \sum_{i=1}^{m} (h_{\mathbf{\theta}}(\mathbf{x}'^{(i)}) - y^{(i)})^2 + \alpha \sum_{j=1}^{n} |\theta_j|
-$$
-
-</div>
-
-Or in vectorized form (using MSE = $\large \frac{1}{m}$):
+With $n$ features, it's the same idea in more dimensions:
 
 ```math
-\large J_{Lasso}(\mathbf{\theta}) = \frac{1}{m} \|\mathbf{X}\mathbf{\theta} - \mathbf{y}\|_2^2 + \alpha \|\mathbf{\theta}_{1:n}\|_1
+\hat{y} = \theta_0 + \theta_1 x_1 + \dots + \theta_n x_n
 ```
 
-Where $\large \alpha \ge 0$ is the regularization parameter and $`\large \|\mathbf{\theta}_{1:n}\|_1 = \sum_{j=1}^{n} |\theta_j|`$ is the L1 penalty. The bias term $\large \theta_0$ is typically not regularized.
+### 1.2 The vectorised form
 
-#### Gradient Update (Subgradient)
-The L1 penalty term $\large |\theta_j|$ is not differentiable at $\large \theta_j = 0$. We use a concept called the **subgradient**.
-The subgradient of $\large \alpha |\theta_j|$ is $\large \alpha \cdot \text{sgn}(\theta_j)$ if $\large \theta_j \ne 0$, and any value in $\large [-\alpha, \alpha]$ if $\large \theta_j = 0$.
+Writing a sum for every prediction gets messy. The usual trick is to add a constant feature $x_0 = 1$ to every sample, so the bias becomes just another weight. Then:
 
-The (sub)gradient of the Lasso cost function with respect to $\large \theta_j$ (for $\large j > 0$) is:
+- each sample is a row of the **design matrix** $X$ ($m$ samples × $(n+1)$ columns)
+- all predictions come from one matrix–vector product:
 
-<div align="center">
-
-$$\large 
-\frac{\partial J_{Lasso}(\mathbf{\theta})}{\partial \theta_j} = \left( \frac{1}{m} \sum_{i=1}^{m} (h_{\mathbf{\theta}}(\mathbf{x}^{(i)}) - y^{(i)}) x_j^{(i)} \right) + \alpha \cdot \text{sgn}(\theta_j)
-$$
-
-</div>
-
-(Again, assuming MSE term as $\large \frac{1}{m}$ leads to $\large \frac{2}{m}(\dots)x_j$ for its gradient part).
-
-Standard gradient descent can struggle with the non-differentiability. Specialized algorithms are often used:
-
-#### Optimization Algorithms
-
-#### Coordinate Descent (Most Common)
-
-**Algorithm:**
-
-```
-for iteration in range(max_iter):
-    for j in range(n_features):
-        # Hold all other coefficients fixed
-        # Update theta_j optimally
-        theta_j = soft_threshold(theta_j_update, alpha * lambda)
-
+```math
+\hat{\mathbf{y}} = X\boldsymbol{\theta}
 ```
 
-**Soft Thresholding Operator:** 
+### 1.3 The loss: how wrong is the model?
 
-<div align="center">
+To find good parameters we need a single number that says how badly the model fits. That number is the **loss** (also called the cost).
 
-$$\large 
-S_\lambda(z) = \text{sgn}(z) \max(0, |z| - \lambda)
-$$
+**Mean squared error (MSE)** is the standard choice:
 
-</div>
+```math
+J(\boldsymbol{\theta}) = \frac{1}{m} \sum_{i=1}^{m} \left(\hat{y}^{(i)} - y^{(i)}\right)^2 = \frac{1}{m} \lVert X\boldsymbol{\theta} - \mathbf{y} \rVert^2
+```
 
-This operator:
+- Squaring makes every error positive and punishes **big** errors much more than small ones.
+- It's smooth and **convex** (bowl-shaped), so there is exactly one best solution.
+- Its weakness is **outliers**: one wild point can pull the whole line towards it.
 
--   Shrinks $\large z$ toward zero by amount $\large \lambda$
--   Sets to zero if $\large |z| \leq \lambda$
--   Preserves sign if $\large |z| > \lambda$
+**Mean absolute error (MAE)** is the robust alternative:
 
-#### Proximal Gradient Methods (ISTA/FISTA)
+```math
+J_{\text{MAE}}(\boldsymbol{\theta}) = \frac{1}{m} \sum_{i=1}^{m} \left|\hat{y}^{(i)} - y^{(i)}\right|
+```
 
-**Two-Step Process:**
+It grows linearly with the error, so outliers matter less. The downside is that it isn't differentiable at zero, so optimisers have to use sub-gradients.
 
-1.  Gradient Step: $\large \tilde{\theta}_j = \theta_j - \eta \cdot \text{MSE gradient}$
-2.  Proximal Step: $\large \theta_j = S_{\eta\alpha}(\tilde{\theta}_j)$
+> [!NOTE]
+> Many textbooks write MSE with $\frac{1}{2m}$ instead of $\frac{1}{m}$. The ½ only cancels the 2 that appears when you differentiate. It scales the loss but **doesn't change the best parameters**. These notes and the notebooks use $\frac{1}{m}$.
 
-#### Properties and Effects
+---
 
-**Sparsity-Inducing:**
+## 2. Training: gradient descent vs the normal equation
 
--   Sets coefficients exactly to zero when $\large \alpha$ is sufficiently large
--   Automatic feature selection: Zero coefficients correspond to irrelevant features
--   Sparse solutions: Only a subset of features remain in the final model
+There are two ways to find the $\boldsymbol{\theta}$ that minimises the MSE.
 
-**Feature Selection Mechanism:** The L1 penalty has "corners" at zero, making it more likely for coefficients to be driven exactly to zero during optimization.
+### 2.1 Gradient descent (iterative)
 
-**Limitations:**
+Start somewhere and keep stepping **downhill** on the loss surface.
 
--   Grouping Effect: Among correlated features, Lasso tends to select one arbitrarily
--   Limited Selection: Can select at most $m$ features when $\large n > m$
--   Instability: Small changes in data can change which features are selected
+<p align="center">
+  <img src="assets/gradient.png" alt="Gradient descent stepping down a convex loss curve" width="640">
+  <br>
+  <em>Each step follows the negative gradient until it reaches the minimum of J(w).</em>
+</p>
 
+The gradient of the MSE is:
 
-### Hyperparameter Tuning Strategies
+```math
+\nabla_{\boldsymbol{\theta}} J = \frac{2}{m} X^\top (X\boldsymbol{\theta} - \mathbf{y})
+```
 
-#### Cross-Validation Approach
+Each step updates **all** parameters at once:
 
-**K-Fold Cross-Validation:**
+```math
+\boldsymbol{\theta} \leftarrow \boldsymbol{\theta} - \eta \, \nabla_{\boldsymbol{\theta}} J
+```
+
+The algorithm:
+
+1. Initialise $\boldsymbol{\theta}$, for example with zeros.
+2. Pick a learning rate $\eta$ and a number of steps.
+3. Repeat: compute the predictions, the error and the gradient, then update $\boldsymbol{\theta}$.
+
+> [!TIP]
+> **Standardise your features** (zero mean, unit variance) before running gradient descent. If one feature is in metres and another in millimetres, the loss surface becomes a long, narrow valley and GD zig-zags slowly.
+
+### 2.2 The normal equation (closed form)
+
+Because the MSE is a convex bowl, its minimum is where the gradient is exactly zero. Setting $\nabla J = 0$ and solving gives:
+
+```math
+\boldsymbol{\theta}^* = (X^\top X)^{-1} X^\top \mathbf{y}
+```
+
+<p align="center">
+  <img src="assets/normal.png" alt="Line fitted with the normal equation" width="520">
+  <br>
+  <em>The line found by the normal equation, in a single step.</em>
+</p>
+
+> [!TIP]
+> In code, **solve** the linear system $(X^\top X)\,\boldsymbol{\theta} = X^\top \mathbf{y}$ with `torch.linalg.solve` or `np.linalg.lstsq` instead of computing the inverse. It's faster and numerically safer.
+
+### 2.3 Which one to use?
+
+| | Gradient descent | Normal equation |
+|---|---|---|
+| Learning rate to tune | Yes | No |
+| Iterations | Many | None, one solve |
+| Cost | $O(mn)$ per step | $O(n^3)$ for the solve |
+| Many features (> ~10,000) | ✅ Works well | ❌ Gets slow |
+| $X^\top X$ not invertible (correlated features, $n > m$) | ✅ Still works | ❌ Fails, unless regularised |
+| Works for other models (logistic regression, neural networks) | ✅ Yes | ❌ Linear regression only |
+
+The [linear_regression](linear_regression.ipynb) notebook implements both. It does gradient descent by hand with autograd, then repeats it with `nn.Linear` and `torch.optim`, and checks the results against scikit-learn.
+
+---
+
+## 3. Evaluating a regression model
+
+| Metric | Formula | How to read it |
+|---|---|---|
+| **MSE** | $\frac{1}{m} \sum (\hat{y} - y)^2$ | Lower is better. In squared units, sensitive to outliers |
+| **RMSE** | $\sqrt{\text{MSE}}$ | Lower is better. Same units as $y$, so easy to interpret |
+| **MAE** | $\frac{1}{m} \sum \lvert \hat{y} - y \rvert$ | Lower is better. Robust to outliers |
+| **$R^2$** | $1 - \dfrac{\sum (y - \hat{y})^2}{\sum (y - \bar{y})^2}$ | 1 is perfect. 0 is no better than predicting the mean. Below 0 is worse than the mean |
+
+> [!IMPORTANT]
+> Always report these metrics on **held-out test data**. A model can score perfectly on the data it was trained on and still be useless.
+
+---
+
+## 4. Polynomial regression and overfitting
+
+### 4.1 When a straight line isn't enough
+
+If the true relationship is curved, a straight line can't follow it, however well it's trained. This is **underfitting**: the model is too simple.
+
+<p align="center">
+  <img src="assets/overfitting.png" alt="Underfitted, good fit and overfitted curves" width="720">
+  <br>
+  <em>Underfitting (too simple), a good fit, and overfitting (too complex).</em>
+</p>
+
+### 4.2 Polynomial features
+
+The fix is to give the linear model **new features** built from the old ones: $x^2, x^3, \dots, x^d$.
+
+```math
+\hat{y} = b + w_1 x + w_2 x^2 + \dots + w_d x^d
+```
+
+This is still *linear regression*, because the model is linear in the **weights**. Only the features are curved, so gradient descent and the normal equation work unchanged.
+
+With several input features, `sklearn.preprocessing.PolynomialFeatures` also adds **interaction terms** such as $x_1 x_2$.
+
+### 4.3 Overfitting
+
+Raise the degree too far and the model starts fitting the **noise** instead of the pattern.
+
+<p align="center">
+  <img src="assets/overfit.png" alt="High-degree polynomial wiggling through noisy points" width="680">
+  <br>
+  <em>A high-degree polynomial passes through the training points but generalises badly.</em>
+</p>
+
+**Signs of overfitting:** very low training error, much higher test error, and often very large weights.
+
+**Common causes:**
+
+- a model too complex for the amount of data
+- too many (irrelevant) features
+- too little training data
+- training for too long, in iterative models
+
+### 4.4 The bias–variance trade-off
+
+The expected error of any model on new data splits into three parts:
+
+```math
+\mathbb{E}\left[(y - \hat{f}(x))^2\right] = \underbrace{\text{Bias}[\hat{f}(x)]^2}_{\text{too simple}} + \underbrace{\text{Var}[\hat{f}(x)]}_{\text{too sensitive}} + \underbrace{\sigma^2}_{\text{noise}}
+```
+
+| | **High bias** (underfitting) | **High variance** (overfitting) |
+|---|---|---|
+| What it means | The model's assumptions are too strong | The model changes a lot with the training sample |
+| Example | A straight line through U-shaped data | A degree-15 polynomial through 20 points |
+| Training error | High | Low |
+| Test error | High (close to training) | High (far from training) |
+| Fixes | More features, a more complex model, less regularisation | More data, a simpler model, more regularisation |
+
+The noise term $\sigma^2$ can't be removed by any model. The goal is the complexity that minimises the **sum** of bias² and variance.
+
+<p align="center">
+  <img src="assets/regularization.jpg" alt="U-shaped total error versus model complexity" width="560">
+  <br>
+  <em>As complexity grows, bias falls and variance rises. Total error is lowest in between.</em>
+</p>
+
+### 4.5 Diagnosing with learning curves
+
+A **learning curve** plots training and validation scores against the number of training samples.
+
+<p align="center">
+  <img src="assets/learningcurve.png" alt="Learning curves for high bias, high variance and a good trade-off" width="560">
+  <br>
+  <em>How learning curves look for high bias, high variance and a good fit.</em>
+</p>
+
+| Pattern | Diagnosis | What helps |
+|---|---|---|
+| Both curves low and close together | **High bias** | A more complex model. More data won't help |
+| Big gap between training and validation | **High variance** | More data, regularisation, a simpler model |
+| Both curves high and close together | **Good fit** | Nothing, you're done |
+
+---
+
+## 5. Regularisation: Ridge and Lasso
+
+### 5.1 The idea
+
+Overfit models tend to have **huge weights**: they bend sharply to hit every point. Regularisation adds a **penalty on the size of the weights** to the loss:
+
+```math
+J_{\text{reg}}(\boldsymbol{\theta}) = \underbrace{\text{MSE}(\boldsymbol{\theta})}_{\text{fit the data}} + \alpha \cdot \underbrace{\Omega(\mathbf{w})}_{\text{keep weights small}}
+```
+
+- $\alpha \ge 0$ sets the strength. $\alpha = 0$ is plain linear regression. A large $\alpha$ pushes all the weights towards 0.
+- It trades a little **bias** for a lot less **variance**.
+- Regularisation also helps with **multicollinearity**. When features are strongly correlated, $X^\top X$ is nearly singular and plain least-squares weights swing wildly.
+
+> [!IMPORTANT]
+> The **bias** $\theta_0$ is not penalised, only the feature weights $\mathbf{w} = (\theta_1, \dots, \theta_n)$. Also standardise the features first, otherwise the penalty hits large-scale features unfairly.
+
+### 5.2 Ridge (L2)
+
+Ridge penalises the **sum of squared weights**:
+
+```math
+J_{\text{Ridge}} = \text{MSE} + \alpha \sum_{j=1}^{n} w_j^2
+```
+
+- **Gradient:** the penalty adds $2\alpha w_j$ to each weight's gradient. So every step first shrinks the weight a little and then follows the data. That's why L2 is also called **weight decay**.
+- **Closed form** (for the $\frac{1}{m}$-free form $\lVert X\boldsymbol{\theta} - \mathbf{y} \rVert^2 + \alpha \lVert \mathbf{w} \rVert^2$):
+
+```math
+\boldsymbol{\theta}_{\text{Ridge}} = (X^\top X + \alpha I)^{-1} X^\top \mathbf{y}
+```
+
+Adding $\alpha I$ makes the matrix invertible even when $X^\top X$ isn't.
+
+**Effect:** all weights shrink smoothly towards zero, but **none become exactly zero**. Correlated features end up sharing the weight between them.
+
+### 5.3 Lasso (L1)
+
+Lasso penalises the **sum of absolute weights**:
+
+```math
+J_{\text{Lasso}} = \text{MSE} + \alpha \sum_{j=1}^{n} \lvert w_j \rvert
+```
+
+- **Gradient:** $|w|$ has no derivative at 0, so we use the **sub-gradient** $\alpha \cdot \text{sign}(w_j)$. This is what the notebook does.
+- **In practice**, libraries use coordinate descent or proximal gradient methods (ISTA). Both rely on the **soft-thresholding** operator:
+
+```math
+S_\lambda(z) = \text{sign}(z) \cdot \max(0, |z| - \lambda)
+```
+
+It shrinks $z$ towards 0 by $\lambda$, and sets it to **exactly 0** if $|z| \le \lambda$.
+
+**Effect:** many weights become **exactly zero**, so Lasso does **automatic feature selection**.
+
+**Caveats:**
+
+- Among correlated features it tends to keep one arbitrarily.
+- It selects at most $m$ features when $n > m$.
+- The chosen features can change with small changes in the data.
+
+### 5.4 Why L1 gives zeros and L2 doesn't
+
+Regularisation is equivalent to minimising the MSE **inside a budget** for the weights: a circle for L2, a diamond for L1.
+
+<p align="center">
+  <img src="assets/l1l2.png" alt="MSE contours touching the L1 diamond and the L2 circle" width="640">
+  <br>
+  <em>The solution is where the MSE ellipses first touch the constraint region.</em>
+</p>
+
+- The L1 diamond has **corners on the axes**, and the ellipses usually hit a corner first, where one weight is exactly 0.
+- The L2 circle is smooth, so the touching point almost never lies exactly on an axis.
+
+### 5.5 Ridge vs Lasso vs Elastic Net
+
+| | Ridge (L2) | Lasso (L1) | Elastic Net (L1 + L2) |
+|---|---|---|---|
+| Penalty | $\alpha \sum w_j^2$ | $\alpha \sum \lvert w_j \rvert$ | $\alpha \left[\rho \sum \lvert w_j \rvert + (1-\rho) \sum w_j^2\right]$ |
+| Exact zeros (feature selection) | ❌ | ✅ | ✅ |
+| Correlated features | Shares weight | Picks one | Keeps groups together |
+| Closed form | ✅ | ❌ | ❌ |
+| Use when | Many useful, correlated features | Few features really matter | Many correlated features *and* you want sparsity |
+
+### 5.6 Choosing α
+
+Pick $\alpha$ with **cross-validation**, searching on a log scale:
 
 ```python
-from sklearn.model_selection import cross_val_score
 from sklearn.linear_model import RidgeCV, LassoCV
 
-# Automatic cross-validation
-ridge_cv = RidgeCV(alphas=[0.1, 1.0, 10.0, 100.0], cv=5)
-lasso_cv = LassoCV(alphas=[0.1, 1.0, 10.0, 100.0], cv=5)
+ridge = RidgeCV(alphas=np.logspace(-3, 3, 50), cv=5).fit(X_train, y_train)
+lasso = LassoCV(alphas=np.logspace(-3, 1, 50), cv=5).fit(X_train, y_train)
+print(ridge.alpha_, lasso.alpha_)
 ```
 
-**Grid Search:**
+A **regularisation path**, which plots each weight against $\alpha$, shows how the weights shrink and, for Lasso, in which order the features drop out.
 
-```python
-from sklearn.model_selection import GridSearchCV
+> [!WARNING]
+> Each library scales $\alpha$ differently. scikit-learn's `Ridge` minimises $\lVert \mathbf{y} - X\mathbf{w} \rVert^2 + \alpha \lVert \mathbf{w} \rVert^2$ (no $\frac{1}{m}$). Its `Lasso` minimises $\frac{1}{2m} \lVert \mathbf{y} - X\mathbf{w} \rVert^2 + \alpha \lVert \mathbf{w} \rVert_1$. The [regularization](regularization.ipynb) notebook rescales $\alpha$ before comparing its results with scikit-learn.
 
-param_grid = {'alpha': np.logspace(-4, 4, 50)}
-grid_search = GridSearchCV(Ridge(), param_grid, cv=5, scoring='neg_mean_squared_error')
-```
+---
 
-#### Regularization Path
+## 6. Going further
 
-**Concept:** Plot model performance (or coefficient values) as a function of $\alpha$ to understand:
+Short notes on related ideas that aren't implemented in the notebooks.
 
--   How coefficients shrink with increasing regularization
--   Optimal $\alpha$ value
--   Feature selection pattern (for Lasso)
-
-**Implementation:**
-
-```python
-alphas = np.logspace(-4, 2, 100)
-ridge_path = Ridge()
-coefs = []
-for alpha in alphas:
-    ridge_path.set_params(alpha=alpha)
-    ridge_path.fit(X_train, y_train)
-    coefs.append(ridge_path.coef_)
-```
-
-#### Information Criteria
-
-**AIC (Akaike Information Criterion):** $\large AIC = 2k - 2\ln(L)$ Where $\large k$ is the number of parameters and $\large L$ is the likelihood.
-
-**BIC (Bayesian Information Criterion):** $\large BIC = k\ln(m) - 2\ln(L)$ Where $\large m$ is the number of samples.
-
-For regularized models, effective degrees of freedom must be calculated differently.
-
-#### Geometric Intuition 
-
-#### Constraint Optimization Perspective
-
-**Equivalent Formulation:** Ridge and Lasso can be viewed as constrained optimization problems:
-
-**Ridge (L2):** 
-
-```math
-\large \min_\theta \frac{1}{2m} \|X\theta - y\|_2^2 \text{ subject to } \sum_{j=1}^{n} \theta_j^2 \leq t
-```
-
-**Lasso (L1):** 
-
-```math
-\large \min_\theta \frac{1}{2m} \|X\theta - y\|_2^2 \text{ subject to } \sum_{j=1}^{n} |\theta_j| \leq t
-```
-
-#### Geometric Interpretation
-
-**2D Visualization:**
-
-<div align="center">
-<img src="assets/l1l2.png" alt="Lasso and Ridge Regularization" width="803" height="539">
-<p>Fig. Lasso and Ridge Regularization</p>
-</div>
-
--   Contour lines: Represent constant values of MSE (elliptical)
--   Constraint region:
-    -   Ridge: Circle ($\large \theta_1^2 + \theta_2^2 \leq t$)
-    -   Lasso: Diamond ($\large |\theta_1| + |\theta_2| \leq t$)
--   Solution: Point where MSE contour touches constraint boundary
-
-**Why Lasso Produces Sparsity:**
-
--   Diamond shape has corners at axes
--   Contour lines are more likely to touch corners
--   Corner touching results in one coordinate being zero
-
-**Why Ridge Doesn't:**
-
--   Circular constraint has no corners
--   Smooth boundary makes it unlikely for coordinates to be exactly zero
-
-### Advanced Topics 
-
-#### Elastic Net Regularization
-
-**Combination of L1 and L2:** 
-
-<div align="center">
-
-$$\large 
-J_{\text{ElasticNet}}(\theta) = \frac{1}{2m} |X\theta - y|_2^2 + \alpha_1 |\theta|_1 + \alpha_2 |\theta|_2^2
-$$
-
-</div>
-
-**Benefits:**
-
--   Grouping effect: Tends to select groups of correlated features (unlike Lasso)
--   Sparsity: Can still set coefficients to zero (unlike Ridge)
--   Stability: More stable feature selection than pure Lasso
-
-**When to Use:**
-
--   Grouped features: When features naturally cluster
--   $\large n \gg m$: When you have more features than samples
--   Correlation: When features are highly correlated
-
-#### Adaptive Regularization
-
-**Adaptive Lasso:** Uses different penalties for different coefficients: 
-
-```math
-\large J_{\text{AdaLasso}}(\theta) = \frac{1}{2m} \|X\theta - y\|_2^2 + \alpha \sum_{j=1}^{n} w_j |\theta_j|
-```
-
-Where $\large w_j = \frac{1}{|\hat{\theta}_j^{OLS}|^\gamma}$ are adaptive weights.
-
-**Benefits:**
-
--   Oracle property: Asymptotically selects true model
--   Reduced bias: Less bias for large coefficients
--   Better selection: More accurate feature selection
-
-#### Group Regularization
-
-**Group Lasso:** For grouped features (e.g., categorical variables with multiple dummy variables): 
-
-```math
-\large J_{\text{GroupLasso}}(\theta) = \frac{1}{2m} \|X\theta - y\|_2^2 + \alpha \sum_{g=1}^{G} \sqrt{|g|} \|\theta_g\|_2
-```
-
-**Benefits:**
-
--   Group selection: Selects entire groups of features
--   Structured sparsity: Maintains meaningful feature groupings
-
-#### Bayesian Perspective
-
-**Ridge as MAP Estimation:** Ridge regression corresponds to Maximum A Posteriori (MAP) estimation with Gaussian priors: 
-
-<div align="center">
-
-$$\large 
-p(\theta_j) \sim \mathcal{N}(0, \sigma^2)
-$$
-
-</div>
-
-**Lasso as MAP Estimation:** Lasso corresponds to MAP estimation with Laplace priors: 
-
-<div align="center">
-
-$$\large 
-p(\theta_j) \sim \text{Laplace}(0, b)
-$$
-
-</div>
-
-This perspective provides:
-
--   Uncertainty quantification: Posterior distributions over coefficients
--   Hyperparameter selection: Hierarchical Bayesian approaches
--   Model comparison: Bayesian model selection criteria
-
-## Polynomial Regression
-### Limitations of Simple Linear Models
-Simple linear regression assumes that the relationship between the input features and the target variable is linear. If the true underlying relationship is non-linear (e.g., quadratic, sinusoidal), a simple linear model will not be able to capture this complexity. This leads to **underfitting**, where the model has high bias and performs poorly on both training and test data.
-
-<div align="center">
-<img src="assets/overfitting.png" alt="linear regression underfitting non-linear data" width="800" height="300">
-<p>Fig. linear regression underfitting non-linear data</p>
-</div>
-
-### Polynomial Regression
-
-#### Concept
-Polynomial regression extends linear regression by adding polynomial terms of the original features as new input features. For example, if we have a single feature $\large x$, we can create new features like $\large x^2, x^3, \dots, x^d$, where $\large d$ is the degree of the polynomial.
-
-The model then becomes:
-
-<div align="center">
-
-$$\large 
-h(x) = w_d x^d + w_{d-1} x^{d-1} + \dots + w_2 x^2 + w_1 x + b
-$$
-
-</div>
-
-This equation is still **linear in terms of the coefficients** $\large w_j$ and $\large b$. Therefore, we can use the same linear regression techniques (like Gradient Descent or Normal Equation) to fit this model, but now on the *transformed* feature set $\large [x, x^2, \dots, x^d]$.
-
-#### Creating Polynomial Features
-If the original feature is $\large x$:
-*   Degree 1 (Linear): $\large [x]$
-*   Degree 2 (Quadratic): $\large [x, x^2]$
-*   Degree 3 (Cubic): $\large [x, x^2, x^3]$
-And so on. If there are multiple original features (e.g., $\large x_1, x_2$), polynomial features also include interaction terms (e.g., $\large x_1x_2, x_1^2x_2$, etc.), depending on the `interaction_only` parameter in tools like `sklearn.preprocessing.PolynomialFeatures`. 
-
-The `sklearn.preprocessing.PolynomialFeatures` transformer is a convenient tool for generating these features.
-
-#### Model
-Once polynomial features are created, a standard linear regression model is trained using these new features as input.
-
-### Overfitting
-
-#### Definition
-**Overfitting** occurs when a machine learning model learns the training data too well, including its noise and random fluctuations, rather than the underlying general pattern. As a result, an overfit model performs very well on the training data but poorly on unseen test data (it has poor generalization).
-
-<div align="center">
-<img src="assets/overfit.png" alt="linear regression underfitting non-linear data" width="1038.8" height="688.8">
-<p>Fig. Overfitting Example - High-degree polynomial fitting noisy data</p>
-</div>
-
-#### Causes and Consequences
-*   **Causes:**
-    *   Model Complexity: Using a model that is too complex for the amount of data available (e.g., a very high-degree polynomial for a small dataset with a simpler underlying trend).
-    *   Too many features: Especially if many are irrelevant or noisy.
-    *   Insufficient training data: Not enough data to constrain a complex model.
-    *   Training for too long: For iterative algorithms, excessive training can lead to fitting noise.
-*   **Consequences:**
-    *   Excellent performance on training data.
-    *   Poor performance on new, unseen data (test set, real-world deployment).
-    *   The model is not reliable or useful in practice.
-
-### The Bias-Variance Tradeoff
-This is a central concept in machine learning that describes the relationship between a model's complexity, its ability to fit the training data, and its ability to generalize to new data.
-
-#### Bias
-*   **Definition:** Bias is the error introduced by approximating a real-world problem, which may be complex, by a too-simple model. It represents the model's tendency to consistently learn the wrong thing by not taking into account all the information in the data.
-*   **High Bias (Underfitting):** The model makes strong assumptions about the data (e.g., assumes a linear relationship when it's quadratic). It fails to capture the underlying patterns, leading to poor performance on both training and test sets.
-    *   *Example:* Fitting a straight line to a U-shaped dataset.
-
-#### Variance
-*   **Definition:** Variance is the error introduced by the model's sensitivity to small fluctuations (noise) in the training data. It quantifies how much the model's predictions would change if it were trained on a different training dataset drawn from the same distribution.
-*   **High Variance (Overfitting):** The model learns the training data too closely, including its noise. It performs very well on the training data but poorly on the test data because it doesn't generalize to new, unseen examples.
-    *   *Example:* Fitting a very high-degree polynomial that wiggles through every training data point.
-
-#### The Tradeoff
-*   There is typically a tradeoff between bias and variance:
-    *   **Simple Models (Low Complexity):** Tend to have high bias and low variance.
-    *   **Complex Models (High Complexity):** Tend to have low bias (on training data) and high variance.
-*   The goal in model selection is to find a sweet spot that minimizes the total error (which is a function of bias, variance, and irreducible error). This usually involves finding a model that is complex enough to capture the true underlying patterns but not so complex that it overfits the noise.
-
-<div align="center">
-<img src="assets/regularization.jpg" alt="bias variance tradeoff curve" width="648" height="405">
-<p>Fig. Bias-Variance Tradeoff Curve - Showing U-shaped total error vs model complexity</p>
-</div>
-
-**Ridge Regression:**
-
--   Bias: `-α(X^TX + αI)^(-1)θ` (shrinkage toward zero)
--   Variance: Always smaller than OLS, decreases with α
--   Effect: Smooth shrinkage, keeps all features
-
-**Lasso Regression:**
-
--   Bias: Shrinkage + selection bias
--   Variance: Reduced through feature selection + estimation
--   Effect: Sparse solutions, automatic feature selection
-
-#### Mathematical Intuition (Conceptual) 
-Conceptually, the expected squared error of a prediction at a point $\large x$ can be decomposed:
-
-<div align="center">
-
-$$\large  
-E[(y - \hat{f}(x))^2] = (\text{Bias}[\hat{f}(x)])^2 + \text{Var}[\hat{f}(x)] + \sigma^2
-$$
-
-</div>
-
-Where:
-*   $\large y$: The true value.
-*   $\large \hat{f}(x)$: The model's prediction for $\large x$.
-*   $\large E[\cdot]$: Expected value (average over many training sets).
-*   $\large \text{Bias}[\hat{f}(x)] = E[\hat{f}(x)] - f(x)$ (where $\large f(x)$ is the true underlying function).
-*   $\large \text{Var}[\hat{f}(x)] = E[(\hat{f}(x) - E[\hat{f}(x)])^2]$.
-*   $\large \sigma^2$: Irreducible error (noise in the data itself that no model can eliminate).
-
-### Diagnosing Bias and Variance with Learning Curves
-
-#### What are Learning Curves? 
-Learning curves are plots of a model's performance (e.g., error or accuracy) on the training set and a validation set (or through cross-validation) as a function of the number of training examples used. They are a valuable tool for diagnosing whether a model is suffering more from bias or variance issues.
-
-<div align="center">
-<img src="assets/learningcurve.png" alt="machine learning learning curves">
-<p>Fig. Example Learning Curve Plot - Linear Regression (High Bias)</p>
-</div>
-
-#### Interpreting Learning Curves
-1.  **High Bias (Underfitting):**
-    *   Observation: Both the training score and the validation score will be low (high error) and will converge to similar (poor) values even with more data.
-    *   Indication: The model is too simple to capture the underlying structure of the data. Adding more training examples will likely not help much.
-    *   Possible Solutions: Use a more complex model (e.g., higher-degree polynomial, more features), decrease regularization.
-
-2.  **High Variance (Overfitting):**
-    *   Observation: There will be a large gap between the training score (high accuracy/low error) and the validation score (lower accuracy/higher error). The training score might be very good, while the validation score plateaus at a worse level.
-    *   Indication: The model is too complex and is fitting the noise in the training data.
-    *   Possible Solutions: Get more training data (often helps), use a simpler model, increase regularization, feature selection/reduction.
-
-3.  **Good Fit ("Just Right"):**
-    *   Observation: Both training and validation scores converge to a good value, and there is a small gap between them.
-    *   Indication: The model has a good balance of bias and variance for the given data.
+- **Bayesian view.** Ridge is the MAP estimate with a **Gaussian** prior on the weights, $w_j \sim \mathcal{N}(0, \sigma^2)$. Lasso is the MAP estimate with a **Laplace** prior, which has a sharp peak at zero. That peak is why Lasso likes exact zeros.
+- **Adaptive Lasso.** Gives each weight its own penalty, $\alpha \sum_j \frac{|w_j|}{|\hat{w}_j^{\text{OLS}}|^{\gamma}}$, so large, important weights are penalised less.
+- **Group Lasso.** Penalises groups of weights together, $\alpha \sum_g \sqrt{|g|}\, \lVert \mathbf{w}_g \rVert_2$, so for example all the one-hot columns of one categorical feature are kept or dropped as a unit.
+- **Information criteria.** As an alternative to cross-validation, $\text{AIC} = 2k - 2\ln L$ and $\text{BIC} = k \ln m - 2\ln L$ trade off fit ($L$) against the number of parameters $k$.
