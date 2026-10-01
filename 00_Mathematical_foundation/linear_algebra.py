@@ -22,10 +22,10 @@ if "google.colab" in sys.modules:
     get_ipython().run_line_magic("pip", "install -q git+https://github.com/sandeshjung/Machine-Learning-Foundation.git")
 
 # %% [markdown]
-# ### Linear Algebra
+# # Linear Algebra
 
 # %% [markdown]
-# ##### Scalars, vectors, matrices and tensors
+# ## Scalars, vectors, matrices and tensors
 
 # %%
 import torch
@@ -37,7 +37,7 @@ print(f"Pytorch version: {torch.__version__}")
 print(f"Numpy version: {np.__version__}")
 
 # %% [markdown]
-# ##### Scalars
+# ## Scalars
 # - A scalar is a single number, represented as a 0-dimensional tensor in PyTorch. 
 # - In ML, scalars are used for learning rates, regularization parameters, loss values, etc.
 
@@ -52,7 +52,7 @@ print(f"{s2_pt}: type: {type(s2_pt)}, shape: {s2_pt.shape}, dtype= {s2_pt.dtype}
 print(f"{s3_pt}: type: {type(s3_pt)}, shape: {s3_pt.shape}, dtype= {s3_pt.dtype}")
 
 # %% [markdown]
-# ##### Vectors (1-D Tensors)
+# ## Vectors (1-D Tensors)
 # - A vector is an ordered array of numbers, represented as a 1-D tensor.
 
 # %%
@@ -133,7 +133,7 @@ plt.tight_layout()
 plt.show()
 
 # %% [markdown]
-# ##### Matrices (2-D Tensors)
+# ## Matrices (2-D Tensors)
 # - A matrix is a 2D array of numbers, represented as a 2-D tensor. 
 
 # %%
@@ -216,7 +216,7 @@ except RuntimeError as e:
     print(f"\nCould not compute inverse of M_square_pt: {e}")
 
 # %% [markdown]
-# ##### Eigenvalues and Eigenvectors
+# ## Eigenvalues and Eigenvectors
 # - For a square matrix A, `Av = λv`.
 # - `torch.linalg.eig()` for general matrices (eigenvalues can be complex).
 # - `torch.linalg.eigh()` for real symmetric or complex Hermitian matrices (eigenvalues are real).
@@ -273,10 +273,10 @@ print(f"Eigenvalues (λ) from eig for general matrix = \n{eigenvalues_gen}")
 print(f"\nEigenvectors (V) from eig for general matrix = \n{eigenvectors_gen}")
 
 # %% [markdown]
-# ###### Note: Eigenvalues/vectors might be complex. Reconstruction is `V @ diag(L) @ V_inv`
+# > **Note:** eigenvalues and eigenvectors may be complex. The matrix is reconstructed as `V @ diag(L) @ V_inv`.
 
 # %% [markdown]
-# ##### Singular Value Decomposition (SVD)
+# ## Singular Value Decomposition (SVD)
 # - `A = U @ diag(S) @ Vh` (where Vh = V.conj().T)
 # - U = Left singular vectors
 # - S = Singular values (1D tensor)
@@ -324,7 +324,7 @@ B_approx_k1_pt = U_pt @ Sigma_k_pt @ Vh_pt
 B_approx_k1_pt
 
 # %% [markdown]
-# ##### Conversion between NumPy and PyTorch
+# ## Conversion between NumPy and PyTorch
 
 # %%
 # NumPy to PyTorch

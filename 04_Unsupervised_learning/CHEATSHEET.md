@@ -1,8 +1,11 @@
-# Cheat Sheet: Unsupervised Learning
+# 04 · Cheat Sheet: Unsupervised Learning
 
-Notebooks: [kmeans_hierarchical](kmeans_hierarchical.ipynb) · [pca_tsne](pca_tsne.ipynb) · Theory: [README](README.md)
+> **Notebooks:** [kmeans_hierarchical](kmeans_hierarchical.ipynb) · [pca_tsne](pca_tsne.ipynb)
+>
+> **Full explanations:** [README](README.md)
 
 ## Clustering
+
 | | K-Means | Hierarchical (agglomerative) |
 |---|---|---|
 | Objective | Minimise WCSS $= \sum_k \sum_{x \in C_k} \lVert x - \mu_k \rVert^2$ | Repeatedly merge the two closest clusters |
@@ -11,7 +14,11 @@ Notebooks: [kmeans_hierarchical](kmeans_hierarchical.ipynb) · [pca_tsne](pca_ts
 | Cluster shape | Convex, similar-sized blobs | Depends on linkage |
 | Cost | $O(nKd)$ per iteration | $O(n^2)$ memory, $O(n^2 \log n)$ time or worse |
 
-**Linkage:** `ward` (minimises the variance increase, similar to K-Means) · `complete` (max distance, compact clusters) · `average` · `single` (min distance, produces chains)
+**Linkage**
+- `ward`: minimises the increase in variance (similar to K-Means), a good default
+- `complete`: maximum distance, gives compact clusters
+- `average`: mean distance, a compromise
+- `single`: minimum distance, produces long chains
 
 **Choosing $K$**
 - **Elbow:** plot WCSS against $K$ and look for the bend. WCSS always decreases, so don't just minimise it.
@@ -19,6 +26,7 @@ Notebooks: [kmeans_hierarchical](kmeans_hierarchical.ipynb) · [pca_tsne](pca_ts
 - **Comparing two clusterings:** the adjusted Rand index is invariant to label permutations (1 = identical partitions).
 
 ## Dimensionality reduction
+
 | | PCA | t-SNE |
 |---|---|---|
 | Type | Linear projection | Non-linear embedding |
@@ -32,6 +40,7 @@ Notebooks: [kmeans_hierarchical](kmeans_hierarchical.ipynb) · [pca_tsne](pca_ts
 **t-SNE knobs:** `perplexity` of 5–50 (the number of neighbours each point considers), `max_iter` ≥ 1000, `init="pca"` for stability. Reduce to about 50 dimensions with PCA first when $d$ is large.
 
 ## Pitfalls
+
 - **Scale features.** Both K-Means and PCA are distance- or variance-based.
 - K-Means is sensitive to initialisation. Use k-means++ and several restarts (`n_init`).
 - Cluster labels are arbitrary integers, so compare clusterings with ARI or NMI, never label equality.

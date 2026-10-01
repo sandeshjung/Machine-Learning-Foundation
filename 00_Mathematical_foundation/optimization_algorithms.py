@@ -36,7 +36,7 @@ torch.manual_seed(42)
 
 
 # %% [markdown]
-# ### Gradient Descent (GD)
+# ## Gradient Descent (GD)
 # Algorithm:
 # 1. Initialize parameters (e.g., x)
 # 2. Repeat for number of iterations:
@@ -111,7 +111,7 @@ plt.show()
 
 
 # %% [markdown]
-# #### Try it: the learning rate
+# ### Try it: the learning rate
 # For $f(x) = x^2$ the update is $x \leftarrow x - \eta \cdot 2x = (1 - 2\eta)\,x$, so the learning rate alone decides what happens:
 # - $\eta < 0.5$: smooth convergence
 # - $0.5 < \eta < 1$: overshoots and oscillates around the minimum, but still converges
@@ -144,7 +144,7 @@ def explore_learning_rate(lr):
 
 
 # %% [markdown]
-# ### Stochastic Gradient Descent (SGD)
+# ## Stochastic Gradient Descent (SGD)
 
 # %% [markdown]
 # - In GD, gradient is computed using the entire dataset (for a typical ML loss). This is expensive.
@@ -216,7 +216,7 @@ plt.legend()
 plt.show()
 
 # %% [markdown]
-# ### Using PyTorch's `torch.optim`
+# ## Using PyTorch's `torch.optim`
 
 # %%
 # Parameters to optimize
@@ -268,7 +268,7 @@ for i in range(n_iters):
               loss = {loss_adam.item():.4f}""")
 
 # %% [markdown]
-# #### Checking the manual update against `torch.optim.SGD`
+# ### Checking the manual update against `torch.optim.SGD`
 # Both apply $x \leftarrow x - \eta \nabla f(x)$ from the same starting point, so the trajectories should be identical.
 
 # %%
@@ -287,7 +287,7 @@ plt.legend()
 plt.show()
 
 # %% [markdown]
-# ### Convex Optimization (Conceptual Introduction) ---
+# ## Convex Optimization (Conceptual Introduction)
 # Convex Function: A real-valued function f defined on an interval (or a convex set in higher dimensions) is called convex if the line segment between any two points on the graph of the function lies on or above the graph.
 
 # %%

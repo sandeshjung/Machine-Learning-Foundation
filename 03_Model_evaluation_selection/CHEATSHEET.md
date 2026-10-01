@@ -1,9 +1,14 @@
-# Cheat Sheet: Model Evaluation & Selection
+# 03 · Cheat Sheet: Model Evaluation & Selection
 
-Notebooks: [bias_variance](bias_variance.ipynb) · [cross_validation](cross_validation.ipynb) · [hyperparameter_tuning](hyperparameter_tuning.ipynb) · [classification_metrics](classification_metrics.ipynb) · [preprocessing_pipelines](preprocessing_pipelines.ipynb) · Theory: [README](README.md)
+> **Notebooks:** [bias_variance](bias_variance.ipynb) · [cross_validation](cross_validation.ipynb) · [hyperparameter_tuning](hyperparameter_tuning.ipynb) · [classification_metrics](classification_metrics.ipynb) · [preprocessing_pipelines](preprocessing_pipelines.ipynb)
+>
+> **Full explanations:** [README](README.md)
 
 ## Bias-variance decomposition
-$$\mathbb{E}\big[(y - \hat{f}(x))^2\big] = \underbrace{\text{Bias}[\hat{f}(x)]^2}_{\text{too simple}} + \underbrace{\text{Var}[\hat{f}(x)]}_{\text{too sensitive to the data}} + \underbrace{\sigma^2}_{\text{irreducible noise}}$$
+
+```math
+\mathbb{E}\big[(y - \hat{f}(x))^2\big] = \underbrace{\text{Bias}[\hat{f}(x)]^2}_{\text{too simple}} + \underbrace{\text{Var}[\hat{f}(x)]}_{\text{too sensitive to the data}} + \underbrace{\sigma^2}_{\text{irreducible noise}}
+```
 
 | Symptom | Diagnosis | Remedies |
 |---|---|---|
@@ -14,6 +19,7 @@ $$\mathbb{E}\big[(y - \hat{f}(x))^2\big] = \underbrace{\text{Bias}[\hat{f}(x)]^2
 **Learning curves** (error against training-set size): high bias means both curves plateau high and close together, and more data won't help. High variance means a large gap that shrinks with more data.
 
 ## Data splits
+
 - **Train:** fit parameters. **Validation:** choose hyperparameters and the model. **Test:** touch **once** at the end.
 - **K-fold CV:** train on $K-1$ folds and validate on the remaining one, rotating $K$ times. Report mean ± std. $K = 5$ or $10$ is typical.
 - **Stratified K-fold:** keeps class proportions in every fold. Use it for classification, especially with imbalanced data.
@@ -21,6 +27,7 @@ $$\mathbb{E}\big[(y - \hat{f}(x))^2\big] = \underbrace{\text{Bias}[\hat{f}(x)]^2
 - **Grouped data** (several samples per patient or user): use `GroupKFold` so a group never appears on both sides.
 
 ## Hyperparameter search
+
 | Method | How | When |
 |---|---|---|
 | Grid search | Every combination on a grid | ≤ 2–3 hyperparameters, cheap models |
@@ -30,6 +37,7 @@ $$\mathbb{E}\big[(y - \hat{f}(x))^2\big] = \underbrace{\text{Bias}[\hat{f}(x)]^2
 Sample scale-type parameters (`C`, `gamma`, learning rate, `alpha`) on a **log scale**, e.g. `scipy.stats.loguniform`.
 
 ## Classification metrics
+
 | Metric | Formula | Use when |
 |---|---|---|
 | Precision / Recall | $\frac{TP}{TP+FP}$ / $\frac{TP}{TP+FN}$ | False alarms / misses are expensive |
@@ -42,6 +50,7 @@ Sample scale-type parameters (`C`, `gamma`, learning rate, `alpha`) on a **log s
 **Threshold:** cost-optimal $t^* = \frac{c_{FP}}{c_{FP} + c_{FN}}$ for calibrated probabilities, or maximise $F_\beta$ on validation data. **Imbalance:** threshold moving (scores unchanged), `class_weight="balanced"`, or resampling the training set only. The last two distort probabilities, so re-calibrate (`CalibratedClassifierCV`).
 
 ## Preprocessing
+
 | Step | Default choice | Notes |
 |---|---|---|
 | Missing numeric | Median + missing indicator | Understand MCAR / MAR / MNAR first |
@@ -55,6 +64,7 @@ Sample scale-type parameters (`C`, `gamma`, learning rate, `alpha`) on a **log s
 Assemble everything with `ColumnTransformer` + `Pipeline`, then cross-validate **the whole pipeline**.
 
 ## Pitfalls
+
 - **Data leakage:** fitting a scaler, imputer or feature selector on the full dataset before splitting. Put preprocessing inside a `Pipeline` so it's refit on every fold.
 - Tuning on the test set turns it into a validation set, and your reported score becomes optimistic.
 - CV scores from hyperparameter search are slightly optimistic too. Use **nested CV** for an unbiased estimate.

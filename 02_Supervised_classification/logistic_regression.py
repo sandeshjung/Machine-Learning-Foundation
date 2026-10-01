@@ -22,7 +22,7 @@ if "google.colab" in sys.modules:
     get_ipython().run_line_magic("pip", "install -q git+https://github.com/sandeshjung/Machine-Learning-Foundation.git")
 
 # %% [markdown]
-# ## Logistic Regression
+# # Logistic Regression
 
 # %%
 import torch
@@ -45,12 +45,12 @@ np.random.seed(42)
 
 
 # %% [markdown]
-# ### Introduction to Logistic Regression
+# ## Introduction to Logistic Regression
 # <p>Logistic Regression is a linear model used for binary classification problems (where the target variable y can take one of two values, e.g. 0 or 1, True or False). </p>
 # <p>Despite its name, Logistic Regression is a classification algorithm, not a regression algorithm. It models the probability that an input X belongs to a particular class.</p>
 
 # %% [markdown]
-# #### Sigmoid (Logistic) Function
+# ### Sigmoid (Logistic) Function
 # <p>The sigmoid function squashes any real-valued number into the range (0,1), which is ideal for representing a probability.</p></br>
 # Formula: σ(z) = 1 / (1 + e^(-z))
 
@@ -76,12 +76,12 @@ plt.axvline(0, color='grey', linestyle=':', linewidth=0.8)
 plt.legend(); plt.grid(True); plt.show()
 
 # %% [markdown]
-# #### Hypothesis Function
+# ### Hypothesis Function
 # <p>For an input X, the linear part is z = X @ θ (or z = wX + b). The hypothesis is the probability P(y=1 | X; θ):</p> </br>
 # h_θ(X) = σ(X @ θ) = σ(wX + b)
 
 # %% [markdown]
-# #### Cost Function: Binary Cross-Entropy (BCE) Loss/ Log Loss
+# ### Cost Function: Binary Cross-Entropy (BCE) Loss/ Log Loss
 # <p>Measures the performance of a classification model whose output is a probability value between 0 and 1.</p> </br>
 # For a single training example (x, y): </br></br>
 # <p>Cost(h_θ(x), y) = -[y * log(h_θ(x)) + (1-y) * log(1 - h_θ(x))]</p>
@@ -90,7 +90,7 @@ plt.legend(); plt.grid(True); plt.show()
 # - If y = 0, Cost = -log(1 - h_θ(x)). We want h_θ(x) to be close to 0 (log(1-0)=0).
 
 # %% [markdown]
-# ### Generate Synthetic 2D Binary Classification data
+# ## Generating Synthetic 2-D Binary Classification Data
 
 # %%
 N_SAMPLES_TOTAL = 200
@@ -140,7 +140,7 @@ plt.legend(); plt.show()
 
 
 # %% [markdown]
-# ### Logistic Regression Implementation
+# ## Logistic Regression Implementation
 
 # %%
 def bce_loss(y_true, y_pred):
@@ -205,7 +205,7 @@ plt.show()
 
 
 # %% [markdown]
-# ### Logistic Regression using torch
+# ## Logistic Regression using PyTorch
 
 # %%
 class PyTorchLogisticRegression(nn.Module):
@@ -273,7 +273,7 @@ plt.show()
 
 
 # %% [markdown]
-# ### Visualizing the Decision Boundary
+# ## Visualizing the Decision Boundary
 # <p>The decision boundary is where P(y=1|X) = 0.5, which means z = Xw + b = 0.</p>
 # <p>For 2D features (x1, x2): w1*x1 + w2*x2 + b = 0</p>
 # <p>So, x2 = (-w1*x1 - b) / w2</p>
@@ -370,7 +370,7 @@ plot_decision_boundary(X, y, w_nn, b_nn, "Decision Boundary (PyTorch nn.Linear L
 
 
 # %% [markdown]
-# ### Model Evaluation on Test Set
+# ## Model Evaluation on Test Set
 
 # %%
 def evaluate_classification_model(y_true_tensor, y_pred_proba_tensor, model_name="Model", threshold=0.5):
@@ -452,7 +452,7 @@ with torch.no_grad():
 evaluate_classification_model(y_test, y_pred_proba_nn_test, "PyTorch Module Logistic Regression")
 
 # %% [markdown]
-# #### Verifying against scikit-learn
+# ### Verifying against scikit-learn
 # An (effectively) unregularised `LogisticRegression` minimises the same BCE loss. Our gradient descent stops after 500 epochs, so the weights differ slightly, but the decisions should agree.
 
 # %%
@@ -468,7 +468,7 @@ with torch.no_grad():
 check_agreement("Manual logistic regression vs sklearn (test predictions)", y_pred_manual_test, sk_logreg.predict(X_test.numpy()), min_agreement=0.95)
 
 # %% [markdown]
-# #### Try it: the decision threshold
+# ### Try it: the decision threshold
 # The model outputs a probability, and the threshold turns it into a class. Lowering it catches more positives (recall ↑) at the cost of more false alarms (precision ↓). The right threshold depends on which mistake is more expensive.
 #
 # *Interactive: run the notebook locally or in Colab to use the controls. GitHub only renders a static page.*

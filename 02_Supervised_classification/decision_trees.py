@@ -22,13 +22,13 @@ if "google.colab" in sys.modules:
     get_ipython().run_line_magic("pip", "install -q git+https://github.com/sandeshjung/Machine-Learning-Foundation.git")
 
 # %% [markdown]
-# ### Decision Trees
+# # Decision Trees
 #
 # A decision tree predicts by asking a sequence of yes/no questions about the features ("is $x_3 \le 0.7$?"), sending each sample down to a **leaf** whose training samples decide the prediction: the majority class for classification, or the mean target for regression.
 #
 # Training is **greedy recursive partitioning**. At each node, try every feature and every threshold, keep the split that makes the two children as *pure* as possible, then recurse until a stopping rule fires.
 #
-# Theory: [Decision Trees](README.md#decision-trees)
+# Theory: [Decision Trees](README.md#5-decision-trees)
 
 # %%
 import numpy as np
@@ -45,7 +45,7 @@ np.random.seed(42)
 
 
 # %% [markdown]
-# #### Impurity measures
+# ## Impurity measures
 # For a node whose samples have class proportions $p_1, \dots, p_K$:
 #
 # $$\large \text{Gini}(p) = 1 - \sum_{k} p_k^2 \qquad\qquad \text{Entropy}(p) = -\sum_{k} p_k \log_2 p_k$$
@@ -76,7 +76,7 @@ plt.show()
 
 
 # %% [markdown]
-# #### A decision tree from scratch
+# ## A decision tree from scratch
 # **Finding the best split efficiently.** For one feature, sort the samples by that feature once. Every possible threshold then splits the sorted list into a prefix (left) and a suffix (right), and a **cumulative sum** of one-hot labels gives the class counts of every prefix at once. That gives an $O(n \log n)$ search per feature instead of $O(n^2)$. Thresholds are placed halfway between consecutive distinct values, the same convention scikit-learn uses.
 #
 # **Stopping rules:** the node is pure, it has fewer than `min_samples_split` samples, it reached `max_depth`, or no split leaves at least `min_samples_leaf` samples on both sides.
@@ -185,7 +185,7 @@ class ScratchDecisionTree:
 
 
 # %% [markdown]
-# #### Data: a 3-class problem
+# ## Data: a 3-class problem
 # scikit-learn trees work in **float32** internally, so we use float32 data too. That way both implementations see exactly the same candidate thresholds.
 
 # %%
@@ -200,7 +200,7 @@ print(f"\nTest accuracy (depth 3): {np.mean(tree.predict(X_test) == y_test):.3f}
 
 
 # %% [markdown]
-# #### Verifying against scikit-learn
+# ## Verifying against scikit-learn
 # For both criteria and several depths, our tree should grow the same tree as `DecisionTreeClassifier`: the same depth and number of leaves, and the same **total leaf impurity** $\\sum_{\\text{leaves}} \\frac{n_\\ell}{n} I(\\ell)$, which is the quantity the greedy algorithm minimises.
 #
 # One subtlety: deep in the tree, a split often isolates just one or two samples, and several *different* features can do that **equally well** (an exact tie). scikit-learn breaks ties by visiting features in a random order, and ours takes the lowest feature index. The trees are then equally good but credit different features, so predictions can differ slightly and feature importances noticeably. We therefore require identical importances only for the shallow tree, where there are no ties.
@@ -237,7 +237,7 @@ plt.title("scikit-learn's depth-3 tree: same splits as our printout above")
 plt.show()
 
 # %% [markdown]
-# #### Overfitting: depth controls complexity
+# ## Overfitting: depth controls complexity
 # An unrestricted tree keeps splitting until every leaf is pure, which means it memorises the training set (100% training accuracy) including its noise. Shallow trees underfit. Depth, `min_samples_leaf` and pruning are the knobs.
 
 # %%
@@ -271,7 +271,7 @@ plt.show()
 # Tree boundaries are always **axis-aligned** rectangles, because every split looks at one feature. A diagonal boundary needs a staircase of many splits, which is one reason ensembles of trees work so much better than a single tree.
 
 # %% [markdown]
-# #### Try it: tree depth and leaf size
+# ## Try it: tree depth and leaf size
 # `max_depth` limits how many questions the tree may ask. `min_samples_leaf` forbids tiny leaves, which is an effective way to stop the tree chasing individual noisy points.
 #
 # *Interactive: run the notebook locally or in Colab to use the controls. GitHub only renders a static page.*
@@ -290,7 +290,7 @@ def explore_tree(max_depth, min_samples_leaf):
 
 
 # %% [markdown]
-# #### Cost-complexity pruning
+# ## Cost-complexity pruning
 # Instead of stopping early, grow a full tree and then **prune** it back. Cost-complexity pruning minimises
 #
 # $$\large R_\alpha(T) = R(T) + \alpha \, |\text{leaves}(T)|$$
@@ -312,7 +312,7 @@ plt.tight_layout()
 plt.show()
 
 # %% [markdown]
-# #### Regression trees
+# ## Regression trees
 # For a continuous target, the impurity is the **variance** (MSE) of the node's targets, and each leaf predicts the **mean** of its samples. The result is a piecewise-constant function: deeper trees make finer steps and eventually fit the noise.
 
 # %%
@@ -330,7 +330,7 @@ plt.legend(); plt.title("Regression trees are piecewise constant")
 plt.show()
 
 # %% [markdown]
-# #### Summary
+# ## Summary
 # | | Decision tree |
 # |---|---|
 # | Strengths | Interpretable (for small trees), no feature scaling needed, handles mixed feature types and non-linear interactions, fast prediction |

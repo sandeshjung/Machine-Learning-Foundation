@@ -53,7 +53,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
 
 # %% [markdown]
-# ### Responsible AI: Fairness and Interpretability
+# # Responsible AI: Fairness & Interpretability
 #
 # <p>As ML models become more powerful and integrated into critical decision-making processes (e.g., loan applications, medical diagnosis, hiring), it's crucial to ensure:
 #
@@ -61,7 +61,7 @@ print(f"Using device: {device}")
 # - Interpretability/ Explainability: We can understand why a model makes a particular prediction or behaves in a certain way. This builds trust, allows for debugging, ensure accountability, and can lead to new insights.</p>
 
 # %% [markdown]
-# #### Faireness in Machine Learning 
+# ### Fairness in Machine Learning
 #
 # - Multiple definitions of fairness (e.g., group vs. individual).
 # - Bias can originate from data, algorithm, or human interpretation.
@@ -69,7 +69,7 @@ print(f"Using device: {device}")
 # - Mitigation: Pre-processing data, in-processing algorithms, post-processing predictions.
 
 # %% [markdown]
-# #### Interpretability and Explainability (XAI)
+# ### Interpretability and Explainability (XAI)
 #
 # <p>Goal: Understand how ML models make decisions.
 #
@@ -234,9 +234,9 @@ with torch.no_grad():
 
 
 # %% [markdown]
-# ### Measuring Fairness
+# ## Measuring Fairness
 #
-# About 85% accuracy says nothing about *who* the errors fall on. Below we compute the group fairness metrics from the [README](README.md#group-fairness-metrics) for two sensitive attributes, **sex** and **race**, first from scratch and then checked against [`fairlearn`](https://fairlearn.org).
+# About 85% accuracy says nothing about *who* the errors fall on. Below we compute the group fairness metrics from the [README](README.md#3-group-fairness-metrics) for two sensitive attributes, **sex** and **race**, first from scratch and then checked against [`fairlearn`](https://fairlearn.org).
 #
 # For each group $a$:
 # - **Selection rate** $P(\hat{Y}=1 \mid A=a)$: how often the model predicts ">50K"
@@ -297,7 +297,7 @@ for name, groups in [("sex", sex_test), ("race", race_test)]:
     print({k: round(float(v), 3) for k, v in fairness_metrics(y_true_fair, y_pred_fair, groups).items()})
 
 # %% [markdown]
-# #### Verifying against fairlearn
+# ### Verifying against fairlearn
 
 # %%
 from fairlearn.metrics import (demographic_parity_difference, demographic_parity_ratio,
@@ -325,7 +325,7 @@ plt.show()
 #
 # For **race**, the smallest groups have only 60–70 test samples and a handful of positives, so their TPRs are very noisy. The large race gaps are driven mostly by those groups. Always check group sizes (and ideally confidence intervals) before drawing conclusions.
 #
-# #### Mitigation by post-processing: group-specific thresholds
+# ### Mitigation by post-processing: group-specific thresholds
 #
 # A simple way to close the equal-opportunity gap without retraining is to use a **separate decision threshold per group**, chosen so every group reaches the same TPR as the overall model. This usually costs a little accuracy. That is the fairness/accuracy trade-off made explicit.
 
@@ -348,7 +348,7 @@ print(pd.DataFrame({"threshold 0.5": before, "group thresholds": after}).round(3
 print(f"Accuracy: {np.mean(y_pred_fair == y_true_fair):.4f} -> {np.mean(y_pred_post == y_true_fair):.4f}")
 
 # %% [markdown]
-# #### Try it: per-group thresholds
+# ### Try it: per-group thresholds
 # Move each group's threshold and watch the per-group rates and the overall accuracy. Can you equalise TPR? What happens to the selection rates and FPR while you do?
 #
 # *Interactive: run the notebook locally or in Colab to use the controls. GitHub only renders a static page.*
@@ -371,7 +371,7 @@ def explore_group_thresholds(threshold_female, threshold_male):
 
 
 # %% [markdown]
-# ### LIME (Local Interpretable Model)
+# ## LIME (Local Interpretable Model-agnostic Explanations)
 #
 # <p>LIME explains individual predictions by learning a simple, interpretable model (e.g., linear regression) locally around the prediction. It generates a neighborhood of perturbed samples around the instance to explain, gets predictions for these neighbors from the black-box model, and then fits an interpretable model to these neighbor predictions, weighted by proximity.</p>
 
@@ -438,7 +438,7 @@ for feat_idx, weight in explanation_lime.as_list(label=predicted_class_idx_lime)
 
 
 # %% [markdown]
-# ### SHAP (Shapeley Additive explanations)
+# ## SHAP (SHapley Additive exPlanations)
 #
 # <p>SHAP assigns each feature an importance value for a particular prediction. It's based on game theory and provides a unified measure of feature importance.</p>
 

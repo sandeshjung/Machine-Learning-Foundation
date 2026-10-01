@@ -22,7 +22,7 @@ if "google.colab" in sys.modules:
     get_ipython().run_line_magic("pip", "install -q git+https://github.com/sandeshjung/Machine-Learning-Foundation.git")
 
 # %% [markdown]
-# ### Autograd (Scalar)
+# # Autograd (Scalar)
 #
 # A minimal automatic-differentiation engine that works on single numbers. Every operation produces a `Value` node that remembers:
 # - `data`: the result of the forward computation
@@ -30,10 +30,10 @@ if "google.colab" in sys.modules:
 # - `_backward`: a closure that applies the **local** chain rule, pushing `out.grad` back to its children
 # - `grad`: the accumulated derivative of the final output with respect to this node
 #
-# Theory: [PyTorch Autograd: Automatic Differentiation](README.md#pytorch-autograd-automatic-differentiation)
+# Theory: [PyTorch Autograd: Automatic Differentiation](README.md#4-automatic-differentiation-autograd)
 
 # %% [markdown]
-# #### Visualising the computation graph
+# ## Visualising the computation graph
 # `draw_dot` (from the shared [`mlf_utils`](../mlf_utils/graphs.py) package) walks the graph backwards from the output and renders it with Graphviz. This needs the system `dot` binary, see the main README.
 
 # %%
@@ -41,7 +41,7 @@ import torch
 from mlf_utils import check_close, draw_dot  # draw_dot renders the graph with Graphviz
 
 # %% [markdown]
-# #### The `Value` class
+# ## The `Value` class
 # Each operation defines its local derivative:
 #
 # | Operation | Output | Local derivative |
@@ -128,7 +128,7 @@ class Value:
 
 
 # %% [markdown]
-# #### Quick checks of the unary operations
+# ## Quick checks of the unary operations
 
 # %%
 Value(3.0).tanh()
@@ -140,7 +140,7 @@ Value(10.0).exp()
 Value(10.0).log()
 
 # %% [markdown]
-# #### Building an expression
+# ## Building an expression
 # $$g = (ab)^2 + (ab)(e + f)$$
 # broken into intermediate nodes $c = ab$, $d = e + f$, $h = cd$, $c_2 = c^2$ and $g = c_2 + h$.
 
@@ -174,7 +174,7 @@ g
 draw_dot(g)
 
 # %% [markdown]
-# #### Backpropagation by hand
+# ## Backpropagation by hand
 # Start with $\partial g / \partial g = 1$, then call `_backward()` on each node **from the output towards the inputs** (reverse topological order), so each node's `grad` is complete before it is passed on.
 #
 # Expected results: $\frac{\partial g}{\partial c} = 2c + d = 23$, so $\frac{\partial g}{\partial a} = 23 \cdot b = 46$ and $\frac{\partial g}{\partial b} = 23 \cdot a = 69$, while $\frac{\partial g}{\partial e} = \frac{\partial g}{\partial f} = c = 6$.
@@ -192,7 +192,7 @@ d._backward()
 c._backward()
 
 # %% [markdown]
-# #### Verifying with PyTorch
+# ## Verifying with PyTorch
 # The hand-rolled forward value and gradients should match `torch.autograd` exactly. `check_close` raises an error if they don't, so a broken `_backward` stops the notebook instead of silently giving wrong numbers.
 
 # %%

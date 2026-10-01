@@ -22,7 +22,7 @@ if "google.colab" in sys.modules:
     get_ipython().run_line_magic("pip", "install -q git+https://github.com/sandeshjung/Machine-Learning-Foundation.git")
 
 # %% [markdown]
-# ## Cross Validation
+# # Cross-Validation
 
 # %%
 import torch
@@ -126,7 +126,7 @@ def evaluate_pytorch_model(model_instance, X_val_fold, y_val_fold, threshold=0.5
 
 
 # %% [markdown]
-# ### K-Fold Cross-Validation
+# ## K-Fold Cross-Validation
 #
 # The dataset is divided into K equally (for neraly equally) sized "folds". The model is trained K times:
 #
@@ -175,7 +175,7 @@ mean_accuracy_kfold = np.mean(fold_accuracies_kfold)
 std_accuracy_kfold = np.std(fold_accuracies_kfold)
 
 # %% [markdown]
-# #### Sanity check against scikit-learn
+# ### Sanity check against scikit-learn
 # Using **the same folds**, scikit-learn's `LogisticRegression` should reach a similar mean accuracy. Our model uses 150 epochs of plain SGD and scikit-learn applies mild L2 regularisation by default, so we allow a small gap.
 
 # %%
@@ -206,7 +206,7 @@ plt.legend()
 plt.show()
 
 # %% [markdown]
-# ### Stratified K-Fold Cross-Validation
+# ## Stratified K-Fold Cross-Validation
 #
 # - **Problem with KFold:** If classes are imbalanced, some folds might end up with very few or even zero samples of a particular class, leading to unreliable evaluation.
 # - **Stratified K-Fold:** Variation of K-Fold that returns stratified folds. Each fold is made by preserving the percentage of samples for each class as in the original dataset. Particularly, imporant for classification tasks with imbalanced class distributions.
@@ -272,7 +272,7 @@ print(f"  Stratified K-Fold:        {mean_accuracy_stratified:.4f} +/- {std_accu
 print("Stratified K-Fold often gives a more reliable estimate, especially with class imbalance.")
 
 # %% [markdown]
-# ### Using Cross-Validation for Hyperparameter Tuning (Conceptual)
+# ## Using Cross-Validation for Hyperparameter Tuning (Conceptual)
 # Cross-validation is essential for robust hyperparameter tuning. The general process:
 # 1. Define a grid of hyperparameters to search (e.g., different learning rates,
 #    regularization strengths, polynomial degrees, kernel parameters for SVM).

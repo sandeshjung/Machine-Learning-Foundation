@@ -77,7 +77,7 @@ plt.legend()
 plt.show()
 
 # %% [markdown]
-# ### Linear Regression Implementation (Manually)
+# ## Linear Regression Implemented by Hand
 
 # %%
 # Parameters
@@ -133,7 +133,7 @@ plt.xlabel("Feature (x)"); plt.ylabel("Target (y)")
 plt.title("Linear Regression Fit"); plt.legend(); plt.show()
 
 # %% [markdown]
-# ### Linear Regression using `torch.nn.Linear` and `torch.optim`
+# ## Linear Regression using `torch.nn.Linear` and `torch.optim`
 
 # %%
 # model
@@ -189,7 +189,7 @@ plt.xlabel("Feature (x)"); plt.ylabel("Target (y)")
 plt.title("Linear Regression Fit (`nn.Linear`)"); plt.legend(); plt.show()
 
 # %% [markdown]
-# ### Analytical Solution: The Normal Equation
+# ## Analytical Solution: The Normal Equation
 
 # %% [markdown]
 # For Linear Regression, there's a closed-form solution to find the optimal θ without iterative gradient descent, provided (X^T @ X) is invertible. </br>
@@ -240,7 +240,7 @@ except torch.linalg.LinAlgError as e:
     print(f"Could not solve using Normal Equation (matrix might be singular): {e}")
 
 # %% [markdown]
-# #### Verifying against scikit-learn
+# ### Verifying against scikit-learn
 # The normal equation is an exact least-squares solution, so it should match `sklearn.linear_model.LinearRegression` to float32 precision. Gradient descent only *approaches* that optimum. After 500 epochs the slope is within about 0.07, but the intercept is still about 0.5 away: because $x$ lies in $[0, 10]$ and isn't centred, the loss surface is a long, narrow valley (its Hessian has a condition number of about 130), and plain GD crawls along it. Standardising $x$ first would make both converge quickly. The looser tolerances below reflect that.
 
 # %%
@@ -255,7 +255,7 @@ check_close("Gradient descent slope vs sklearn", weights_manual.item(), sk_lr.co
 check_close("Gradient descent intercept vs sklearn", bias_manual.item(), sk_lr.intercept_.item(), atol=0.6)
 
 # %% [markdown]
-# ### Model Evaluation
+# ## Model Evaluation
 
 # %% [markdown]
 # Common metrics for regresion:

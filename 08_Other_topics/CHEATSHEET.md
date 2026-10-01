@@ -1,8 +1,11 @@
-# Cheat Sheet: Fairness & Interpretability
+# 08 · Cheat Sheet: Fairness & Interpretability
 
-Notebook: [fairness_interpretability](fairness_interpretability.ipynb) · Theory: [README](README.md)
+> **Notebook:** [fairness_interpretability](fairness_interpretability.ipynb)
+>
+> **Full explanations:** [README](README.md)
 
 ## Group fairness metrics
+
 $\hat{Y}$ is the prediction, $Y$ the true label and $A$ the sensitive attribute.
 
 | Criterion | Requires | Measure (report the gap between groups) |
@@ -15,6 +18,7 @@ $\hat{Y}$ is the prediction, $Y$ the true label and $A$ the sensitive attribute.
 When base rates differ between groups, these criteria **cannot all hold at once** (impossibility results), so the choice depends on the application.
 
 ## Where bias comes from and what to do
+
 | Stage | Source | Mitigation |
 |---|---|---|
 | Data | Historical, representation, measurement bias | Re-weighting, re-sampling, better data collection |
@@ -24,6 +28,7 @@ When base rates differ between groups, these criteria **cannot all hold at once*
 "Fairness through unawareness" (dropping $A$) usually fails, because proxies such as zip code, occupation or marital status leak it.
 
 ## Explanation methods
+
 | Method | Scope | Model-agnostic | Idea |
 |---|---|---|---|
 | Linear coefficients / tree importance | Global | No | Read the model's internals |
@@ -36,9 +41,14 @@ When base rates differ between groups, these criteria **cannot all hold at once*
 
 **SHAP:** $\phi_i = \sum_{S \subseteq F \setminus \{i\}} \frac{|S|!(|F|-|S|-1)!}{|F|!}[f(S \cup \{i\}) - f(S)]$ with $f(x) = \phi_0 + \sum_i \phi_i$. It satisfies local accuracy, consistency and missingness.
 
-**SHAP explainers:** `TreeExplainer` (exact and fast for trees) · `DeepExplainer` / `GradientExplainer` (neural nets) · `KernelExplainer` (any model, slow) · `LinearExplainer`
+**SHAP explainers**
+- `TreeExplainer`: exact and fast for trees
+- `DeepExplainer` / `GradientExplainer`: neural networks
+- `KernelExplainer`: any model, but slow
+- `LinearExplainer`: linear models
 
 ## Pitfalls
+
 - Explanations describe **the model, not the world**. High attribution isn't causal importance.
 - Correlated features split or swap attribution, so group them or interpret with care.
 - One-hot features: sum SHAP values over a category's columns to get that category's importance.

@@ -22,14 +22,14 @@ if "google.colab" in sys.modules:
     get_ipython().run_line_magic("pip", "install -q git+https://github.com/sandeshjung/Machine-Learning-Foundation.git")
 
 # %% [markdown]
-# ### Ensemble Methods: Bagging, Random Forests & Boosting
+# # Ensemble Methods: Bagging, Random Forests & Boosting
 #
 # A single deep decision tree has **low bias but high variance**: small changes in the data produce a very different tree. Ensembles combine many models to fix that:
 #
 # - **Bagging / random forests** train many deep trees *independently* on bootstrap samples and **average** them, which reduces variance.
 # - **Boosting** trains many shallow trees *sequentially*, each one correcting the errors of the ensemble so far, which reduces bias.
 #
-# Theory: [Ensemble Methods](README.md#ensemble-methods)
+# Theory: [Ensemble Methods](README.md#6-ensembles-bagging-random-forests-and-boosting)
 
 # %%
 import numpy as np
@@ -48,7 +48,7 @@ sns.set_theme(style="whitegrid")
 np.random.seed(42)
 
 # %% [markdown]
-# #### Why averaging helps
+# ### Why averaging helps
 # If $B$ models each have variance $\sigma^2$ and pairwise correlation $\rho$, their average has variance
 #
 # $$\large \text{Var}\Big(\frac{1}{B}\sum_{b=1}^{B} f_b\Big) = \rho\,\sigma^2 + \frac{1 - \rho}{B}\,\sigma^2$$
@@ -65,7 +65,7 @@ plt.title("Averaging reduces variance down to ρσ², not to zero")
 plt.show()
 
 # %% [markdown]
-# #### Data
+# ### Data
 # Noisy moons: a single tree overfits them badly. Float32, as scikit-learn trees use internally.
 
 # %%
@@ -78,7 +78,7 @@ print(f"Single unpruned tree: train acc = {single_tree.score(X_train, y_train):.
 
 
 # %% [markdown]
-# ### Bagging and Random Forests from scratch
+# ## Bagging and Random Forests from scratch
 # **Bagging** (bootstrap aggregating): draw $n$ samples **with replacement** for each tree, train an unpruned tree on it, and average the trees' predicted probabilities.
 #
 # **Random forest** = bagging + a random subset of $\sqrt{d}$ features considered **at every split** (`max_features="sqrt"`). The trees become less alike (smaller $\rho$), so the average improves.
@@ -125,7 +125,7 @@ for name, m in [("Bagging", bagging), ("Random forest", forest)]:
     print(f"{name:14s} test acc = {np.mean(m.predict(X_test) == y_test):.3f}   OOB estimate = {m.oob_score_:.3f}")
 
 # %% [markdown]
-# #### Verifying against scikit-learn
+# ### Verifying against scikit-learn
 # `RandomForestClassifier` uses a different random number stream, so individual trees differ, but with 200 trees the two forests should make almost the same predictions and have similar accuracy and OOB estimates. *(With only 2 features, $\sqrt{2}$ rounds to 1 feature per split, so here the "random forest" picks a random feature at every split.)*
 
 # %%
@@ -146,7 +146,7 @@ plt.show()
 
 
 # %% [markdown]
-# ### AdaBoost from scratch
+# ## AdaBoost from scratch
 # AdaBoost fits a sequence of **weak learners** (here decision *stumps*: depth-1 trees), each on a **reweighted** training set that emphasises the samples the previous learners got wrong. With $K$ classes (the SAMME algorithm):
 #
 # 1. Start with uniform weights $w_i = 1/n$.
@@ -203,7 +203,7 @@ plt.tight_layout(); plt.show()
 # Each stump's weighted error creeps towards 0.5: later stumps are trained on the hard, reweighted samples, where barely beating chance is all a single split can do.
 
 # %% [markdown]
-# #### Verifying against scikit-learn
+# ### Verifying against scikit-learn
 # `AdaBoostClassifier` with the same stumps implements the same SAMME updates, so the per-round errors, learner weights and predictions should match.
 
 # %%
@@ -215,7 +215,7 @@ check_agreement("AdaBoost test predictions vs sklearn", ada.predict(X_test), sk_
 
 
 # %% [markdown]
-# ### Gradient Boosting from scratch
+# ## Gradient Boosting from scratch
 # Gradient boosting builds an additive model $F_M(x) = F_0 + \eta \sum_{m=1}^{M} h_m(x)$ by **gradient descent in function space**. Each new tree $h_m$ is fit to the *negative gradient* of the loss with respect to the current predictions:
 #
 # $$\large r_i^{(m)} = -\frac{\partial L(y_i, F(x_i))}{\partial F(x_i)} \Bigg|_{F = F_{m-1}}$$
@@ -256,7 +256,7 @@ mse = lambda a, b: np.mean((a - b) ** 2)
 print(f"Scratch gradient boosting: test MSE = {mse(gbr.predict(xr_test), yr_test):.4f}")
 
 # %% [markdown]
-# #### Verifying against scikit-learn
+# ### Verifying against scikit-learn
 # With squared error and no subsampling, `GradientBoostingRegressor` runs exactly this algorithm, so predictions should agree to floating-point precision **at every stage**.
 
 # %%
@@ -278,7 +278,7 @@ plt.suptitle("Gradient boosting adds one small correction at a time", y=1.03)
 plt.show()
 
 # %% [markdown]
-# #### Try it: boosting rounds and learning rate
+# ### Try it: boosting rounds and learning rate
 # With a large learning rate the model fits quickly and soon starts chasing noise. With a small one it needs many more trees but ends up smoother. The right panel shows the train and test error across rounds: the gap is overfitting, and **early stopping** means picking the round where the test (validation) error is lowest.
 #
 # *Interactive: run the notebook locally or in Colab to use the controls. GitHub only renders a static page.*
@@ -306,7 +306,7 @@ def explore_boosting(n_estimators, learning_rate, max_depth):
 
 
 # %% [markdown]
-# ### Comparing all the methods
+# ## Comparing all the methods
 # `HistGradientBoostingClassifier` is scikit-learn's fast, LightGBM-style implementation. It bins features into histograms, grows trees on the bins and supports missing values natively. It's the go-to choice for tabular data of any real size.
 
 # %%
@@ -328,7 +328,7 @@ plt.tight_layout(); plt.show()
 pd.DataFrame(rows).set_index("model").round(3)
 
 # %% [markdown]
-# #### Summary
+# ### Summary
 # | | Bagging / Random forest | Boosting (AdaBoost, gradient boosting) |
 # |---|---|---|
 # | Trees are trained | Independently (parallel) | Sequentially, each correcting the last |

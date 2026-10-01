@@ -22,14 +22,14 @@ if "google.colab" in sys.modules:
     get_ipython().run_line_magic("pip", "install -q git+https://github.com/sandeshjung/Machine-Learning-Foundation.git")
 
 # %% [markdown]
-# ### Classification Metrics, ROC/PR Curves, Imbalance & Calibration
+# # Classification Metrics, ROC/PR Curves, Imbalance & Calibration
 #
 # A classifier usually outputs a **score** or probability, and a **threshold** turns it into a decision. Different metrics answer different questions:
 # - *How good are the decisions at this threshold?* Confusion matrix, precision, recall, F1.
 # - *How well does the score rank positives above negatives, across all thresholds?* ROC-AUC, average precision.
 # - *Can the probabilities be taken at face value?* Calibration, Brier score.
 #
-# Everything below is implemented from scratch and checked against `sklearn.metrics`. Theory: [Classification Metrics](README.md#classification-metrics)
+# Everything below is implemented from scratch and checked against `sklearn.metrics`. Theory: [Classification Metrics](README.md#4-classification-metrics)
 
 # %%
 import numpy as np
@@ -51,7 +51,7 @@ sns.set_theme(style="whitegrid")
 np.random.seed(42)
 
 # %% [markdown]
-# #### Data: an imbalanced problem
+# ## Data: an imbalanced problem
 # Only about 10% positives, like fraud detection, disease screening or churn. We split with `stratify=y` so both sets keep the same class ratio.
 
 # %%
@@ -65,7 +65,7 @@ scores = logreg.predict_proba(X_test)[:, 1]            # P(y = 1 | x)
 y_pred = (scores >= 0.5).astype(int)
 
 # %% [markdown]
-# #### The accuracy paradox
+# ## The accuracy paradox
 # A "model" that always predicts the majority class scores about 90% accuracy while catching **zero** positives. On imbalanced data, accuracy alone is meaningless.
 
 # %%
@@ -75,7 +75,7 @@ for name, pred in [("Always predict 0", dummy.predict(X_test)), ("Logistic regre
 
 
 # %% [markdown]
-# #### Confusion matrix and threshold metrics
+# ## Confusion matrix and threshold metrics
 #
 # | | Predicted 0 | Predicted 1 |
 # |---|---|---|
@@ -116,7 +116,7 @@ check_close("specificity vs sklearn (recall of class 0)", ours["specificity"], m
 
 
 # %% [markdown]
-# #### ROC curve and AUC
+# ## ROC curve and AUC
 # Sweep the threshold from $+\infty$ down to $-\infty$ and plot **TPR against FPR** at every distinct score. The **area under the curve** has a neat probabilistic meaning: it is the probability that a random positive gets a higher score than a random negative (ties count ½). That is exactly the normalised **Mann-Whitney U** statistic, so AUC can also be computed from ranks with no curve at all:
 #
 # $$\large \text{AUC} = \frac{\sum_{i \in \text{pos}} \text{rank}(s_i) - \frac{n_+(n_+ + 1)}{2}}{n_+ \, n_-}$$
@@ -156,7 +156,7 @@ check_close("AUC (Mann-Whitney) vs roc_auc_score", auc_mann_whitney(y_test, scor
 
 
 # %% [markdown]
-# #### Precision-recall curve and average precision
+# ## Precision-recall curve and average precision
 # On imbalanced data the ROC curve can look flattering: FPR divides by the (huge) number of negatives, so even many false positives barely move it. The **precision-recall curve** focuses on the positive class. Its summary is **average precision**, the precision averaged over the recall steps:
 #
 # $$\large \text{AP} = \sum_{k} (R_k - R_{k-1})\, P_k$$
@@ -191,7 +191,7 @@ axes[1].set_xlabel("Recall"); axes[1].set_ylabel("Precision"); axes[1].set_title
 plt.tight_layout(); plt.show()
 
 # %% [markdown]
-# #### Try it: move the threshold along the curves
+# ## Try it: move the threshold along the curves
 # The same threshold is one point on the ROC curve and one point on the PR curve. Lowering it moves you up and to the right on ROC (more TP and more FP), and to the right on PR (higher recall, usually lower precision).
 #
 # *Interactive: run the notebook locally or in Colab to use the controls. GitHub only renders a static page.*
@@ -216,7 +216,7 @@ def explore_threshold(threshold):
 
 
 # %% [markdown]
-# #### Choosing a threshold
+# ## Choosing a threshold
 # 0.5 is only right if both kinds of error cost the same. Two common strategies:
 # - **Maximise F1** (or $F_\beta$, which weights recall $\beta$ times as much as precision).
 # - **Minimise expected cost:** if a missed positive costs $c_{FN}$ and a false alarm costs $c_{FP}$, pick the threshold minimising $c_{FN} \cdot FN + c_{FP} \cdot FP$. For calibrated probabilities the optimum is near $t^* = \frac{c_{FP}}{c_{FP} + c_{FN}}$.
@@ -238,7 +238,7 @@ axes[1].set_xlabel("Threshold"); axes[1].set_ylabel("Total cost"); axes[1].legen
 plt.tight_layout(); plt.show()
 
 # %% [markdown]
-# #### Handling class imbalance
+# ## Handling class imbalance
 # Three standard levers, compared below:
 # 1. **Threshold moving:** keep the model and lower the threshold (cheap, and often the most effective).
 # 2. **Class weights:** weight the loss so each class contributes equally (`class_weight="balanced"`, i.e. $w_c = \frac{n}{K \cdot n_c}$).
@@ -268,7 +268,7 @@ pd.DataFrame(rows).T.round(3)
 
 
 # %% [markdown]
-# #### Calibration
+# ## Calibration
 # A model is **calibrated** if, among all samples it gives probability 0.8, about 80% are actually positive. A **reliability diagram** bins the predictions and plots the mean predicted probability against the observed positive rate in each bin (the diagonal is perfect). The **Brier score** $\frac{1}{n}\sum_i (p_i - y_i)^2$ summarises calibration and sharpness together (lower is better).
 #
 # Logistic regression is usually well calibrated, because it directly minimises log-loss. Naive Bayes tends to push probabilities towards 0 and 1, because its independence assumption double-counts correlated evidence (this dataset has redundant features). Compare the prediction histograms below: it has a worse Brier score than logistic regression. `CalibratedClassifierCV` fixes a model's probabilities after the fact with isotonic regression or Platt (sigmoid) scaling fitted on held-out folds.
@@ -311,7 +311,7 @@ axes[1].set_yscale("log"); axes[1].set_xlabel("Predicted probability"); axes[1].
 plt.tight_layout(); plt.show()
 
 # %% [markdown]
-# #### Summary
+# ## Summary
 # | Question | Metric | Notes |
 # |---|---|---|
 # | Overall correctness (balanced classes) | Accuracy | Misleading under imbalance |

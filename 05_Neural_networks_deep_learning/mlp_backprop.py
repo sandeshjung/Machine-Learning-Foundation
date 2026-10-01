@@ -30,7 +30,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # %% [markdown]
-# ### Multi-Layer Perceptrons (MLPs) & Backpropagation from Scratch
+# # Multi-Layer Perceptrons & Backpropagation from Scratch
 #
 # An MLP is a feedforward neural network made of:
 # - An input layer
@@ -41,10 +41,10 @@ warnings.filterwarnings('ignore')
 #
 # This notebook trains a **3-layer MLP (784 → 256 → 256 → 26, tanh)** on the EMNIST *letters* dataset **without** `loss.backward()` or `torch.optim`. The forward pass, the softmax/cross-entropy gradient, backpropagation through every layer, and the gradient-descent update are all written out manually.
 #
-# Theory: [Multi-Layer Perceptrons (MLPs)](README.md#multi-layer-perceptrons-mlps) · [Backpropagation](README.md#backpropagation)
+# Theory: [Multi-Layer Perceptrons (MLPs)](README.md#1-multi-layer-perceptrons-and-backpropagation) · [Backpropagation](README.md#14-backpropagation)
 
 # %% [markdown]
-# #### Data: EMNIST Letters
+# ## Data: EMNIST Letters
 # 28×28 grayscale images of handwritten letters. The dataset (about 500 MB) is downloaded into `./data` on first run.
 
 # %%
@@ -74,7 +74,7 @@ plt.show()
 
 
 # %% [markdown]
-# #### Train / test split
+# ## Train / test split
 # Pixels are scaled to $[0, 1]$ and the first 80% of samples are used for training.
 
 # %%
@@ -101,7 +101,7 @@ X.shape
 28*28
 
 # %% [markdown]
-# #### Network hyperparameters
+# ## Network hyperparameters
 
 # %%
 ninput = 784
@@ -111,8 +111,8 @@ batch_size =64
 nclasses = len(dataset.classes)
 
 # %% [markdown]
-# #### Parameter initialisation
-# Weights use **Xavier/Glorot** scaling, $W \sim \mathcal{N}\left(0, \frac{2}{n_{in} + n_{out}}\right)$, which keeps activation variance roughly constant across tanh layers (see [Weight Initialization](README.md#weight-initialization)).
+# ## Parameter initialisation
+# Weights use **Xavier/Glorot** scaling, $W \sim \mathcal{N}\left(0, \frac{2}{n_{in} + n_{out}}\right)$, which keeps activation variance roughly constant across tanh layers (see [Weight Initialization](README.md#16-weight-initialisation)).
 
 # %%
 # Layer 1 (Input to Hidden)
@@ -129,7 +129,7 @@ b3 = torch.zeros(1, nclasses, requires_grad=True)
 num_batches = len(Xtrain) // batch_size
 
 # %% [markdown]
-# #### Training loop: manual forward & backward pass
+# ## Training loop: manual forward & backward pass
 # For each mini-batch:
 # 1. **Forward:** $Z^{(l)} = A^{(l-1)} W^{(l)} + b^{(l)}$, $A^{(l)} = \tanh(Z^{(l)})$, followed by a numerically stable softmax (subtract the row max) and the cross-entropy loss.
 # 2. **Backward:** apply the chain rule step by step through the softmax, the log and each layer, using $\frac{d}{dz}\tanh z = 1 - \tanh^2 z$.
@@ -220,7 +220,7 @@ for epoch in range(10):
     print(f"Epoch {epoch}, Loss: {losses[-1]}, Validation Loss: {val_losses[-1]}")
 
 # %% [markdown]
-# #### Gradient check: manual backprop vs autograd
+# ## Gradient check: manual backprop vs autograd
 # The loop's variables from the **last mini-batch** are still in memory. Its gradients were computed *before* the final update, so undoing that update ($W_{old} = W + \alpha \nabla_W L$) recovers the exact weights they belong to. Then we let `autograd` differentiate the same forward pass and compare all six gradients.
 
 # %%
@@ -241,7 +241,7 @@ for name, (_, grad_manual) in params_manual.items():
     check_close(f"dL/d{name}: manual vs autograd", grad_manual, leaves[name].grad, atol=1e-6)
 
 # %% [markdown]
-# #### Loss curves
+# ## Loss curves
 
 # %%
 plt.plot(losses, label='Training Loss')
@@ -253,7 +253,7 @@ plt.ylabel('Loss')
 plt.show()
 
 # %% [markdown]
-# #### Test accuracy
+# ## Test accuracy
 
 # %%
 correct = 0

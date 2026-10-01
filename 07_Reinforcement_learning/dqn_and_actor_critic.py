@@ -48,11 +48,11 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
 
 # %% [markdown]
-# ## DQN & Actor-Critic on CartPole
+# # DQN & Actor-Critic on CartPole
 #
-# Theory: [DQN & Actor-Critic Methods](README.md#dqn--actor-critic-methods)
+# Theory: [DQN & Actor-Critic Methods](README.md#6-q-learning-and-deep-q-networks-dqn)
 #
-# #### Environment: `CartPole-v1`
+# ### Environment: `CartPole-v1`
 # - **State (4):** cart position, cart velocity, pole angle, pole angular velocity
 # - **Actions (2):** push left or push right
 # - **Reward:** $+1$ for every step the pole stays upright. Episodes end when the pole falls or after 500 steps, so **500 is a perfect score**.
@@ -76,10 +76,10 @@ env.close()
 
 
 # %% [markdown]
-# ### Deep Q-Networks (DQN)
+# ## Deep Q-Networks (DQN)
 
 # %% [markdown]
-# #### Q-network
+# ### Q-network
 # Maps a state to one Q-value per action, $Q(s, \cdot\,; \theta)$.
 
 # %%
@@ -100,7 +100,7 @@ class QNetwork(nn.Module):
 
 
 # %% [markdown]
-# #### Experience replay
+# ### Experience replay
 # Transitions are stored in a buffer and sampled **uniformly at random** for training. This breaks the correlation between consecutive steps and reuses each experience many times.
 
 # %%
@@ -125,7 +125,7 @@ class ReplayBuffer:
 
 
 # %% [markdown]
-# #### ε-greedy exploration
+# ### ε-greedy exploration
 # With probability $\varepsilon$ take a random action, otherwise take $\arg\max_a Q(s, a)$. $\varepsilon$ decays exponentially from 0.9 to 0.05, shifting from exploration to exploitation.
 
 # %%
@@ -142,7 +142,7 @@ def select_action_epsilon_greedy(state_tensor, policy_net, epsilon, n_actions):
 
 
 # %% [markdown]
-# #### Hyperparameters
+# ### Hyperparameters
 
 # %%
 # DQN Algorithm Implementation
@@ -159,7 +159,7 @@ num_episodes = 600
 max_steps = 500
 
 # %% [markdown]
-# #### Online and target networks
+# ### Online and target networks
 # The **target network** is a slowly-updated copy used to compute TD targets, so the regression target doesn't shift with every gradient step.
 
 # %%
@@ -180,7 +180,7 @@ optimizer
 replay_memory
 
 # %% [markdown]
-# #### DQN training loop
+# ### DQN training loop
 # For each step: act ε-greedily → store the transition → sample a mini-batch and minimise the Huber loss between $Q(s, a)$ and the TD target
 # $$y = r + \gamma \max_{a'} Q_{\text{target}}(s', a')$$
 # (with $y = r$ for terminal states). Every `target_update_freq` episodes, the online weights are copied into the target network (a hard update).
@@ -274,7 +274,7 @@ for episode_i in range(num_episodes):
             print(f"CartPole solved by DQN at episode {episode_i+1}!")
 
 # %% [markdown]
-# #### DQN results
+# ### DQN results
 # Raw episode rewards with a 50-episode moving average.
 
 # %%
@@ -291,13 +291,13 @@ plt.show()
 
 
 # %% [markdown]
-# ### Actor-Critic Methods (Simple A2C)
+# ## Actor-Critic Methods (Simple A2C)
 #
 # - Actor: Policy network π_θ(a|s) - decides which action to take.
 # - Critic: Value network V_w(s) - estimates how good a state is.
 
 # %% [markdown]
-# #### Actor and critic networks
+# ### Actor and critic networks
 # The actor outputs action probabilities via softmax, and the critic outputs a single scalar $V(s)$.
 
 # %%
@@ -343,7 +343,7 @@ actor
 critic
 
 # %% [markdown]
-# #### Optimizers
+# ### Optimizers
 # Separate optimizers let the actor and critic learn at different rates.
 
 # %%
@@ -358,7 +358,7 @@ a2c_num_episodes = 1500
 max_steps, gamma
 
 # %% [markdown]
-# #### A2C training loop
+# ### A2C training loop
 # After each episode:
 # 1. Compute discounted returns $G_t$ (bootstrapping is cut at terminal states by the `masks`).
 # 2. **Advantage:** $A_t = G_t - V(s_t)$, i.e. how much better the action was than the critic expected.
@@ -472,7 +472,7 @@ plt.legend()
 plt.show()
 
 # %% [markdown]
-# #### Conclusion 
+# ### Conclusion
 # - DQN learns an action-value function (Q-function) using a Q-network, experience replay, and a target network to stabilize learning. It's off-policy.
 # - Actor-Critic methods learn both a policy (Actor) and a value function (Critic). The Critic helps evaluate actions taken by the Actor, often leading to more stable policy gradient updates by using an advantage estimate.
 

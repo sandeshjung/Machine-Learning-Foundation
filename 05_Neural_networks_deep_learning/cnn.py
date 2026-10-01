@@ -43,7 +43,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
 
 # %% [markdown]
-# ### Convolution Neural Networks (CNNs)
+# # Convolutional Neural Networks (CNNs)
 # <p>CNNs are a class of deep neural networks most commonly applied to analyzing visual imagery.</p>
 
 # %%
@@ -96,7 +96,7 @@ show_images(images[:8], title="Sample Training Images", unnormalize=True)
 
 
 # %% [markdown]
-# ### CNN Architecture 
+# ## CNN Architecture
 # <p><b>We will define a simple CNN</b></p>
 # Conv1 -> ReLU -> MaxPool1 -> Conv2 -> ReLU -> MaxPool2 -> Flatten -> FC1 -> ReLU -> FC2 (output)
 
@@ -164,8 +164,8 @@ dummy_output.shape      # [batch, nclasses]
 
 
 # %% [markdown]
-# #### Checking the output-size formula
-# For every convolution and pooling layer, $\text{out} = \left\lfloor \frac{\text{in} + 2p - k}{s} \right\rfloor + 1$ (see [Output Size Calculation](README.md#output-size-calculation)). Forward hooks record each layer's actual input and output width, so the formula is checked layer by layer.
+# ### Checking the output-size formula
+# For every convolution and pooling layer, $\text{out} = \left\lfloor \frac{\text{in} + 2p - k}{s} \right\rfloor + 1$ (see [Output Size Calculation](README.md#23-output-size-and-parameter-count)). Forward hooks record each layer's actual input and output width, so the formula is checked layer by layer.
 
 # %%
 def expected_size(size, layer):

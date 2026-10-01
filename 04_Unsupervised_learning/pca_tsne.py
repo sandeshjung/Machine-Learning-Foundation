@@ -40,7 +40,7 @@ torch.manual_seed(42)
 np.random.seed(42)
 
 # %% [markdown]
-# #### Dimensionality Reduction
+# # Dimensionality Reduction: PCA & t-SNE
 #
 # Dimensionality Reduction: The process of reducing the number of random variables (features)
 # under consideration, by obtaining a set of principal variables.
@@ -80,7 +80,7 @@ plt.show()
 
 
 # %% [markdown]
-# #### Principal Component Analysis (PCA)
+# ## Principal Component Analysis (PCA)
 
 # %%
 class PyTorchPCA:
@@ -136,7 +136,7 @@ pca_torch = PyTorchPCA(n_components=N_COMPONENTS_PCA)
 X_digits_pca_torch = pca_torch.fit_transform(X_digits_tensor)
 
 # %% [markdown]
-# #### Verifying against scikit-learn
+# ## Verifying against scikit-learn
 # Explained variance must match exactly. Principal axes are only defined **up to sign** (both $v$ and $-v$ are valid eigenvectors), so we align each axis's sign with scikit-learn's before comparing the axes and the projected data.
 
 # %%
@@ -197,7 +197,7 @@ plt.legend()
 plt.show()
 
 # %% [markdown]
-# #### T-distributed Stochastic Neighbor Embedding (t-SNE)
+# ## t-Distributed Stochastic Neighbor Embedding (t-SNE)
 # A non-linear dimensionality reduction technique primarily used for visualization of high-dimensional datasets in low dimensions. 
 
 # %%
@@ -259,7 +259,7 @@ plt.grid(True)
 plt.show()
 
 # %% [markdown]
-# #### Try it: t-SNE perplexity
+# ## Try it: t-SNE perplexity
 # Perplexity is roughly the number of neighbours each point tries to stay close to. Low values emphasise very local structure (many small fragments), and high values preserve more global structure. This runs on a 600-point subset so each update takes a few seconds.
 #
 # *Interactive: run the notebook locally or in Colab to use the controls. GitHub only renders a static page.*

@@ -22,13 +22,13 @@ if "google.colab" in sys.modules:
     get_ipython().run_line_magic("pip", "install -q git+https://github.com/sandeshjung/Machine-Learning-Foundation.git")
 
 # %% [markdown]
-# ### k-Nearest Neighbours (k-NN)
+# # k-Nearest Neighbours (k-NN)
 #
 # k-NN is the simplest non-parametric classifier: it has **no training phase**. To classify a new point it finds the $k$ closest training points and takes a (possibly distance-weighted) majority vote of their labels. All the "learning" happens at prediction time, which is why it is called a **lazy** learner.
 #
 # $$\large \hat{y}(\mathbf{x}) = \arg\max_{c} \sum_{i \in \mathcal{N}_k(\mathbf{x})} w_i \, \mathbb{1}[y_i = c], \qquad w_i = 1 \;\text{(uniform)} \;\text{ or }\; w_i = \frac{1}{d(\mathbf{x}, \mathbf{x}_i)} \;\text{(distance)}$$
 #
-# Theory: [k-Nearest Neighbours](README.md#k-nearest-neighbours-k-nn)
+# Theory: [k-Nearest Neighbours](README.md#4-k-nearest-neighbours)
 
 # %%
 import torch
@@ -47,7 +47,7 @@ torch.manual_seed(42)
 np.random.seed(42)
 
 # %% [markdown]
-# #### Data: two interleaving moons
+# ## Data: two interleaving moons
 # A non-linear boundary that a linear model can't capture. Features are standardised because k-NN is distance-based (see the scaling pitfall at the end).
 
 # %%
@@ -61,7 +61,7 @@ X_train.shape, X_test.shape
 
 
 # %% [markdown]
-# #### k-NN from scratch
+# ## k-NN from scratch
 # 1. **Distances:** `torch.cdist` computes all pairwise Euclidean distances $\lVert \mathbf{x} - \mathbf{x}_i \rVert_2$ between test and training points in one call. The result is an $(n_{test} \times n_{train})$ matrix.
 # 2. **Neighbours:** `topk(..., largest=False)` picks the $k$ smallest distances in each row.
 # 3. **Vote:** add up each neighbour's weight into its class, then take the argmax.
@@ -104,7 +104,7 @@ y_pred = knn.predict(X_test)
 print(f"Test accuracy (k=15): {(y_pred == y_test).float().mean():.3f}")
 
 # %% [markdown]
-# #### Verifying against scikit-learn
+# ## Verifying against scikit-learn
 # Same $k$, same (Euclidean) metric, same weighting: the neighbour indices, probabilities and predictions should be identical. Distances agree to about $10^{-5}$: for speed, `torch.cdist` computes $\lVert a - b \rVert^2 = \lVert a \rVert^2 + \lVert b \rVert^2 - 2a^\top b$ with a matrix multiply, which loses a little float32 precision (pass `compute_mode="donot_use_mm_for_euclid_dist"` for the exact but slower version).
 
 # %%
@@ -120,7 +120,7 @@ for weights in ["uniform", "distance"]:
     check_agreement(f"[{weights}] predictions", ours.predict(X_test), sk.predict(X_test_np), min_agreement=1.0)
 
 # %% [markdown]
-# #### Choosing $k$: the bias-variance trade-off
+# ## Choosing $k$: the bias-variance trade-off
 # - **Small $k$** (e.g. 1): the boundary follows every training point, including noise, so training accuracy is perfect but the model overfits (high variance).
 # - **Large $k$**: the vote averages over a big neighbourhood, so the boundary becomes smooth and eventually too simple (high bias). With $k = n$ it always predicts the majority class.
 #
@@ -156,7 +156,7 @@ plt.tight_layout()
 plt.show()
 
 # %% [markdown]
-# #### Try it: $k$ and the weighting scheme
+# ## Try it: $k$ and the weighting scheme
 # Watch the boundary go from jagged ($k=1$) to smooth. With `distance` weighting, close neighbours dominate the vote, so even a large $k$ keeps some local detail. With $k=1$ the training accuracy is always 100%.
 #
 # *Interactive: run the notebook locally or in Colab to use the controls. GitHub only renders a static page.*
@@ -176,7 +176,7 @@ def explore_knn(k, weights):
 
 
 # %% [markdown]
-# #### Pitfall 1: feature scaling
+# ## Pitfall 1: feature scaling
 # Distances are dominated by the feature with the largest scale. Below, one feature is multiplied by 1000 (think "income in dollars" next to "age in decades"). Without rescaling, k-NN effectively ignores the other feature.
 
 # %%
@@ -191,7 +191,7 @@ print(f"Feature 2 multiplied by 1000: {acc(X_train_bad, X_test_bad):.3f}")
 print(f"... after StandardScaler:     {acc(scaler.transform(X_train_bad), scaler.transform(X_test_bad)):.3f}")
 
 # %% [markdown]
-# #### Pitfall 2: the curse of dimensionality
+# ## Pitfall 2: the curse of dimensionality
 # In high dimensions, "nearest" stops meaning much: for random points, the distance to the **nearest** neighbour approaches the distance to the **farthest** one, so every point is roughly equally far away. The plot shows the ratio $d_{min} / d_{max}$ for 1,000 uniformly random points as the dimension grows.
 
 # %%
@@ -212,7 +212,7 @@ plt.ylim(0, 1)
 plt.show()
 
 # %% [markdown]
-# #### Summary
+# ## Summary
 # | | k-NN |
 # |---|---|
 # | Training cost | $O(1)$ (just stores the data) |

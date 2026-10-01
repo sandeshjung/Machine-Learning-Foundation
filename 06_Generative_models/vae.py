@@ -45,7 +45,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 # %% [markdown]
-# ### Variational Autoencoders (VAEs)
+# # Variational Autoencoders (VAEs)
 # <p>VAEs are a type of generative model. Unlike standard autoencoders that learn a deterministic mapping to a latent space, VAEs learn a probability distribution for that latent space.</p>
 # <p>Goal:</p>
 #
@@ -55,9 +55,9 @@ warnings.filterwarnings("ignore")
 # <p>VAEs are trained by maximizing the Evidence Lower Bound (ELBO) on the log-likelihood of the data.</p>
 
 # %% [markdown]
-# Theory: [Variational Autoencoders (VAEs)](README.md#variational-autoencoders-vaes) · [ELBO](README.md#the-vae-objective-evidence-lower-bound-elbo)
+# Theory: [Variational Autoencoders (VAEs)](README.md#2-variational-autoencoders-vaes) · [ELBO](README.md#24-the-objective-the-elbo)
 #
-# #### Data: Fashion-MNIST
+# ### Data: Fashion-MNIST
 # Pixels stay in $[0, 1]$ (no normalisation) because the reconstruction loss is binary cross-entropy against a sigmoid output.
 
 # %%
@@ -85,7 +85,7 @@ flatten_dim = img_channels * img_height * img_width
 flatten_dim
 
 # %% [markdown]
-# #### Visualisation helper
+# ### Visualisation helper
 # `show_images` from the shared [`mlf_utils`](../mlf_utils/plotting.py) package arranges a batch into a grid.
 
 # %%
@@ -97,7 +97,7 @@ images_sample, _ = next(dataiter_vae)
 show_images(images_sample, num_images=8, title="Sample Training Images")
 
 # %% [markdown]
-# ### VAE model definition (Fully Connected)
+# ## VAE model definition (Fully Connected)
 # <p>Architecture:
 #
 # - Encoder: Input -> FC Layers -> mu (mean), log_var (log variance) of latent distribution
@@ -105,7 +105,7 @@ show_images(images_sample, num_images=8, title="Sample Training Images")
 # - Decoder: Latent z -> FC Layers -> Reconstructed Output</p>
 
 # %% [markdown]
-# #### Latent dimension
+# ### Latent dimension
 # A 2-D latent space gives blurrier reconstructions, but it can be plotted directly. Switch to `latent_dim = 20` for sharper results.
 
 # %%
@@ -182,7 +182,7 @@ print(vae_model)
 
 
 # %% [markdown]
-# #### VAE Loss Function (Negative ELBO)
+# ### VAE Loss Function (Negative ELBO)
 #
 # <span>Loss = Reconstruction Loss + KL Divergence</span>
 
@@ -204,7 +204,7 @@ def vae_loss_function(x_reconstructed, x_original_flat, mu, log_var):
 
 
 # %% [markdown]
-# #### Verifying the closed-form KL
+# ### Verifying the closed-form KL
 # `torch.distributions.kl_divergence` computes the same quantity for two `Normal` distributions. Summing over latent dimensions and averaging over the batch should match our loss term.
 
 # %%
@@ -221,7 +221,7 @@ p_z = Normal(torch.zeros_like(mu_test), torch.ones_like(mu_test))
 check_close("KL: closed form vs torch.distributions", kl_ours, kl_divergence(q_z, p_z).sum(dim=1).mean(), atol=1e-5)
 
 # %% [markdown]
-# #### Training
+# ### Training
 
 # %%
 optimizer = optim.Adam(vae_model.parameters(), lr=1e-3)
@@ -268,7 +268,7 @@ for epoch in range(num_epochs):
           f"Recon Loss: {epoch_recon_loss:.4f}, KL Div: {epoch_kl_div:.4f}")
 
 # %% [markdown]
-# #### Loss curves
+# ### Loss curves
 # The total loss is the negative ELBO, shown alongside its reconstruction and KL components.
 
 # %%
@@ -283,7 +283,7 @@ plt.legend()
 plt.show()
 
 # %% [markdown]
-# #### Reconstructions
+# ### Reconstructions
 # Test images (top) and their reconstructions (bottom).
 
 # %%
@@ -311,7 +311,7 @@ plt.tight_layout()
 plt.show()
 
 # %% [markdown]
-# #### Generating new images
+# ### Generating new images
 # Sample $z \sim \mathcal{N}(0, I)$ from the prior and decode it. No encoder is involved.
 
 # %%
@@ -327,7 +327,7 @@ with torch.no_grad():
 show_images(generated_images, title="Generated Images from VAE Latent Space", num_images=num_generated_samples)
 
 # %% [markdown]
-# #### The 2-D latent space
+# ### The 2-D latent space
 # Each test image is plotted at its encoded mean $\mu$, coloured by class. Similar garments cluster together even though the VAE never saw the labels.
 
 # %%
@@ -360,7 +360,7 @@ else:
     print(f"\nLatent space dimension is {latent_dim}. Visualization of latent space is for 2D.")
 
 # %% [markdown]
-# #### Try it: walk the latent space
+# ### Try it: walk the latent space
 # Pick a point $z = (z_1, z_2)$ and decode it. Because the KL term keeps the latent space close to $\mathcal{N}(0, I)$, nearby points decode to similar garments and moving across the plane morphs smoothly between classes. Compare with the 2-D scatter above to see which region is which.
 #
 # *Interactive: run the notebook locally or in Colab to use the controls. GitHub only renders a static page.*

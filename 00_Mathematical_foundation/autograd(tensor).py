@@ -22,7 +22,7 @@ if "google.colab" in sys.modules:
     get_ipython().run_line_magic("pip", "install -q git+https://github.com/sandeshjung/Machine-Learning-Foundation.git")
 
 # %% [markdown]
-# ## Autograd Tensor
+# # Autograd (Tensor)
 #
 # The same engine as the scalar notebook, but each `Value` now wraps a **tensor**. The new ingredients are:
 # - **Matrix multiplication**: for $Z = AW$, $\frac{\partial L}{\partial A} = \frac{\partial L}{\partial Z} W^\top$ and $\frac{\partial L}{\partial W} = A^\top \frac{\partial L}{\partial Z}$
@@ -30,10 +30,10 @@ if "google.colab" in sys.modules:
 #
 # The result is checked against PyTorch's built-in autograd at the end.
 #
-# Theory: [PyTorch Autograd: Automatic Differentiation](README.md#pytorch-autograd-automatic-differentiation)
+# Theory: [PyTorch Autograd: Automatic Differentiation](README.md#4-automatic-differentiation-autograd)
 
 # %% [markdown]
-# #### Visualising the computation graph
+# ## Visualising the computation graph
 # Same shared `draw_dot` helper as the scalar version ([`mlf_utils/graphs.py`](../mlf_utils/graphs.py)). For tensor nodes it shows shapes instead of values.
 
 # %%
@@ -42,7 +42,7 @@ from mlf_utils import check_close, draw_dot  # draw_dot renders the graph with G
 
 
 # %% [markdown]
-# #### Undoing broadcasting in the backward pass
+# ## Undoing broadcasting in the backward pass
 # `unbroadcast` sums the incoming gradient over any dimension that was added or stretched from size 1, so the gradient has the same shape as the original tensor.
 
 # %%
@@ -58,7 +58,7 @@ def unbroadcast(target, grad):
 
 
 # %% [markdown]
-# #### The tensor `Value` class
+# ## The tensor `Value` class
 
 # %%
 import torch
@@ -128,7 +128,7 @@ class Value:
 
 
 # %% [markdown]
-# #### A single linear layer: $z = aw + b$
+# ## A single linear layer: $z = aw + b$
 # We create the same random tensors twice: `w1`, `b1`, `a1` are plain PyTorch tensors used as a reference, and `a`, `b`, `w` are wrapped in our `Value` class.
 
 # %%
@@ -163,7 +163,7 @@ z
 draw_dot(z)
 
 # %% [markdown]
-# #### Manual backward pass
+# ## Manual backward pass
 # Seed the output gradient with ones (equivalent to backpropagating `z.sum()`), then call `_backward()` from the output towards the inputs.
 
 # %%
@@ -180,7 +180,7 @@ z._backward()
 interm._backward()
 
 # %% [markdown]
-# #### Reference: PyTorch autograd
+# ## Reference: PyTorch autograd
 # The gradients below should match the ones from our engine.
 
 # %%
@@ -199,7 +199,7 @@ print("Gradient of the w tensor:", w.grad)
 print("Gradient of the b tensor:", b.grad)
 
 # %% [markdown]
-# #### Verifying our engine against PyTorch
+# ## Verifying our engine against PyTorch
 
 # %%
 for name, ours, ref in [("dz/da", a.grad, a1.grad), ("dz/dw", w.grad, w1.grad), ("dz/db", b.grad, b1.grad)]:

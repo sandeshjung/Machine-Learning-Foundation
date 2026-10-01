@@ -118,12 +118,14 @@ HIDDEN_DIM2 = 128
 
 
 # %% [markdown]
-# ### Optimization Algorithms
+# # Optimizers, Schedulers & Regularization
 #
-# #### Stochastic Gradient Descent (SGD)
+# ## Optimization Algorithms
+#
+# ### Stochastic Gradient Descent (SGD)
 # <p>We'll use this as a baseline to compare with Adam. SGD with momentum is often better than vanilla SGD.</p>
 #
-# #### Adam Optimizer
+# ### Adam Optimizer
 # <p>Adam (Adaptive Moment Estimation) is an adaptive learning rate optimization algorithm that computes individual learning rates for different parameters. It combines ideas from RMSProp (adaptive learning rates based on squared gradients) and Momentum (using a moving average of gradients). Ofter a good default choice for many deep learning tasks. Common parameters: lr (learning rate), betas (coefficients for moving averages), eps (for numerical stability).</p>
 
 # %%
@@ -224,8 +226,8 @@ plt.show()
 print("Adam often converges faster or to a better minimum than basic SGD.")
 
 # %% [markdown]
-# #### Adam from scratch vs `torch.optim.Adam`
-# The [Adam update](README.md#adam-optimizer) keeps running averages of the gradient ($m_t$) and squared gradient ($v_t$), corrects their bias towards zero, and takes a step $\theta \leftarrow \theta - \eta \, \hat{m}_t / (\sqrt{\hat{v}_t} + \epsilon)$. Running our version and PyTorch's side by side on the same loss should give identical parameters.
+# ### Adam from scratch vs `torch.optim.Adam`
+# The [Adam update](README.md#53-adaptive-methods) keeps running averages of the gradient ($m_t$) and squared gradient ($v_t$), corrects their bias towards zero, and takes a step $\theta \leftarrow \theta - \eta \, \hat{m}_t / (\sqrt{\hat{v}_t} + \epsilon)$. Running our version and PyTorch's side by side on the same loss should give identical parameters.
 
 # %%
 from mlf_utils import check_close
@@ -251,7 +253,7 @@ for t in range(1, 21):
 check_close("Manual Adam vs torch.optim.Adam after 20 steps", w_manual, w_torch, atol=1e-6)
 
 # %% [markdown]
-# ### Learning Rate Scheduling
+# ## Learning Rate Scheduling
 # <p>Adjusting the learning rate during training can improve performance and convergence.</p>
 #
 # - Start with a larger LR for faster initial progress.
@@ -280,7 +282,7 @@ history_lr_scheduler = train_and_validate_model(
 )
 
 # %% [markdown]
-# ### Regularization Techniques
+# ## Regularization Techniques
 # <p>Regularization helps prevent overfitting by adding constraints or penalties to the learning algorithm.</p>
 
 # %%

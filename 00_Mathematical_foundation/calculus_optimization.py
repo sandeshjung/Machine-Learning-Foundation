@@ -22,7 +22,7 @@ if "google.colab" in sys.modules:
     get_ipython().run_line_magic("pip", "install -q git+https://github.com/sandeshjung/Machine-Learning-Foundation.git")
 
 # %% [markdown]
-# # Calculus
+# # Calculus: Gradients and Finite Differences
 
 # %%
 import torch
@@ -38,11 +38,11 @@ print(f"PyTorch Version: {torch.__version__}")
 
 
 # %% [markdown]
-# ### Gradients
+# ## Gradients
 # The gradient of a function measures how much the output of the function changes if you change the inputs a little bit. For a scalar function f(x) of a single variable x, the gradient is its derivative df/dx. For a scalar function f(x_1, x_2, ..., x_n) of multiple variables (vecctor input x), the gradient is a vector of partial derivatives: ∇f(x) = [∂f/∂x_1, ∂f/∂x_2, ..., ∂f/∂x_n]. The gradient vector points in the direction of the steepest ascent of the function. The negative gradient (-∇f(x)) points in the direction of the steepest descent.
 
 # %% [markdown]
-# ##### Manual Calculation for simple functions
+# ### Manual Calculation for simple functions
 
 # %%
 # Example 1: f(x) = x^2
@@ -112,7 +112,7 @@ torch.allclose(df2_manual, df2_torch)
 
 
 # %% [markdown]
-# ##### Numerical Approximation (Finite Differences)
+# ### Numerical Approximation (Finite Differences)
 
 # %% [markdown]
 # We can approximate the derivative/gradient numerically using the definition: </br></br>
@@ -159,7 +159,7 @@ torch.allclose(numerical_gradient_2d(f2, torch.tensor([x1.item(),x2.item()])), d
 # *Note: Numerical gradients are useful for checking analytical gradients but are less precise and computationally expensive.*
 
 # %% [markdown]
-# ##### *Why These Differences Matter*
+# ### Why These Differences Matter
 # In deep learning, these small gradient errors can compound and lead to:
 # - Error accumulation during backpropagation through many layers
 # - Optimization challenges where the optimizer follows slightly incorrect paths
@@ -167,7 +167,7 @@ torch.allclose(numerical_gradient_2d(f2, torch.tensor([x1.item(),x2.item()])), d
 # - Numerical instability in certain architectures, especially those with many layers
 
 # %% [markdown]
-# ##### Visualizing Gradients
+# ### Visualizing Gradients
 
 # %%
 plt.style.use('seaborn-v0_8-whitegrid')

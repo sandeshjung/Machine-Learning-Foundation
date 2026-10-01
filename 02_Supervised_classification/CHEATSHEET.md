@@ -1,8 +1,11 @@
-# Cheat Sheet: Supervised Classification
+# 02 · Cheat Sheet: Supervised Classification
 
-Notebooks: [logistic_regression](logistic_regression.ipynb) · [naive_bayes](naive_bayes.ipynb) · [svm_kernels](svm_kernels.ipynb) · [knn](knn.ipynb) · [decision_trees](decision_trees.ipynb) · [ensembles](ensembles.ipynb) · Theory: [README](README.md)
+> **Notebooks:** [logistic_regression](logistic_regression.ipynb) · [naive_bayes](naive_bayes.ipynb) · [svm_kernels](svm_kernels.ipynb) · [knn](knn.ipynb) · [decision_trees](decision_trees.ipynb) · [ensembles](ensembles.ipynb)
+>
+> **Full explanations:** [README](README.md)
 
 ## Key equations
+
 | Model | Prediction | Loss / training |
 |---|---|---|
 | Logistic regression | $P(y=1 \mid x) = \sigma(w^\top x + b)$, $\sigma(z) = \frac{1}{1+e^{-z}}$ | BCE: $-\frac{1}{m}\sum [y \log \hat{p} + (1-y)\log(1-\hat{p})]$, gradient $\frac{1}{m} X^\top(\hat{p} - y)$ |
@@ -20,9 +23,13 @@ Notebooks: [logistic_regression](logistic_regression.ipynb) · [naive_bayes](nai
 - **Multinomial:** $\frac{N_{jc} + \alpha}{N_c + \alpha d}$ for word counts.
 - **Bernoulli:** $\frac{N_{jc} + \alpha}{N_c + 2\alpha}$ for binary features. It also penalises *absent* features.
 
-**Kernels:** linear $x^\top x'$ · polynomial $(\gamma x^\top x' + r)^d$ · RBF $\exp(-\gamma \lVert x - x' \rVert^2)$
+**Kernels**
+- **Linear:** $x^\top x'$
+- **Polynomial:** $(\gamma x^\top x' + r)^d$
+- **RBF:** $\exp(-\gamma \lVert x - x' \rVert^2)$
 
 ## Choosing a model
+
 | Situation | Try |
 |---|---|
 | Need probabilities and interpretable weights | Logistic regression |
@@ -35,6 +42,7 @@ Notebooks: [logistic_regression](logistic_regression.ipynb) · [naive_bayes](nai
 | Tabular data, best accuracy | Gradient boosting (`HistGradientBoosting`, XGBoost, LightGBM) with early stopping |
 
 ## Hyperparameters
+
 - **Logistic `C` / SVM `C`:** inverse regularisation. Large $C$ gives less regularisation, so it can overfit.
 - **RBF `gamma`:** the reach of each point. Large values give wiggly boundaries (overfitting), small values give near-linear ones. Tune `C` and `gamma` **together** on a log grid.
 - **Naive Bayes `alpha`:** smoothing. $\alpha = 1$ is Laplace smoothing, and it prevents zero probabilities for unseen words.
@@ -45,9 +53,16 @@ Notebooks: [logistic_regression](logistic_regression.ipynb) · [naive_bayes](nai
 - **AdaBoost:** $\alpha_m = \eta\left(\log\frac{1-\varepsilon_m}{\varepsilon_m} + \log(K-1)\right)$. Misclassified sample weights grow by $e^{\alpha_m}$.
 
 ## Metrics
-$\text{Precision} = \frac{TP}{TP + FP}$ · $\text{Recall} = \frac{TP}{TP + FN}$ · $F_1 = \frac{2PR}{P + R}$ · ROC-AUC is threshold-independent
+
+- **Precision** $= \frac{TP}{TP + FP}$
+- **Recall** $= \frac{TP}{TP + FN}$
+- **F1** $= \frac{2PR}{P + R}$
+- **ROC-AUC** is threshold-independent
+
+More in the [module 03 cheat sheet](../03_Model_evaluation_selection/CHEATSHEET.md).
 
 ## Pitfalls
+
 - Accuracy is misleading on imbalanced classes, so check precision, recall and the confusion matrix.
 - SVMs and regularised models need **scaled features**.
 - SVM labels are $\pm 1$, not $0/1$, when writing the hinge loss by hand.

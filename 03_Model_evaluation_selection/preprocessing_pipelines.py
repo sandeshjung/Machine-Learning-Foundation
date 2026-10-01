@@ -22,13 +22,13 @@ if "google.colab" in sys.modules:
     get_ipython().run_line_magic("pip", "install -q git+https://github.com/sandeshjung/Machine-Learning-Foundation.git")
 
 # %% [markdown]
-# ### Data Preprocessing, Feature Engineering & Pipelines
+# # Data Preprocessing, Feature Engineering & Pipelines
 #
 # Real datasets have missing values, text categories, skewed numbers and features on wildly different scales. How you handle them often matters more than which model you pick. And handling them *wrongly* (fitting any preprocessing on data that includes the validation or test set) silently inflates your scores. This is **data leakage**.
 #
 # This notebook implements the core transformers from scratch, checks them against scikit-learn, and then assembles them into a leak-proof `Pipeline`.
 #
-# Theory: [Data Preprocessing & Pipelines](README.md#data-preprocessing--pipelines)
+# Theory: [Data Preprocessing & Pipelines](README.md#5-preprocessing-pipelines-and-data-leakage)
 
 # %%
 import numpy as np
@@ -50,7 +50,7 @@ sns.set_theme(style="whitegrid")
 np.random.seed(42)
 
 # %% [markdown]
-# #### A realistic messy dataset
+# ### A realistic messy dataset
 # A synthetic housing dataset, generated here so the notebook runs offline and the ground truth is known:
 # - `area_sqft`: right-skewed (log-normal), **8% missing completely at random (MCAR)**
 # - `bedrooms`, `year_built`: numeric
@@ -104,7 +104,7 @@ X_train.shape, X_test.shape
 
 
 # %% [markdown]
-# ### 1. Missing values
+# ## 1. Missing values
 # | Mechanism | Meaning | Example | Safe to impute simply? |
 # |---|---|---|---|
 # | **MCAR** | Missingness unrelated to anything | a sensor randomly drops readings | Yes (mean/median) |
@@ -139,7 +139,7 @@ check_close("Median imputation + missing indicator vs SimpleImputer", ours_ind, 
 
 
 # %% [markdown]
-# ### 2. Encoding categorical features
+# ## 2. Encoding categorical features
 # - **One-hot encoding** for *nominal* categories: one 0/1 column per category. Unseen categories at prediction time become all-zeros (`handle_unknown="ignore"`) instead of crashing.
 # - **Ordinal encoding** for *ordered* categories: map to integers **in the meaningful order** (Poor=0 < Fair=1 < …), not alphabetically.
 # - **Target encoding** for *high-cardinality* categories (thousands of zip codes): replace each category with the mean target of that category. It must be **cross-fitted**, or it leaks the target (see section 5).
@@ -170,7 +170,7 @@ print("Alphabetical order would have been:", sorted(condition_levels), "(meaning
 
 
 # %% [markdown]
-# ### 3. Scaling
+# ## 3. Scaling
 # - **Standardisation:** $z = \frac{x - \mu}{\sigma}$, which is what distance-based and gradient-based models and regularised models need. It uses the population standard deviation ($n$, not $n-1$).
 # - **Robust scaling:** $\frac{x - \text{median}}{\text{IQR}}$, which isn't dragged around by outliers.
 # - **Min-max scaling:** squashes values into $[0, 1]$. It's fragile when outliers are present.
@@ -211,7 +211,7 @@ for ax, (name, scaler) in zip(axes, [("StandardScaler", StandardScaler()), ("Rob
 plt.tight_layout(); plt.show()
 
 # %% [markdown]
-# ### 4. Feature engineering & the full pipeline
+# ## 4. Feature engineering & the full pipeline
 # Good features encode what you know about the problem:
 # - **Log-transform** skewed positive variables. Price scales multiplicatively with area here, so $\log(\text{area})$ is linear in $\log(\text{price})$.
 # - **Derived features**, such as house age from `year_built`, ratios, or date parts (day of week, month).
@@ -251,7 +251,7 @@ print(f"Held-out test R² of the final pipeline: {final_pipe.score(X_test, y_tes
 final_pipe
 
 # %% [markdown]
-# ### 5. Data leakage: two classic traps
+# ## 5. Data leakage: two classic traps
 # **Trap 1: feature selection before cross-validation.** 100 samples, 5,000 features of **pure noise** and random labels, so the honest accuracy is 50%. Selecting the 20 "best" features on the *full* dataset first, then cross-validating, makes noise look predictive, because the selector already saw the validation folds' labels.
 
 # %%
@@ -281,7 +281,7 @@ print(f"Naive mean encoding of a meaningless ID: CV R² = {naive_r2:.3f}")
 print(f"TargetEncoder inside a pipeline:         CV R² = {honest_r2:.3f}   <- ≈ 0 (or below): there is no signal")
 
 # %% [markdown]
-# #### Try it: missing data and imputation strategy
+# ### Try it: missing data and imputation strategy
 # Knock out a growing fraction of `area_sqft` (the strongest feature) completely at random and compare strategies by cross-validated $R^2$. *Drop rows* throws data away, while *median* keeps every row. The *+ indicator* variant adds a 0/1 missing flag, which helps most when missingness is informative (MAR/MNAR). Here it's MCAR, so expect only a small gain.
 #
 # *Interactive: run the notebook locally or in Colab to use the controls. GitHub only renders a static page.*
@@ -311,7 +311,7 @@ def explore_missing(missing_fraction, strategy):
     plt.show()
 
 # %% [markdown]
-# #### Preprocessing checklist
+# ### Preprocessing checklist
 # 1. **Split first.** Fit every imputer, scaler, encoder and feature selector on the training data only, ideally by putting them in a `Pipeline`.
 # 2. **Missing values:** median or most-frequent imputation, plus missing indicators when missingness might be informative. Understand *why* values are missing.
 # 3. **Categoricals:** one-hot for nominal, ordinal with an explicit order for ordered categories, cross-fitted target encoding for high cardinality. Always handle unseen categories.
